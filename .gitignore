@@ -5,7 +5,7 @@
 .DS_Store
 /build
 /captures
-/gradle
+/gradle/wrapper
 /gradlew
 .externalNativeBuild
 .cxx
