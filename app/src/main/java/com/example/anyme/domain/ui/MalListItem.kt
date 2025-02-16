@@ -1,12 +1,12 @@
 package com.example.anyme.domain.ui
 
 import androidx.compose.runtime.Immutable
-import com.example.anyme.domain.mal.Anime.AiringStatus
-import com.example.anyme.domain.mal.Anime.EpisodeType
-import com.example.anyme.domain.mal.MyListStatus.Status
+import com.example.anyme.domain.mal_api.MalAnimeDL.AiringStatus
+import com.example.anyme.domain.mal_api.MalAnimeDL.EpisodeType
+import com.example.anyme.domain.mal_dl.MyListStatus.Status
 
 @Immutable
-data class UserListAnimeUi(
+data class MalListItem(
     val id: Int = 0,
     val title: String = "",
     val mainPictureMedium: String = "",

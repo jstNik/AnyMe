@@ -1,4 +1,4 @@
-package com.example.anyme.domain.mal
+package com.example.anyme.domain.mal_api
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

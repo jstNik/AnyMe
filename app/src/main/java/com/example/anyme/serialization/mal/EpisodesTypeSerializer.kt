@@ -1,7 +1,7 @@
-package com.example.anyme.serialization
+package com.example.anyme.serialization.mal
 
 import android.util.Log
-import com.example.anyme.domain.mal.Anime
+import com.example.anyme.domain.mal_api.MalAnimeDL
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 
-class EpisodesTypeSerializer: JsonSerializer<Map<IntRange, Anime.EpisodeType>>() {
+class EpisodesTypeSerializer: JsonSerializer<Map<IntRange, MalAnimeDL.EpisodeType>>() {
     override fun serialize(
-        value: Map<IntRange, Anime.EpisodeType>,
+        value: Map<IntRange, MalAnimeDL.EpisodeType>,
         gen: JsonGenerator,
         serializers: SerializerProvider
     ) {
@@ -24,19 +24,19 @@ class EpisodesTypeSerializer: JsonSerializer<Map<IntRange, Anime.EpisodeType>>()
     }
 }
 
-class EpisodeTypeDeserializer: JsonDeserializer<Map<IntRange, Anime.EpisodeType>>(){
+class EpisodeTypeDeserializer: JsonDeserializer<Map<IntRange, MalAnimeDL.EpisodeType>>(){
     override fun deserialize(
         p: JsonParser,
         ctxt: DeserializationContext
-    ): Map<IntRange, Anime.EpisodeType> {
-        val episodeType = mutableMapOf<IntRange, Anime.EpisodeType>()
+    ): Map<IntRange, MalAnimeDL.EpisodeType> {
+        val episodeType = mutableMapOf<IntRange, MalAnimeDL.EpisodeType>()
 
         while(p.nextToken() != JsonToken.END_ARRAY){
             try {
                 val firstEp = p.currentName().substringBefore("..").toInt()
                 val lastEp = p.currentName().substringAfter("..").toInt()
                 val epRange = firstEp..lastEp
-                val epType = Anime.EpisodeType.getEnum(p.getValueAsString(""))
+                val epType = MalAnimeDL.EpisodeType.getEnum(p.getValueAsString(""))
                 episodeType[epRange] = epType
             } catch(_: NumberFormatException){
                 Log.e("NumberFormatException", "Can not process this value: ${p.currentName()}")

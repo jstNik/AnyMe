@@ -1,18 +1,18 @@
-package com.example.anyme.domain.mal
+package com.example.anyme.domain.mal_dl
 
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.anyme.serialization.AiringStatusDeserializer
-import com.example.anyme.serialization.AiringStatusSerializer
-import com.example.anyme.serialization.EpisodeTypeDeserializer
-import com.example.anyme.serialization.EpisodesTypeSerializer
+import com.example.anyme.domain.mal_db.MalAnimeDB
+import com.example.anyme.domain.mal_dl.MalAnime
+import com.example.anyme.serialization.mal.AiringStatusDeserializer
+import com.example.anyme.serialization.mal.AiringStatusSerializer
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 @Entity
-data class Anime(
+data class MalAnimeDL(
     @JsonProperty("alternative_titles")
     var alternativeTitles: AlternativeTitles = AlternativeTitles(),
     @JsonProperty("average_episode_duration")
@@ -28,8 +28,7 @@ data class Anime(
     @JsonProperty("genres")
     var genres: List<Genre> = listOf(),
     @JsonProperty("id")
-    @PrimaryKey
-    var id: Int = 0,
+    override var id: Int = 0,
     @JsonProperty("main_picture")
     var mainPicture: MainPicture = MainPicture(),
     @JsonProperty("mean")
@@ -58,8 +57,8 @@ data class Anime(
     var recommendations: List<Recommendation> = listOf(),
     @JsonProperty("related_anime")
     var relatedAnime: List<RelatedAnime> = listOf(),
-    @JsonProperty("related_manga")
-    var relatedManga: List<Any?> = listOf(),
+//    @JsonProperty("related_manga")
+//    var relatedManga: List<Any?> = listOf(),
     @JsonProperty("source")
     var source: String = "",
     @JsonProperty("start_date")
@@ -77,20 +76,16 @@ data class Anime(
     @JsonProperty("synopsis")
     var synopsis: String = "",
     @JsonProperty("title")
-    var title: String = "",
+    override var title: String = "",
     @JsonProperty("updated_at")
     var updatedAt: String = "",
 
     // Only local values
-    @JsonProperty("episodes_type")
-    @JsonSerialize(using = EpisodesTypeSerializer::class)
-    @JsonDeserialize(using = EpisodeTypeDeserializer::class)
     var episodesType: Map<IntRange, EpisodeType> = mapOf(),
-    @JsonProperty
     var nextEpIn: Long = 0L,
     var nextEp: Int = 0,
     var hasNotificationsOn: Boolean = false
-) {
+): MalAnime {
 
     enum class EpisodeType{
         MangaCanon{
@@ -145,6 +140,57 @@ data class Anime(
 
     }
 
-
+    fun mapToMalAnimeDB() = MalAnimeDB(
+        alternativeTitles.en,
+        alternativeTitles.ja,
+        alternativeTitles.synonyms,
+        averageEpisodeDuration,
+        background,
+        broadcast.dayOfTheWeek,
+        broadcast.startTime,
+        createdAt,
+        endDate,
+        genres,
+        id,
+        mainPicture.large,
+        mainPicture.medium,
+        mean,
+        mediaType,
+        myListStatus.isRewatching,
+        myListStatus.numEpisodesWatched,
+        myListStatus.score,
+        myListStatus.status.toString(),
+        myListStatus.updatedAt,
+        nsfw,
+        numEpisodes,
+        numListUsers,
+        numScoringUsers,
+        pictures,
+        popularity,
+        rank,
+        rating,
+        recommendations,
+        relatedAnime,
+        listOf(),
+        source,
+        startDate,
+        startSeason.season,
+        startSeason.year,
+        statistics.numListUsers,
+        statistics.status.completed,
+        statistics.status.dropped,
+        statistics.status.onHold,
+        statistics.status.planToWatch,
+        statistics.status.watching,
+        status.toString(),
+        studios,
+        synopsis,
+        title,
+        updatedAt,
+        episodesType,
+        nextEpIn,
+        nextEp,
+        hasNotificationsOn
+    )
 
 }

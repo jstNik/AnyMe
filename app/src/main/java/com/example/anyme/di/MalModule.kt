@@ -2,11 +2,10 @@ package com.example.anyme.di
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.example.anyme.api.MalApi
 import com.example.anyme.api.MalInterceptor
-import com.example.anyme.daos.UserAnimeListDao
-import com.example.anyme.db.AnimeDatabase
+import com.example.anyme.daos.UserMalListDao
+import com.example.anyme.db.MalDatabase
 import com.example.anyme.repositories.UserAnimeListRepository
 import dagger.Module
 import dagger.Provides
@@ -25,9 +24,9 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesAnimeDatabase(@ApplicationContext context: Context): AnimeDatabase =
+    fun providesAnimeDatabase(@ApplicationContext context: Context): MalDatabase =
         Room
-            .databaseBuilder(context, AnimeDatabase::class.java, "AnimeDatabase")
+            .databaseBuilder(context, MalDatabase::class.java, "AnimeDatabase")
             .build()
 
     @Provides
@@ -48,11 +47,11 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesUserAnimeListDao(db: AnimeDatabase) = db.userAnimeListDao
+    fun providesUserAnimeListDao(db: MalDatabase) = db.userMalListDao
 
     @Provides
     @Singleton
-    fun providesUserAnimeListRepository(api: MalApi, dao: UserAnimeListDao) =
+    fun providesUserAnimeListRepository(api: MalApi, dao: UserMalListDao) =
         UserAnimeListRepository(api, dao)
 
 

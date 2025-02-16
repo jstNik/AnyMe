@@ -1,8 +1,8 @@
-package com.example.anyme.domain.mal
+package com.example.anyme.domain.mal_dl
 
 
-import com.example.anyme.serialization.AnimeListStatusDeserializer
-import com.example.anyme.serialization.AnimeListStatusSerializer
+import com.example.anyme.serialization.mal.AnimeListStatusDeserializer
+import com.example.anyme.serialization.mal.AnimeListStatusSerializer
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -17,7 +17,7 @@ data class MyListStatus(
     @JsonProperty("status")
     @JsonSerialize(using = AnimeListStatusSerializer::class)
     @JsonDeserialize(using = AnimeListStatusDeserializer::class)
-    var status: String = "",
+    var status: Status = Status.Undefined,
     @JsonProperty("updated_at")
     var updatedAt: String = ""
 ){

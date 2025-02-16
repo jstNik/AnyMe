@@ -58,7 +58,7 @@ class LoginActivity : AppCompatActivity() {
                     jwt = JWT(res!!.accessToken!!)
                     authState.performActionWithFreshTokens(authService) { _, _, _ ->
                         persistState()
-                         val intent = Intent(this, UserAnimeListActivity::class.java)
+                         val intent = Intent(this, UserListActivity::class.java)
                         startActivity(intent)
                         finish()
                     }
@@ -77,7 +77,7 @@ class LoginActivity : AppCompatActivity() {
         if (canRestoreState()) {
             authService = AuthorizationService(this)
             persistState()
-            val intent = Intent(this, UserAnimeListActivity::class.java)
+            val intent = Intent(this, UserListActivity::class.java)
             startActivity(intent)
             finish()
         }

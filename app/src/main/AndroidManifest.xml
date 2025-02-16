@@ -28,7 +28,7 @@
         </activity>
 
         <activity
-            android:name=".activities.UserAnimeListActivity"
+            android:name=".activities.UserListActivity"
             android:exported="false"
             android:launchMode="singleTask"
             />

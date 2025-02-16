@@ -1,7 +1,6 @@
-package com.example.anyme.serialization
+package com.example.anyme.serialization.mal
 
-import com.example.anyme.domain.mal.MyListStatus
-import com.example.anyme.domain.mal.MyListStatus.Status
+import com.example.anyme.domain.mal_dl.MyListStatus.Status
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
