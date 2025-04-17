@@ -1,11 +1,11 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Broadcast(
-    @JsonProperty("day_of_the_week")
+    @SerializedName("day_of_the_week")
     var dayOfTheWeek: String = "",
-    @JsonProperty("start_time")
+    @SerializedName("start_time")
     var startTime: String = ""
 )

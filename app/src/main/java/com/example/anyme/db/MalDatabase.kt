@@ -2,7 +2,7 @@ package com.example.anyme.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.example.anyme.daos.UserMalListDao
+import com.example.anyme.daos.MalDao
 import com.example.anyme.domain.mal_db.MalAnimeDB
 
 
@@ -13,6 +13,14 @@ import com.example.anyme.domain.mal_db.MalAnimeDB
 )
 abstract class MalDatabase: RoomDatabase() {
 
-    abstract val userMalListDao: UserMalListDao
+    abstract val userMalListDao: MalDao
+
+    enum class OrderBy{
+        Title, LastUpdateAt
+    }
+
+    enum class OrderDirection{
+        Asc, Desc
+    }
 
 }

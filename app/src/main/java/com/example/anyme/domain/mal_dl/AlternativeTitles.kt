@@ -1,13 +1,13 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class AlternativeTitles(
-    @JsonProperty("en")
+    @SerializedName("en")
     var en: String = "",
-    @JsonProperty("ja")
+    @SerializedName("ja")
     var ja: String = "",
-    @JsonProperty("synonyms")
+    @SerializedName("synonyms")
     var synonyms: List<String> = listOf()
 )

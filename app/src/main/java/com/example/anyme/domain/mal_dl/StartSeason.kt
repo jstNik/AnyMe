@@ -1,11 +1,11 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class StartSeason(
-    @JsonProperty("season")
+    @SerializedName("season")
     var season: String = "",
-    @JsonProperty("year")
+    @SerializedName("year")
     var year: Int = 0
 )

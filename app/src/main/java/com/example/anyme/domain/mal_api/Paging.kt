@@ -1,10 +1,11 @@
 package com.example.anyme.domain.mal_api
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.annotations.SerializedName
+
 
 data class Paging(
-    @JsonProperty("previous")
+    @SerializedName("previous")
     var previous: String = "",
-    @JsonProperty("next")
+    @SerializedName("next")
     var next: String = ""
 )

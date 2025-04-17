@@ -1,17 +1,17 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Status(
-    @JsonProperty("completed")
+    @SerializedName("completed")
     var completed: String = "",
-    @JsonProperty("dropped")
+    @SerializedName("dropped")
     var dropped: String = "",
-    @JsonProperty("on_hold")
+    @SerializedName("on_hold")
     var onHold: String = "",
-    @JsonProperty("plan_to_watch")
+    @SerializedName("plan_to_watch")
     var planToWatch: String = "",
-    @JsonProperty("watching")
+    @SerializedName("watching")
     var watching: String = ""
 )

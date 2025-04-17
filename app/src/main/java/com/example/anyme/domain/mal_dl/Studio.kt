@@ -1,11 +1,11 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Studio(
-    @JsonProperty("id")
+    @SerializedName("id")
     var id: Int = 0,
-    @JsonProperty("name")
+    @SerializedName("name")
     var name: String = ""
 )

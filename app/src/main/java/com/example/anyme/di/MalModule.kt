@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.room.Room
 import com.example.anyme.api.MalApi
 import com.example.anyme.api.MalInterceptor
-import com.example.anyme.daos.UserMalListDao
+import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
-import com.example.anyme.repositories.UserAnimeListRepository
+import com.example.anyme.repositories.EpisodeInfoScraper
+import com.example.anyme.repositories.IEpisodeInfoScraper
+import com.example.anyme.repositories.IMalRepository
+import com.example.anyme.repositories.MalRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import javax.inject.Singleton
 
@@ -41,7 +44,9 @@ object MalModule {
                     .build()
             )
             .baseUrl(MalApi.BASE_URL)
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(
+                GsonConverterFactory.create()
+            )
             .build()
             .create()
 
@@ -51,8 +56,12 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesUserAnimeListRepository(api: MalApi, dao: UserMalListDao) =
-        UserAnimeListRepository(api, dao)
+    fun providesEpisodeInfoScraper(): IEpisodeInfoScraper = EpisodeInfoScraper()
+
+    @Provides
+    @Singleton
+    fun providesUserAnimeListRepository(api: MalApi, dao: MalDao, scraper: IEpisodeInfoScraper): IMalRepository =
+        MalRepository(api, dao, scraper)
 
 
 }

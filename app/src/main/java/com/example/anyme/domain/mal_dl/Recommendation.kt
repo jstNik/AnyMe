@@ -2,11 +2,11 @@ package com.example.anyme.domain.mal_dl
 
 
 import com.example.anyme.domain.mal_db.MalAnimeDB
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.annotations.SerializedName
 
 data class Recommendation(
-    @JsonProperty("anime")
+    @SerializedName("anime")
     var anime: MalAnime = MalAnimeDB(),
-    @JsonProperty("num_recommendations")
+    @SerializedName("num_recommendations")
     var numRecommendations: Int = 0
 )

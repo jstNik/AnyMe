@@ -1,11 +1,11 @@
 package com.example.anyme.domain.mal_dl
 
+import com.google.gson.annotations.SerializedName
 
-import com.fasterxml.jackson.annotation.JsonProperty
 
 data class MainPicture(
-    @JsonProperty("large")
+    @SerializedName("large")
     var large: String = "",
-    @JsonProperty("medium")
+    @SerializedName("medium")
     var medium: String = ""
 )

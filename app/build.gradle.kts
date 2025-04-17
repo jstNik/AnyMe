@@ -65,13 +65,20 @@ dependencies {
 
     implementation(libs.androidx.appcompat)
 
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+
     //AppAuth
     implementation(libs.appauth)
     implementation(libs.jwtdecode)
 
     // Retrofit
     implementation(libs.retrofit)
-    implementation(libs.converter.jackson)
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
+
+    // Gson
+    implementation(libs.gson)
 
     // Dagger-Hilt
     implementation(libs.hilt.android)
@@ -79,10 +86,25 @@ dependencies {
 
     //Room
     implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.paging)
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Jsoup
+    implementation(libs.jsoup)
+
+    // Glide
+    implementation(libs.compose)
+
+    // ViewModel x Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Swipe-To-Refresh
+    implementation(libs.accompanist.swiperefresh)
+
+    // Pagination
+    implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
 
 }

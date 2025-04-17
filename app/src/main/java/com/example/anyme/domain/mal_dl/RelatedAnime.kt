@@ -2,13 +2,13 @@ package com.example.anyme.domain.mal_dl
 
 
 import com.example.anyme.domain.mal_db.MalAnimeDB
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.annotations.SerializedName
 
 data class RelatedAnime(
-    @JsonProperty("anime")
+    @SerializedName("anime")
     var malAnimeApi: MalAnime = MalAnimeDB(),
-    @JsonProperty("relation_type")
+    @SerializedName("relation_type")
     var relationType: String = "",
-    @JsonProperty("relation_type_formatted")
+    @SerializedName("relation_type_formatted")
     var relationTypeFormatted: String = ""
 )

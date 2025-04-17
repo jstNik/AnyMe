@@ -1,24 +1,17 @@
 package com.example.anyme.domain.mal_dl
 
-
-import com.example.anyme.serialization.mal.AnimeListStatusDeserializer
-import com.example.anyme.serialization.mal.AnimeListStatusSerializer
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.google.gson.annotations.SerializedName
 
 data class MyListStatus(
-    @JsonProperty("is_rewatching")
+    @SerializedName("is_rewatching")
     var isRewatching: Boolean = false,
-    @JsonProperty("num_episodes_watched")
+    @SerializedName("num_episodes_watched")
     var numEpisodesWatched: Int = 0,
-    @JsonProperty("score")
+    @SerializedName("score")
     var score: Int = 0,
-    @JsonProperty("status")
-    @JsonSerialize(using = AnimeListStatusSerializer::class)
-    @JsonDeserialize(using = AnimeListStatusDeserializer::class)
+    @SerializedName("status")
     var status: Status = Status.Undefined,
-    @JsonProperty("updated_at")
+    @SerializedName("updated_at")
     var updatedAt: String = ""
 ){
 
