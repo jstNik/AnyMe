@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.paging.PagingSource
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_db.MalAnimeDB
+import com.example.anyme.domain.ui.MalRankingListItem
+import com.example.anyme.repositories.MalRepository.RankingListType
 import retrofit2.Response
 
 interface IMalRepository {
@@ -15,6 +17,8 @@ interface IMalRepository {
       orderDirection: MalDatabase.OrderDirection,
       filter: String = ""
    ): PagingSource<Int, MalAnimeDB>
+
+   suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem>
 
    fun <T> validateResponse(response: Response<T>) {
       if (!response.isSuccessful) {

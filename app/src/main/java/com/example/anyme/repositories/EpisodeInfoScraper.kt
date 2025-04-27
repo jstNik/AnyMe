@@ -9,11 +9,11 @@ import org.jsoup.Jsoup
 import java.util.Calendar
 import kotlin.time.Duration.Companion.seconds
 
-class EpisodeInfoScraper(
+open class EpisodeInfoScraper(
    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : IEpisodeInfoScraper {
+) {
 
-   override suspend fun scrapeEpisodesType(malAnime: MalAnimeDL): MalAnimeDL{
+   suspend fun scrapeEpisodesType(malAnime: MalAnimeDL): MalAnimeDL{
          val episodesList = Jsoup
             .connect(
                "https://www.google.com/search?q=${
@@ -87,7 +87,7 @@ class EpisodeInfoScraper(
       }
 
 
-   override suspend fun scrapeNextEpInfos(malAnime: MalAnimeDL): MalAnimeDL {
+   suspend fun scrapeNextEpInfos(malAnime: MalAnimeDL): MalAnimeDL {
          var currentYear = Calendar.getInstance().get(Calendar.YEAR).toFloat()
          val currentSeason = when (Calendar.getInstance().get(Calendar.MONTH) / 3) {
             0 -> "winter"

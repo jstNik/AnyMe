@@ -4,6 +4,7 @@ package com.example.anyme.domain.mal_dl
 import androidx.room.Entity
 import com.example.anyme.domain.mal_db.MalAnimeDB
 import com.example.anyme.domain.ui.MalAnimeListItem
+import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.utils.RangeMap
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
@@ -25,7 +26,7 @@ data class MalAnimeDL(
    @SerializedName("genres")
    var genres: List<Genre> = listOf(),
    @SerializedName("id")
-   override var id: Int = 0,
+   var id: Int = 0,
    @SerializedName("main_picture")
    var mainPicture: MainPicture = MainPicture(),
    @SerializedName("mean")
@@ -71,7 +72,7 @@ data class MalAnimeDL(
    @SerializedName("synopsis")
    var synopsis: String = "",
    @SerializedName("title")
-   override var title: String = "",
+   var title: String = "",
    @SerializedName("updated_at")
    var updatedAt: String = "",
 

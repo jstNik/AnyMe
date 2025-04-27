@@ -1,6 +1,6 @@
 package com.example.anyme.api
 
-import com.example.anyme.domain.mal_api.GetUserListAnimeResponse
+import com.example.anyme.domain.mal_api.MalAnimeListGetResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -20,6 +20,7 @@ interface MalApi {
             average_episode_duration,rating,pictures,background,related_anime,related_manga,
             recommendations,studios,statistics"
         """
+        const val RANKING_LIST_PAGE_SIZE: Int = 30
     }
 
     @GET("users/@me/animelist")
@@ -29,6 +30,14 @@ interface MalApi {
         @Query("offset") offset: Int = 0,
         @Query("nsfw") nsfw: String = "true",
 //        @Query("sort") sort: String = "anime_id"
-    ): Response<GetUserListAnimeResponse>
+    ): Response<MalAnimeListGetResponse>
 
+
+    @GET("anime/ranking")
+    suspend fun retrieveRankingList(
+        @Query("ranking_type") type: String,
+        @Query("limit") limit: Int = RANKING_LIST_PAGE_SIZE,
+        @Query("offset") offset: Int = 0,
+        @Query("fields") fields: String = FIELDS
+    ): Response<MalAnimeListGetResponse>
 }

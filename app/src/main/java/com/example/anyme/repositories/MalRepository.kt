@@ -6,6 +6,7 @@ import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
+import com.example.anyme.domain.ui.MalRankingListItem
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -18,12 +19,25 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 class MalRepository @Inject constructor(
-   private val malApi: MalApi,
+   val malApi: MalApi,
    private val malDao: MalDao,
-   private val scraper: IEpisodeInfoScraper,
+   private val scraper: EpisodeInfoScraper,
    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 
 ) : IMalRepository {
+
+   enum class RankingListType {
+      All {
+         override val value = "all"
+      },
+
+      Airing() {
+         override val value: String = "airing"
+      };
+
+
+      abstract val value: String
+   }
 
    /**
     * Query the Api to retrieve the user anime list
@@ -151,5 +165,12 @@ class MalRepository @Inject constructor(
       filter: String
    ) = malDao.fetchUserAnime(orderBy.toString(), orderDirection.toString())
 
+   override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem> = withContext(dispatcher){
+      val response = malApi.retrieveRankingList(type.value, offset = offset)
+      validateResponse(response)
+      response.body()!!.data.map{
+         it.mapToMalRankingListItem()
+      }
+   }
 
 }

@@ -2,6 +2,7 @@ package com.example.anyme.domain.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
 import com.example.anyme.ui.composables.BlurredGlideImage
@@ -37,7 +39,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Immutable
 data class MalAnimeListItem(
    override val id: Int = 0,
-   val title: String = "",
+   override val title: String = "",
    val mainPictureMedium: String = "",
    val numEpisodes: Int = 0,
    val myListStatusNumEpisodesWatched: Int = 0,
@@ -47,12 +49,16 @@ data class MalAnimeListItem(
    val nextEpIn: Duration = 0L.milliseconds,
    val nextEp: Int = 0,
    val hasNotificationsOn: Boolean = false
-) : ListItem {
+) : MalAnime, ListItem {
 
    @OptIn(ExperimentalGlideComposeApi::class)
    @Composable
-   override fun Render(modifier: Modifier) {
+   override fun Render(
+      modifier: Modifier,
+      onClick: (ListItem) -> Unit
+   ) {
       Card(
+         onClick = { onClick(this) },
          modifier = Modifier
             .fillMaxWidth()
             .height(128.dp)
@@ -134,27 +140,5 @@ data class MalAnimeListItem(
             }
          }
       }
-   }
-}
-
-
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
-fun MalAnimeListItemPreview() {
-
-   val anime = MalAnimeListItem(
-      1,
-      "Title",
-      "",
-      12,
-      5,
-      MyListStatus.Status.Watching,
-      MalAnimeDL.AiringStatus.FinishedAiring,
-      RangeMap(mutableMapOf(1..3 to MalAnimeDL.EpisodesType.MangaCanon)),
-      nextEpIn = 5.days,
-      8
-   )
-   AnyMeTheme {
-      anime.Render()
    }
 }

@@ -1,4 +1,4 @@
-package com.example.anyme.mediators
+package com.example.anyme.paging
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType

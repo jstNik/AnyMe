@@ -40,7 +40,7 @@ data class MalAnimeDB(
     var endDate: String = "",
     var genres: String = "",
     @PrimaryKey
-    override var id: Int = 0,
+    var id: Int = 0,
     var mainPictureLarge: String = "",
     var mainPictureMedium: String = "",
     var mean: Double = 0.0,
@@ -74,7 +74,7 @@ data class MalAnimeDB(
     var status: String = "",
     var studios: String = "",
     var synopsis: String = "",
-    override var title: String = "",
+    var title: String = "",
     var updatedAt: String = "",
     // Only local values
     var episodesType: String = "",
