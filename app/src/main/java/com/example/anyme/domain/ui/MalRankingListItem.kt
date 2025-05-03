@@ -38,6 +38,7 @@ data class MalRankingListItem(
    override val title: String = "",
    val picture: String = "",
    val rank: Int = 0,
+   val numListUsers: Int = 0
 ) : MalAnime, ListItem {
 
 

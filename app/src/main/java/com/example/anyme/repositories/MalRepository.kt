@@ -8,15 +8,11 @@ import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
 import com.example.anyme.domain.ui.MalRankingListItem
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
 class MalRepository @Inject constructor(
    val malApi: MalApi,
@@ -27,16 +23,14 @@ class MalRepository @Inject constructor(
 ) : IMalRepository {
 
    enum class RankingListType {
-      All {
-         override val value = "all"
+      Tv, Movie, All, Airing,
+      Popularity{
+         override val apiValue: String = "bypopularity"
       },
+      Favorite, Upcoming, Ova, Special;
 
-      Airing() {
-         override val value: String = "airing"
-      };
+      open val apiValue: String = toString().lowercase()
 
-
-      abstract val value: String
    }
 
    /**
@@ -45,11 +39,7 @@ class MalRepository @Inject constructor(
    override suspend fun retrieveUserAnimeList() {
       withContext(dispatcher) {
          try {
-            val epTypeJobs = mutableListOf<Deferred<MalAnimeDL?>>()
-            val nextEpJobs = mutableListOf<Deferred<MalAnimeDL?>>()
-
             var dbMalAnimeList = mutableMapOf<Int, MalAnimeDL>()
-
             var offset = 0
 
             do {
@@ -76,82 +66,64 @@ class MalRepository @Inject constructor(
                apiMalAnimeList.forEach forEach@{ entry ->
                   val apiMalAnime = entry.value.malAnimeDL
 
-                  // If the anime is not in the watching list, skip
-                  if (apiMalAnime.myListStatus.status == MyListStatus.Status.Watching) {
-                     val epTypeJob = async(start = CoroutineStart.LAZY) {
-                        try {
-                           scraper.scrapeEpisodesType(apiMalAnime)
-                        } catch(ex: Exception){
-                           Log.e(ex.toString(), ex.message ?: "")
-                           null
+                  val dbMalAnime = dbMalAnimeList[entry.key]
+
+                  val upsertJob = launch {
+                     if (dbMalAnime == null) {
+                        malDao.insert(apiMalAnime.mapToMalAnimeDB())
+                     } else {
+
+                        // Preserve local data
+                        apiMalAnime.copyLocalData(dbMalAnime)
+                        if (apiMalAnime == dbMalAnime) {
+                           // Remove from the lists all animes which appears in apiMalAnime,
+                           // left ones must be deleted from the database
+                           dbMalAnimeList.remove(entry.key, dbMalAnime)
+                        } else {
+
+                           malDao.update(apiMalAnime.mapToMalAnimeDB())
+                           dbMalAnimeList.remove(entry.key, dbMalAnime)
                         }
                      }
-                     epTypeJobs.add(epTypeJob)
+                  }
+
+                  // If the anime is not in the watching list, skip
+                  if (apiMalAnime.myListStatus.status == MyListStatus.Status.Watching) {
+                     launch {
+                        try {
+                           val result = scraper.scrapeEpisodesType(apiMalAnime)
+                           upsertJob.join()
+                           malDao.update(result.mapToMalAnimeDB())
+                        } catch (ex: Exception) {
+                           Log.e(ex.toString(), ex.message ?: "")
+                        }
+                     }
                   }
                   // If the anime is not airing, skip
                   if (apiMalAnime.status == MalAnimeDL.AiringStatus.CurrentlyAiring ||
                      apiMalAnime.status == MalAnimeDL.AiringStatus.NotYetAired
                   ) {
-                     val nextEpJob = async(start = CoroutineStart.LAZY) {
+                     launch {
                         try {
-                           scraper.scrapeNextEpInfos(apiMalAnime)
+                           val result = scraper.scrapeNextEpInfos(apiMalAnime)
+                           upsertJob.join()
+                           malDao.update(result.mapToMalAnimeDB())
                         } catch (ex: Exception) {
                            Log.e(ex.toString(), ex.message ?: "")
-                            null
                         }
                      }
-                     nextEpJobs.add(nextEpJob)
                   }
 
-                  val dbMalAnime = dbMalAnimeList[entry.key]
-
-                  if (dbMalAnime == null) {
-                     malDao.insert(apiMalAnime.mapToMalAnimeDB())
-                     return@forEach
-                  }
-
-                  // Preserve local data
-                  apiMalAnime.copyLocalData(dbMalAnime)
-                  if (apiMalAnime == dbMalAnime) {
-                     // Remove from the lists all animes which appears in apiMalAnime,
-                     // left ones must be deleted from the database
-                     dbMalAnimeList.remove(entry.key, dbMalAnime)
-                     return@forEach
-                  }
-
-                  malDao.update(apiMalAnime.mapToMalAnimeDB())
-                  dbMalAnimeList.remove(entry.key, dbMalAnime)
+               }
+               // Deleting animes from database which are not in the api anime list
+               launch {
+                  malDao.delete(dbMalAnimeList.values.map {
+                     dbMalAnimeList.remove(it.id)
+                     it.mapToMalAnimeDB()
+                  })
                }
             } while(offset >= 0)
 
-            // Deleting animes from database which are not in the api anime list
-            launch { malDao.delete(dbMalAnimeList.values.map { it.mapToMalAnimeDB() }) }
-
-            launch {
-               epTypeJobs.forEach {
-                  try {
-                     it.await()?.let { res ->
-                        launch { malDao.update(res.mapToMalAnimeDB()) }
-                        delay(500.milliseconds) // To avoid to activate website DDoS protection
-                     }
-                  } catch (e: Exception) {
-                     Log.e(e.toString(), e.message ?: "")
-                  }
-               }
-            }
-
-            launch {
-               nextEpJobs.forEach {
-                  try {
-                     it.await()?.let { res ->
-                        launch { malDao.update(res.mapToMalAnimeDB()) }
-                        delay(500.milliseconds) // To avoid to activate website DDoS protection
-                     }
-                  } catch (e: Exception) {
-                     Log.e(e.toString(), e.message ?: "")
-                  }
-               }
-            }
 
          } catch (ex: Exception){
             Log.e(ex.toString(), ex.message ?: "")
@@ -166,7 +138,7 @@ class MalRepository @Inject constructor(
    ) = malDao.fetchUserAnime(orderBy.toString(), orderDirection.toString())
 
    override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem> = withContext(dispatcher){
-      val response = malApi.retrieveRankingList(type.value, offset = offset)
+      val response = malApi.retrieveRankingList(type.apiValue, offset = offset)
       validateResponse(response)
       response.body()!!.data.map{
          it.mapToMalRankingListItem()

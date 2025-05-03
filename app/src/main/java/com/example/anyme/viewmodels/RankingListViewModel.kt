@@ -22,31 +22,19 @@ open class RankingListViewModel @Inject constructor(
    private val malRepository: IMalRepository
 ): ViewModel() {
 
-   @OptIn(ExperimentalPagingApi::class)
-   val rankingLists = listOf<Flow<PagingData<MalRankingListItem>>>(
-      Pager<Int, MalRankingListItem>(
-         PagingConfig(MalApi.RANKING_LIST_PAGE_SIZE, initialLoadSize = MalApi.RANKING_LIST_PAGE_SIZE, prefetchDistance = 1),
-         0,
-         null
-      ) { RankingListPagination(malRepository, All) }.flow.cachedIn(viewModelScope),
-
-//      Pager<Int, MalRankingListItem>(
-//         PagingConfig(MalApi.RANKING_LIST_PAGE_SIZE, initialLoadSize = MalApi.RANKING_LIST_PAGE_SIZE),
-//         0,
-//         null
-//      ) { RankingListPagination(malRepository, Airing) }.flow.cachedIn(viewModelScope),
-
+   private val pagingConfig = PagingConfig(
+      MalApi.RANKING_LIST_LIMIT,
+      initialLoadSize = MalApi.RANKING_LIST_LIMIT,
+      prefetchDistance = 15
    )
 
-
-//   @OptIn(ExperimentalPagingApi::class)
-//   val all = Pager<Int, MalRankingListItem>(
-//      PagingConfig(MalApi.RANKING_LIST_PAGE_SIZE, initialLoadSize = MalApi.RANKING_LIST_PAGE_SIZE, prefetchDistance = 1),
-//      0,
-//      null
-//   ) { RankingListPagination(malRepository, All) }.flow.cachedIn(viewModelScope)
-
-
-
+   @OptIn(ExperimentalPagingApi::class)
+   val rankingLists = MalRepository.RankingListType.entries.map {
+      Pager<Int, MalRankingListItem>(
+         pagingConfig,
+         0,
+         null
+      ){ RankingListPagination(malRepository, it) }.flow.cachedIn(viewModelScope)
+   }
 
 }

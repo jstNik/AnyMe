@@ -11,24 +11,36 @@ interface MalApi {
         const val CALLBACK_URL = "animetracker://auth.io" // TODO Change redirect url
         const val AUTHORIZATION_URL = "https://myanimelist.net/v1/oauth2/authorize"
         const val TOKEN_URL = "https://myanimelist.net/v1/oauth2/token"
-        const val BASE_URL= "https://api.myanimelist.net/v2/"
-        const val LIMIT = 1000
-        const val FIELDS = """
-            "id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,
-            popularity,num_list_users,num_scoring_users,nsfw,created_at,updated_at,media_type,
-            status,genres,my_list_status,num_episodes,start_season,broadcast,source,
-            average_episode_duration,rating,pictures,background,related_anime,related_manga,
-            recommendations,studios,statistics"
-        """
-        const val RANKING_LIST_PAGE_SIZE: Int = 30
+        const val BASE_URL = "https://api.myanimelist.net/v2/"
+
+        const val USER_LIST_LIMIT = 1000
+        const val RANKING_LIST_LIMIT = 30
+
+        val BASIC_FIELDS = listOf(
+            "id","title","main_picture"
+        )
+        val RANKING_LIST_FIELDS = listOf(
+            "popularity", "rating", "num_list_users", "num_episodes", "status"
+        )
+        val USER_LIST_FIELDS = listOf(
+            "my_list_status"
+        )
+        val DETAILS_FIELDS = listOf(
+            "alternative_titles", "start_date", "end_date", "synopsis", "mean", "rank",
+            "popularity", "num_scoring_users", "nsfw", "created_at", "updated_at",
+            "media_type", "genres", "start_season", "broadcast", "source",
+            "average_episode_duration", "rating", "pictures", "background", "related_anime",
+            "related_manga", "recommendations", "studios", "statistics"
+        )
+
     }
 
     @GET("users/@me/animelist")
     suspend fun retrieveUserAnimeList(
-        @Query("fields") fields: String = FIELDS,
-        @Query("limit") limit: Int = LIMIT,
+        @Query("limit") limit: Int = USER_LIST_LIMIT,
         @Query("offset") offset: Int = 0,
         @Query("nsfw") nsfw: String = "true",
+        @Query("fields") fields: String = (BASIC_FIELDS + USER_LIST_FIELDS).joinToString(",")
 //        @Query("sort") sort: String = "anime_id"
     ): Response<MalAnimeListGetResponse>
 
@@ -36,8 +48,8 @@ interface MalApi {
     @GET("anime/ranking")
     suspend fun retrieveRankingList(
         @Query("ranking_type") type: String,
-        @Query("limit") limit: Int = RANKING_LIST_PAGE_SIZE,
+        @Query("limit") limit: Int = RANKING_LIST_LIMIT,
         @Query("offset") offset: Int = 0,
-        @Query("fields") fields: String = FIELDS
+        @Query("fields") fields: String = (BASIC_FIELDS + RANKING_LIST_FIELDS).joinToString(",")
     ): Response<MalAnimeListGetResponse>
 }

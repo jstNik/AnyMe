@@ -16,7 +16,8 @@ data class Data(
          malAnimeDL.id,
          malAnimeDL.title,
          malAnimeDL.mainPicture.medium,
-         ranking.rank
+         ranking.rank,
+         malAnimeDL.numListUsers
       )
 
 }

@@ -26,7 +26,7 @@ data class MalAnimeDL(
    @SerializedName("genres")
    var genres: List<Genre> = listOf(),
    @SerializedName("id")
-   var id: Int = 0,
+   override var id: Int = 0,
    @SerializedName("main_picture")
    var mainPicture: MainPicture = MainPicture(),
    @SerializedName("mean")
@@ -72,7 +72,7 @@ data class MalAnimeDL(
    @SerializedName("synopsis")
    var synopsis: String = "",
    @SerializedName("title")
-   var title: String = "",
+   override var title: String = "",
    @SerializedName("updated_at")
    var updatedAt: String = "",
 
