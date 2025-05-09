@@ -1,23 +1,33 @@
 package com.example.anyme.repositories
 
 import android.util.Log
+import androidx.core.text.isDigitsOnly
+import com.example.anyme.api.HtmlScraper
 import com.example.anyme.api.MalApi
 import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
+import com.example.anyme.domain.mal_api.Paging
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
 import com.example.anyme.domain.ui.MalRankingListItem
+import com.example.anyme.domain.ui.MalSeasonalListItem
+import com.example.anyme.utils.getSeason
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
+import java.util.Calendar.MONTH
+import java.util.Calendar.YEAR
 import javax.inject.Inject
 
 class MalRepository @Inject constructor(
    val malApi: MalApi,
    private val malDao: MalDao,
-   private val scraper: EpisodeInfoScraper,
+   private val scraper: HtmlScraper,
    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 
 ) : IMalRepository {
@@ -32,6 +42,16 @@ class MalRepository @Inject constructor(
       open val apiValue: String = toString().lowercase()
 
    }
+
+   private fun nextOffset(paging: Paging): Int {
+      val offsetAsString = paging.next.substringAfter("offset=", "").substringBefore("&")
+      return try {
+         Integer.parseInt(offsetAsString)
+      } catch (_: NumberFormatException) {
+         -1
+      }
+   }
+
 
    /**
     * Query the Api to retrieve the user anime list
@@ -50,12 +70,9 @@ class MalRepository @Inject constructor(
 
                // Check if the api response is successful
                val apiResponse = deferredApiResponse.await()
-               validateResponse(apiResponse)
+               validate(apiResponse)
 
-               val idx = apiResponse.body()!!.paging.next.indexOf("offset=", ignoreCase = true) + "offset=".length
-               offset = if(idx >= 0 && idx < apiResponse.body()!!.paging.next.length)
-                  apiResponse.body()!!.paging.next.elementAt(idx).digitToInt()
-               else -1
+               offset = nextOffset(apiResponse.body()!!.paging)
 
                // We got the 2 lists, now we have to update both list with the new data
                val apiMalAnimeList = apiResponse.body()!!.`data`.associateBy { it.malAnimeDL.id }
@@ -139,10 +156,36 @@ class MalRepository @Inject constructor(
 
    override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem> = withContext(dispatcher){
       val response = malApi.retrieveRankingList(type.apiValue, offset = offset)
-      validateResponse(response)
+      validate(response)
       response.body()!!.data.map{
          it.mapToMalRankingListItem()
       }
    }
 
+   override suspend fun retrieveMalSeasonalAnimes() = flow {
+      val season = Calendar.getInstance().getSeason()
+      val year = Calendar.getInstance().get(YEAR)
+      val animeMap = mutableMapOf<Int, MalSeasonalListItem>()
+      var offset = 0
+
+      do{
+         val httpResponse = malApi.retrieveSeasonalAnimes(year, season, offset)
+         validate(httpResponse)
+         val dataResponse = httpResponse.body()!!
+         animeMap += dataResponse.data.associateBy({ it.malAnimeDL.id }, { it.malAnimeDL.mapToMalSeasonalListItem() })
+         offset = nextOffset(dataResponse.paging)
+
+      } while(offset > 0)
+
+      emit(animeMap.values.toList())
+
+      scraper.scrapeSeasonal(animeMap).forEach { key, value ->
+         val seasonalAnime = animeMap[key]
+         if(seasonalAnime == null) return@forEach
+         animeMap[key] = animeMap[key]!!.copy(nextEp = value)
+      }
+
+      emit(animeMap.values.toList())
+
+   }
 }

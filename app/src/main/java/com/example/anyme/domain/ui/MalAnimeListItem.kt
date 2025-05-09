@@ -1,8 +1,6 @@
 package com.example.anyme.domain.ui
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,31 +21,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.example.anyme.domain.mal_dl.MainPicture
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
+import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.ui.composables.BlurredGlideImage
-import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.utils.RangeMap
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
 
 @Immutable
 data class MalAnimeListItem(
    override val id: Int = 0,
    override val title: String = "",
-   val mainPictureMedium: String = "",
+   override val mainPicture: MainPicture = MainPicture(),
    val numEpisodes: Int = 0,
    val myListStatusNumEpisodesWatched: Int = 0,
    val myListStatusStatus: MyListStatus.Status = MyListStatus.Status.Undefined,
    val status: MalAnimeDL.AiringStatus = MalAnimeDL.AiringStatus.Undefined,
    val episodesType: RangeMap<MalAnimeDL.EpisodesType> = RangeMap(),
-   val nextEpIn: Duration = 0L.milliseconds,
-   val nextEp: Int = 0,
+   val nextEp: NextEpisode = NextEpisode(),
    val hasNotificationsOn: Boolean = false
 ) : MalAnime, ListItem {
 
@@ -68,7 +62,7 @@ data class MalAnimeListItem(
          Row {
 
             BlurredGlideImage(
-               model = mainPictureMedium,
+               model = mainPicture.medium,
                contentDescription = "Anime image",
                minRatio = 0.4F,
                maxRatio = 1F,
@@ -106,10 +100,10 @@ data class MalAnimeListItem(
                ) {
                   LinearProgressIndicator(
                      progress = {
-                        if (nextEp > 0 && numEpisodes == 0)
+                        if (nextEp.number > 0 && numEpisodes == 0)
                            1F
-                        else if (nextEp > 0 && numEpisodes > 0 && nextEp <= numEpisodes)
-                           nextEp / numEpisodes.toFloat()
+                        else if (nextEp.number > 0 && numEpisodes > 0 && nextEp.number <= numEpisodes)
+                           nextEp.number / numEpisodes.toFloat()
                         else 0F
                      },
                      drawStopIndicator = { },

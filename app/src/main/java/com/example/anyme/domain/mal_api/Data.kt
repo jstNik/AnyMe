@@ -1,6 +1,7 @@
 package com.example.anyme.domain.mal_api
 
 import com.example.anyme.domain.mal_dl.MalAnimeDL
+import com.example.anyme.domain.ui.MalAnimeListItem
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.google.gson.annotations.SerializedName
 
@@ -15,7 +16,7 @@ data class Data(
       MalRankingListItem(
          malAnimeDL.id,
          malAnimeDL.title,
-         malAnimeDL.mainPicture.medium,
+         malAnimeDL.mainPicture,
          ranking.rank,
          malAnimeDL.numListUsers
       )

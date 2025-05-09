@@ -1,10 +1,13 @@
 package com.example.anyme.domain.mal_api
 
+import com.example.anyme.domain.mal_dl.Season
 import com.google.gson.annotations.SerializedName
 
 data class MalAnimeListGetResponse(
     @SerializedName("data")
     var `data`: List<Data> = listOf(),
     @SerializedName("paging")
-    var paging: Paging = Paging()
+    var paging: Paging = Paging(),
+    @SerializedName("season")
+    var season: Season = Season()
 )

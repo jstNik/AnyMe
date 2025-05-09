@@ -4,7 +4,7 @@ package com.example.anyme.domain.mal_dl
 import androidx.room.Entity
 import com.example.anyme.domain.mal_db.MalAnimeDB
 import com.example.anyme.domain.ui.MalAnimeListItem
-import com.example.anyme.domain.ui.MalRankingListItem
+import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.RangeMap
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
@@ -62,7 +62,7 @@ data class MalAnimeDL(
    @SerializedName("start_date")
    var startDate: String = "",
    @SerializedName("start_season")
-   var startSeason: StartSeason = StartSeason(),
+   var season: Season = Season(),
    @SerializedName("statistics")
    var statistics: Statistics = Statistics(),
    @SerializedName("status")
@@ -179,8 +179,8 @@ data class MalAnimeDL(
          gson.toJson(listOf<Any>()),
          source,
          startDate,
-         startSeason.season,
-         startSeason.year,
+         season.season,
+         season.year,
          statistics.numListUsers,
          statistics.status.completed,
          statistics.status.dropped,
@@ -203,15 +203,23 @@ data class MalAnimeDL(
       MalAnimeListItem(
          id,
          title,
-         mainPicture.medium,
+         mainPicture,
          numEpisodes,
          myListStatus.numEpisodesWatched,
          myListStatus.status,
          status,
          episodesType,
-         nextEp.nextEpIn,
-         nextEp.nextEp,
+         nextEp,
          hasNotificationsOn
+      )
+
+   fun mapToMalSeasonalListItem(): MalSeasonalListItem =
+      MalSeasonalListItem(
+         id,
+         title,
+         mainPicture,
+         broadcast,
+         nextEp
       )
 
 }

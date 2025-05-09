@@ -34,15 +34,15 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun RefreshingColumnList(
-   list: LazyPagingItems<ListItem>,
+fun <T: ListItem>RefreshingColumnList(
+   list: LazyPagingItems<T>,
    lazyColumnState: LazyListState,
    key: ((Int) -> Any)? = null,
    contentPadding: PaddingValues = PaddingValues(),
    onRefresh: () -> Unit = { },
-   onSwipeStartToEnd: (listItem: ListItem) -> Unit = { },
-   onSwipeEndToStart: (listItem: ListItem) -> Unit = { },
-   onClick: (listItem: ListItem) -> Unit = { }
+   onSwipeStartToEnd: (listItem: T) -> Unit = { },
+   onSwipeEndToStart: (listItem: T) -> Unit = { },
+   onClick: (listItem: T) -> Unit = { }
 ) {
 
    var isRefreshing by remember { mutableStateOf(false) }

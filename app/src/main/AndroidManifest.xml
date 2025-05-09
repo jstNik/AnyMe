@@ -41,6 +41,12 @@
             />
 
         <activity
+            android:name=".activities.SeasonalListActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            />
+
+        <activity
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
             android:exported="true"
             tools:node="replace">

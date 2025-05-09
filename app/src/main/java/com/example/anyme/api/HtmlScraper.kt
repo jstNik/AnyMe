@@ -1,27 +1,31 @@
-package com.example.anyme.repositories
+package com.example.anyme.api
 
-import com.example.anyme.api.JsoupNetworkManager
+import android.util.Log
+import androidx.core.text.isDigitsOnly
+import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.utils.RangeMap
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 import java.net.URL
 import java.util.Calendar
 import javax.inject.Inject
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-open class EpisodeInfoScraper @Inject constructor(
+open class HtmlScraper @Inject constructor(
    private val networkManager: JsoupNetworkManager
 ) {
+
+   private val seasonalUrl = URL("https://www.livechart.me/schedule")
 
    suspend fun scrapeEpisodesType(malAnime: MalAnimeDL): MalAnimeDL {
       val url = """
          https://www.google.com/search?q=
          ${malAnime.alternativeTitles.en.ifBlank { malAnime.title }.replace("\"", "")}
          &as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=all&as_sitesearch=animefillerlist.com&as_occt=any&as_filetype=&tbs=
-      """
+      """.replace("\n", "").replace(" ", "")
 
       val html = networkManager.getHtml(URL(url))
 
@@ -99,7 +103,7 @@ open class EpisodeInfoScraper @Inject constructor(
       }
 
       var link = "https://www.livechart.me/${currentSeason}-${currentYear.toInt()}/all"
-      when (malAnime.startSeason.season) {
+      when (malAnime.season.season) {
          "winter" -> 0
          "spring" -> 1
          "summer" -> 2
@@ -107,11 +111,11 @@ open class EpisodeInfoScraper @Inject constructor(
          else -> null
       }?.let {
          currentYear += Calendar.getInstance().get(Calendar.MONTH) / 12F
-         var animeYear = malAnime.startSeason.year.toFloat()
+         var animeYear = malAnime.season.year.toFloat()
          animeYear += it / 4F
          if (animeYear < currentYear)
             link =
-               "https://www.livechart.me/${malAnime.startSeason.season}-${malAnime.startSeason.year}/all"
+               "https://www.livechart.me/${malAnime.season.season}-${malAnime.season.year}/all"
       }
 
       val liveChart = networkManager.getHtml(URL(link)).select("article.anime")
@@ -126,5 +130,37 @@ open class EpisodeInfoScraper @Inject constructor(
       malAnime.nextEp = NextEpisode(nextEp, nextEpIn)
       return malAnime
    }
+
+   suspend fun scrapeSeasonal(malSeasonalAnimes: Map<Int, MalAnime>): Map<Int, NextEpisode>{
+      val html = networkManager.getHtml(seasonalUrl)
+      val articles = html.getElementsByTag("article")
+      val animeToTime = mutableMapOf<Int, NextEpisode>()
+
+      articles.forEach { article ->
+         try {
+            val aMalTag = article.select("a.lc-anime-card--related-links--icon.mal").firstOrNull()
+
+            val malIdAsString = aMalTag!!.attr("href").filter { it.isDigit() }
+
+            val malId = Integer.parseInt(malIdAsString)
+            val malAnime = malSeasonalAnimes[malId]
+            if (malAnime == null) return@forEach
+
+            val timestampAsString = article.getElementsByTag("time").attr("data-timestamp")
+            val timestamp = Integer.parseInt(timestampAsString).toLong().seconds
+
+            val spanTag = article.getElementsByTag("span").firstOrNull()
+
+            val episodeNumberAsString = spanTag!!.text().filter { it.isDigit() }
+            val episodeNumber = Integer.parseInt(episodeNumberAsString)
+
+            animeToTime[malId] = NextEpisode(episodeNumber, timestamp)
+         } catch (e: Exception){
+            Log.e("$e", "${e.message}", e)
+         }
+      }
+      return animeToTime
+   }
+
 
 }

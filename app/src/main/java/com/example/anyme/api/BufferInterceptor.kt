@@ -15,22 +15,12 @@ class BufferInterceptor(
    private val queue: MutexConcurrentHashMap = MutexConcurrentHashMap()
 ): Interceptor {
 
-   @Volatile
-   private var time: Duration = 0.milliseconds
-   @Volatile
-   private var first = true
-
    override fun intercept(chain: Interceptor.Chain): Response {
       var request = chain.request()
       val domain = request.url().host()
       val mutex = queue[domain]
       try {
          mutex.acquire()
-         val currentTime = System.currentTimeMillis().milliseconds
-         val elapsedTime = currentTime - time
-         time = currentTime
-         Log.i("Domain", "$domain started at: ${if (first) 0 else elapsedTime}")
-         first = false
          return chain.proceed(request)
       } catch(e: InterruptedException){
          Log.e("$e", "${e.message}", e)

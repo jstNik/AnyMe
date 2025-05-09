@@ -30,13 +30,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.example.anyme.domain.mal_dl.MainPicture
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.ui.composables.BlurredGlideImage
 
 data class MalRankingListItem(
    override val id: Int = 0,
    override val title: String = "",
-   val picture: String = "",
+   override val mainPicture: MainPicture = MainPicture(),
    val rank: Int = 0,
    val numListUsers: Int = 0
 ) : MalAnime, ListItem {
@@ -71,7 +72,7 @@ data class MalRankingListItem(
             ){
 
                BlurredGlideImage(
-                  picture,
+                  mainPicture.medium,
                   null,
                   minRatio = 0.4F,
                   maxRatio = 1F,

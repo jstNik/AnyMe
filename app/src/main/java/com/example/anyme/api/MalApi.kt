@@ -3,6 +3,7 @@ package com.example.anyme.api
 import com.example.anyme.domain.mal_api.MalAnimeListGetResponse
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MalApi {
@@ -15,20 +16,24 @@ interface MalApi {
 
         const val USER_LIST_LIMIT = 1000
         const val RANKING_LIST_LIMIT = 30
+        const val SEASONAL_LIST_LIMIT = 500
 
-        val BASIC_FIELDS = listOf(
+        val BASIC_FIELDS = setOf(
             "id","title","main_picture"
         )
-        val RANKING_LIST_FIELDS = listOf(
+        val RANKING_LIST_FIELDS = setOf(
             "popularity", "rating", "num_list_users", "num_episodes", "status"
         )
-        val USER_LIST_FIELDS = listOf(
+        val USER_LIST_FIELDS = setOf(
             "my_list_status"
         )
-        val DETAILS_FIELDS = listOf(
-            "alternative_titles", "start_date", "end_date", "synopsis", "mean", "rank",
+        val SEASON_LIST_FIELDS = setOf(
+            "broadcast", "mean"
+        )
+        val DETAILS_FIELDS = setOf(
+            "alternative_titles", "start_date", "end_date", "synopsis", "rank",
             "popularity", "num_scoring_users", "nsfw", "created_at", "updated_at",
-            "media_type", "genres", "start_season", "broadcast", "source",
+            "media_type", "genres", "start_season", "source",
             "average_episode_duration", "rating", "pictures", "background", "related_anime",
             "related_manga", "recommendations", "studios", "statistics"
         )
@@ -52,4 +57,15 @@ interface MalApi {
         @Query("offset") offset: Int = 0,
         @Query("fields") fields: String = (BASIC_FIELDS + RANKING_LIST_FIELDS).joinToString(",")
     ): Response<MalAnimeListGetResponse>
+
+    @GET("anime/season/{year}/{season}")
+    suspend fun retrieveSeasonalAnimes(
+        @Path("year") year: Int,
+        @Path("season") season: String,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = SEASONAL_LIST_LIMIT,
+        @Query("sort") sort: String = "anime_score",
+        @Query("fields") fields: String = (BASIC_FIELDS + SEASON_LIST_FIELDS).joinToString(",")
+    ): Response<MalAnimeListGetResponse>
+
 }

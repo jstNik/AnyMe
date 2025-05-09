@@ -1,4 +1,4 @@
-package com.example.anyme.repositories
+package com.example.anyme.api
 
 class ScrapingFailedException(
     override val message: String?

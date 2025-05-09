@@ -16,7 +16,7 @@ import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.domain.mal_dl.Picture
 import com.example.anyme.domain.mal_dl.Recommendation
 import com.example.anyme.domain.mal_dl.RelatedAnime
-import com.example.anyme.domain.mal_dl.StartSeason
+import com.example.anyme.domain.mal_dl.Season
 import com.example.anyme.domain.mal_dl.Statistics
 import com.example.anyme.domain.mal_dl.Status
 import com.example.anyme.domain.mal_dl.Studio
@@ -123,7 +123,7 @@ data class MalAnimeDB(
                 gson.fromJson(relatedAnime, object : TypeToken<List<RelatedAnime>>() {}),
                 source,
                 startDate,
-                StartSeason(startSeasonSeason, startSeasonYear),
+                Season(startSeasonSeason, startSeasonYear),
                 Statistics(
                     statisticsNumListUsers,
                     Status(

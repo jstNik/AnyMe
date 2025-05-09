@@ -8,7 +8,8 @@ import com.example.anyme.api.MalApi
 import com.example.anyme.api.MalInterceptor
 import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
-import com.example.anyme.repositories.EpisodeInfoScraper
+import com.example.anyme.api.HtmlScraper
+import com.example.anyme.api.LiveChartInterceptor
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
 import dagger.Module
@@ -48,13 +49,9 @@ object MalModule {
     fun providesMalInterceptor(@ApplicationContext context: Context): MalInterceptor =
         MalInterceptor(context)
 
-
     @Provides
     @Singleton
-    fun providesOkHttpClient(bufferInterceptor: BufferInterceptor): OkHttpClient = OkHttpClient
-        .Builder()
-        .addInterceptor(bufferInterceptor)
-        .build()
+    fun providesLiveChartInterceptor() = LiveChartInterceptor()
 
 
     @Provides
@@ -68,9 +65,7 @@ object MalModule {
                 .addInterceptor(bufferInterceptor)
                 .build()
             ).baseUrl(MalApi.BASE_URL)
-            .addConverterFactory(
-                GsonConverterFactory.create()
-            )
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create()
 
@@ -78,16 +73,26 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesNetworkManager(client: OkHttpClient): JsoupNetworkManager = JsoupNetworkManager(client)
+    fun providesNetworkManager(
+        bufferInterceptor: BufferInterceptor,
+        liveChartInterceptor: LiveChartInterceptor
+    ): JsoupNetworkManager =
+        JsoupNetworkManager(
+            OkHttpClient
+                .Builder()
+                .addInterceptor(liveChartInterceptor)
+                .addInterceptor(bufferInterceptor)
+                .build()
+        )
 
     @Provides
     @Singleton
-    fun providesEpisodeInfoScraper(networkManager: JsoupNetworkManager): EpisodeInfoScraper =
-        EpisodeInfoScraper(networkManager)
+    fun providesEpisodeInfoScraper(networkManager: JsoupNetworkManager): HtmlScraper =
+        HtmlScraper(networkManager)
 
     @Provides
     @Singleton
-    fun providesMalRepository(api: MalApi, dao: MalDao, scraper: EpisodeInfoScraper): IMalRepository =
+    fun providesMalRepository(api: MalApi, dao: MalDao, scraper: HtmlScraper): IMalRepository =
         MalRepository(api, dao, scraper)
 
 }

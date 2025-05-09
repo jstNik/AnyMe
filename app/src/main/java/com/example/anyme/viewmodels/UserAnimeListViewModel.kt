@@ -61,7 +61,7 @@ class UserAnimeListViewModel @Inject constructor(
       pagingSourceFactory
    ).flow.map { pagingData ->
       pagingData.map { item ->
-         item.mapToMalAnimeDL().mapToMalAnimeListItem() as ListItem
+         item.mapToMalAnimeDL().mapToMalAnimeListItem()
       }
    }.cachedIn(viewModelScope)
 
