@@ -12,11 +12,17 @@ import com.example.anyme.api.HtmlScraper
 import com.example.anyme.api.LiveChartInterceptor
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
+import com.example.anyme.utils.LocalDateTimeAdapter
+import com.example.anyme.utils.LocalDateTypeAdapter
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -53,10 +59,21 @@ object MalModule {
     @Singleton
     fun providesLiveChartInterceptor() = LiveChartInterceptor()
 
+    @Provides
+    @Singleton
+    fun providesGson(): Gson = GsonBuilder()
+        .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+        .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+        .create()
+
 
     @Provides
     @Singleton
-    fun providesMalApi(malInterceptor: MalInterceptor, bufferInterceptor: BufferInterceptor): MalApi =
+    fun providesMalApi(
+        gson: Gson,
+        malInterceptor: MalInterceptor,
+        bufferInterceptor: BufferInterceptor
+    ): MalApi =
         Retrofit
             .Builder()
             .client(OkHttpClient
@@ -65,7 +82,7 @@ object MalModule {
                 .addInterceptor(bufferInterceptor)
                 .build()
             ).baseUrl(MalApi.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create()
 
@@ -92,7 +109,7 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesMalRepository(api: MalApi, dao: MalDao, scraper: HtmlScraper): IMalRepository =
-        MalRepository(api, dao, scraper)
+    fun providesMalRepository(api: MalApi, dao: MalDao, gson: Gson, scraper: HtmlScraper): IMalRepository =
+        MalRepository(api, dao, scraper, gson)
 
 }

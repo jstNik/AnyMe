@@ -11,6 +11,7 @@ import androidx.paging.map
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.ui.ListItem
 import com.example.anyme.repositories.IMalRepository
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserAnimeListViewModel @Inject constructor(
-   private val malRepository: IMalRepository
+   private val malRepository: IMalRepository,
+   private val gson: Gson
 ): ViewModel() {
 
    init{
@@ -61,7 +63,7 @@ class UserAnimeListViewModel @Inject constructor(
       pagingSourceFactory
    ).flow.map { pagingData ->
       pagingData.map { item ->
-         item.mapToMalAnimeDL().mapToMalAnimeListItem()
+         item.mapToMalAnimeDL(gson).mapToMalAnimeListItem()
       }
    }.cachedIn(viewModelScope)
 

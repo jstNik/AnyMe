@@ -6,8 +6,12 @@ import com.example.anyme.domain.mal_db.MalAnimeDB
 import com.example.anyme.domain.ui.MalAnimeListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.RangeMap
+import com.example.anyme.utils.toIsoString
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
 
 @Entity
 data class MalAnimeDL(
@@ -22,7 +26,7 @@ data class MalAnimeDL(
    @SerializedName("created_at")
    var createdAt: String = "",
    @SerializedName("end_date")
-   var endDate: String = "",
+   var endDate: LocalDate = LocalDate(0, 1, 1),
    @SerializedName("genres")
    var genres: List<Genre> = listOf(),
    @SerializedName("id")
@@ -60,7 +64,7 @@ data class MalAnimeDL(
    @SerializedName("source")
    var source: String = "",
    @SerializedName("start_date")
-   var startDate: String = "",
+   var startDate: LocalDate = LocalDate(0, 1, 1),
    @SerializedName("start_season")
    var season: Season = Season(),
    @SerializedName("statistics")
@@ -141,9 +145,7 @@ data class MalAnimeDL(
       hasNotificationsOn = malAnime.hasNotificationsOn
    }
 
-   fun mapToMalAnimeDB(): MalAnimeDB {
-
-      val gson = Gson()
+   fun mapToMalAnimeDB(gson: Gson): MalAnimeDB {
 
       return MalAnimeDB(
          alternativeTitles.en,
@@ -154,7 +156,7 @@ data class MalAnimeDL(
          broadcast.dayOfTheWeek,
          broadcast.startTime,
          createdAt,
-         endDate,
+         endDate.toIsoString(),
          gson.toJson(genres),
          id,
          mainPicture.large,
@@ -178,7 +180,7 @@ data class MalAnimeDL(
          gson.toJson(relatedAnime),
          gson.toJson(listOf<Any>()),
          source,
-         startDate,
+         startDate.toIsoString(),
          season.season,
          season.year,
          statistics.numListUsers,
@@ -219,6 +221,8 @@ data class MalAnimeDL(
          title,
          mainPicture,
          broadcast,
+         startDate,
+         endDate,
          nextEp
       )
 

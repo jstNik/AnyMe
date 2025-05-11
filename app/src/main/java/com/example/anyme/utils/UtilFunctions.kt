@@ -1,9 +1,10 @@
 package com.example.anyme.utils
 
-import java.time.Month
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import java.util.Calendar
 
-fun Calendar.getSeason() = when(Calendar.getInstance().get(Calendar.MONTH)){
+fun Calendar.getSeason() = when(get(Calendar.MONTH)){
    in 0..2 -> "winter"
    in 3..5 -> "spring"
    in 6..8 -> "summer"
@@ -17,4 +18,24 @@ fun <C : Collection<T>, T> C.shift(position: Int): List<T>{
       shiftedList.add((idx + position).mod(size), item)
    }
    return shiftedList
+}
+
+fun String?.toLocalDate(): LocalDate =
+   this?.let{ LocalDate.Formats.ISO.parseOrNull(it) } ?: LocalDate(0, 1, 1)
+
+
+fun LocalDate.toIsoString(): String = try {
+   LocalDate.Formats.ISO.format(this)
+} catch (_: IllegalArgumentException) {
+   ""
+}
+
+fun String?.toLocalDateTime(): LocalDateTime =
+   this?.let{ LocalDateTime.Formats.ISO.parseOrNull(it) } ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0)
+
+
+fun LocalDateTime.toIsoString(): String = try {
+   LocalDateTime.Formats.ISO.format(this)
+} catch (_: IllegalArgumentException) {
+   ""
 }

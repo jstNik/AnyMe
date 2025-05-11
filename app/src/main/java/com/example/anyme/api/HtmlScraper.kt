@@ -1,18 +1,18 @@
 package com.example.anyme.api
 
 import android.util.Log
-import androidx.core.text.isDigitsOnly
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.utils.RangeMap
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jsoup.Jsoup
-import org.jsoup.select.Elements
 import java.net.URL
 import java.util.Calendar
 import javax.inject.Inject
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 open class HtmlScraper @Inject constructor(
    private val networkManager: JsoupNetworkManager
@@ -39,7 +39,8 @@ open class HtmlScraper @Inject constructor(
       val epOffset = animeFillerListHtml
          .select("tbody tr")
          .first { tr ->
-            tr.select("td.Date").first()?.text() == malAnime.startDate
+            LocalDate.Formats.ISO
+               .parseOrNull(tr.select("td.Date").first()?.text() ?: "") == malAnime.startDate
          }.select("td.Number")
          .text()
          .toInt() - 1
@@ -126,8 +127,12 @@ open class HtmlScraper @Inject constructor(
       }
       val nextEp =
          article.select(".release-schedule-info").text().filter { it.isDigit() }.toInt()
-      val nextEpIn = article.select("time").attr("data-timestamp").toLong().seconds
-      malAnime.nextEp = NextEpisode(nextEp, nextEpIn)
+      val releaseDate = Instant
+            .fromEpochSeconds(article.select("time").attr("data-timestamp").toLong())
+            .toLocalDateTime(TimeZone.UTC)
+
+
+      malAnime.nextEp = NextEpisode(nextEp, releaseDate)
       return malAnime
    }
 
@@ -146,15 +151,15 @@ open class HtmlScraper @Inject constructor(
             val malAnime = malSeasonalAnimes[malId]
             if (malAnime == null) return@forEach
 
-            val timestampAsString = article.getElementsByTag("time").attr("data-timestamp")
-            val timestamp = Integer.parseInt(timestampAsString).toLong().seconds
+            val releaseDate = Instant
+               .fromEpochSeconds(article.getElementsByTag("time").attr("data-timestamp").toLong())
+               .toLocalDateTime(TimeZone.UTC)
 
             val spanTag = article.getElementsByTag("span").firstOrNull()
 
-            val episodeNumberAsString = spanTag!!.text().filter { it.isDigit() }
-            val episodeNumber = Integer.parseInt(episodeNumberAsString)
+            val episodeNumber = spanTag!!.text().filter { it.isDigit() }.toInt()
 
-            animeToTime[malId] = NextEpisode(episodeNumber, timestamp)
+            animeToTime[malId] = NextEpisode(episodeNumber, releaseDate)
          } catch (e: Exception){
             Log.e("$e", "${e.message}", e)
          }

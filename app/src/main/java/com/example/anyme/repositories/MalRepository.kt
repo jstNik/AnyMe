@@ -12,6 +12,7 @@ import com.example.anyme.domain.mal_dl.MyListStatus
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.getSeason
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -28,6 +29,7 @@ class MalRepository @Inject constructor(
    val malApi: MalApi,
    private val malDao: MalDao,
    private val scraper: HtmlScraper,
+   private val gson: Gson,
    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 
 ) : IMalRepository {
@@ -77,7 +79,7 @@ class MalRepository @Inject constructor(
                // We got the 2 lists, now we have to update both list with the new data
                val apiMalAnimeList = apiResponse.body()!!.`data`.associateBy { it.malAnimeDL.id }
                dbMalAnimeList += deferredDbMalAnimeList.await().associate {
-                  it.id to it.mapToMalAnimeDL()
+                  it.id to it.mapToMalAnimeDL(gson)
                }.toMutableMap()
 
                apiMalAnimeList.forEach forEach@{ entry ->
@@ -87,7 +89,7 @@ class MalRepository @Inject constructor(
 
                   val upsertJob = launch {
                      if (dbMalAnime == null) {
-                        malDao.insert(apiMalAnime.mapToMalAnimeDB())
+                        malDao.insert(apiMalAnime.mapToMalAnimeDB(gson))
                      } else {
 
                         // Preserve local data
@@ -98,7 +100,7 @@ class MalRepository @Inject constructor(
                            dbMalAnimeList.remove(entry.key, dbMalAnime)
                         } else {
 
-                           malDao.update(apiMalAnime.mapToMalAnimeDB())
+                           malDao.update(apiMalAnime.mapToMalAnimeDB(gson))
                            dbMalAnimeList.remove(entry.key, dbMalAnime)
                         }
                      }
@@ -110,7 +112,7 @@ class MalRepository @Inject constructor(
                         try {
                            val result = scraper.scrapeEpisodesType(apiMalAnime)
                            upsertJob.join()
-                           malDao.update(result.mapToMalAnimeDB())
+                           malDao.update(result.mapToMalAnimeDB(gson))
                         } catch (ex: Exception) {
                            Log.e(ex.toString(), ex.message ?: "")
                         }
@@ -124,7 +126,7 @@ class MalRepository @Inject constructor(
                         try {
                            val result = scraper.scrapeNextEpInfos(apiMalAnime)
                            upsertJob.join()
-                           malDao.update(result.mapToMalAnimeDB())
+                           malDao.update(result.mapToMalAnimeDB(gson))
                         } catch (ex: Exception) {
                            Log.e(ex.toString(), ex.message ?: "")
                         }
@@ -136,7 +138,7 @@ class MalRepository @Inject constructor(
                launch {
                   malDao.delete(dbMalAnimeList.values.map {
                      dbMalAnimeList.remove(it.id)
-                     it.mapToMalAnimeDB()
+                     it.mapToMalAnimeDB(gson)
                   })
                }
             } while(offset >= 0)

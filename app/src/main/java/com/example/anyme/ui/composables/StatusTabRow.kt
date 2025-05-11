@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MyListStatusTabRow(
    tabLabels: List<String>,
-   onPageSelected: (newStatus: String) -> Unit
+   onPageSelected: (Int) -> Unit
 ){
 
    var page by remember { mutableIntStateOf(0) }
@@ -43,7 +43,7 @@ fun MyListStatusTabRow(
             selected = page == index,
             onClick = {
                page = index
-               onPageSelected.invoke(tabText)
+               onPageSelected.invoke(page)
             },
             text = {
                Text(

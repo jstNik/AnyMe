@@ -21,6 +21,7 @@ import com.example.anyme.domain.mal_dl.Statistics
 import com.example.anyme.domain.mal_dl.Status
 import com.example.anyme.domain.mal_dl.Studio
 import com.example.anyme.utils.RangeMap
+import com.example.anyme.utils.toLocalDate
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -82,9 +83,8 @@ data class MalAnimeDB(
     var hasNotificationsOn: Boolean = false
 ): MalAnime, Serializable {
 
-    fun mapToMalAnimeDL(): MalAnimeDL {
+    fun mapToMalAnimeDL(gson: Gson): MalAnimeDL {
 
-        val gson = Gson()
         try{
             return MalAnimeDL(
                 AlternativeTitles(
@@ -96,7 +96,7 @@ data class MalAnimeDB(
                 background,
                 Broadcast(broadcastDayOfTheWeek, broadcastStartTime),
                 createdAt,
-                endDate,
+                endDate.toLocalDate(),
                 gson.fromJson(genres, object : TypeToken<List<Genre>>() {}),
                 id,
                 MainPicture(mainPictureLarge, mainPictureMedium),
@@ -122,7 +122,7 @@ data class MalAnimeDB(
                     object : TypeToken<List<Recommendation>>() {}),
                 gson.fromJson(relatedAnime, object : TypeToken<List<RelatedAnime>>() {}),
                 source,
-                startDate,
+                startDate.toLocalDate(),
                 Season(startSeasonSeason, startSeasonYear),
                 Statistics(
                     statisticsNumListUsers,

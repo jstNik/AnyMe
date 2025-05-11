@@ -21,7 +21,9 @@ import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.utils.shift
 import com.example.anyme.viewmodels.SeasonalAnimeListViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.datetime.LocalDate
 import java.util.Calendar
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class SeasonalListActivity: AppCompatActivity() {
@@ -55,6 +57,7 @@ fun ComposeSeasonalListActivity(viewModel: SeasonalAnimeListViewModel = viewMode
 
          val lazyListState = rememberLazyListState()
          val seasonals by viewModel.seasonalAnimes.collectAsStateWithLifecycle()
+         val epochDays = Calendar.getInstance().timeInMillis.milliseconds.inWholeDays.toInt()
 
          LazyColumn(
             state = lazyListState,
@@ -67,7 +70,9 @@ fun ComposeSeasonalListActivity(viewModel: SeasonalAnimeListViewModel = viewMode
             ){
 
                seasonals.getOrNull(it)?.let{ item ->
-                  item.Render() { }
+
+                  if(item.releaseDateAt(LocalDate.fromEpochDays(epochDays)))
+                     item.Render() { }
                }
 
             }
