@@ -30,7 +30,7 @@
 
         <activity
             android:name=".activities.UserListActivity"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleTask"
             />
 

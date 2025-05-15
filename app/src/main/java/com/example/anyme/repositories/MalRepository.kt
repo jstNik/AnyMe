@@ -1,7 +1,6 @@
 package com.example.anyme.repositories
 
 import android.util.Log
-import androidx.core.text.isDigitsOnly
 import com.example.anyme.api.HtmlScraper
 import com.example.anyme.api.MalApi
 import com.example.anyme.daos.MalDao
@@ -9,21 +8,23 @@ import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_api.Paging
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyListStatus
+import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
+import com.example.anyme.utils.getDateOfNext
 import com.example.anyme.utils.getSeason
+import com.example.anyme.utils.toLocalDateTime
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDateTime
 import java.util.Calendar
-import java.util.Calendar.MONTH
-import java.util.Calendar.YEAR
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class MalRepository @Inject constructor(
    val malApi: MalApi,
@@ -135,11 +136,12 @@ class MalRepository @Inject constructor(
 
                }
                // Deleting animes from database which are not in the api anime list
+               val animeToDelete = dbMalAnimeList.values.map {
+                  dbMalAnimeList.remove(it.id)
+                  it.mapToMalAnimeDB(gson)
+               }
                launch {
-                  malDao.delete(dbMalAnimeList.values.map {
-                     dbMalAnimeList.remove(it.id)
-                     it.mapToMalAnimeDB(gson)
-                  })
+                  malDao.delete(animeToDelete)
                }
             } while(offset >= 0)
 
@@ -165,16 +167,17 @@ class MalRepository @Inject constructor(
    }
 
    override suspend fun retrieveMalSeasonalAnimes() = flow {
-      val season = Calendar.getInstance().getSeason()
-      val year = Calendar.getInstance().get(YEAR)
+      val dateTime = Calendar.getInstance().timeInMillis.milliseconds.toLocalDateTime()
       val animeMap = mutableMapOf<Int, MalSeasonalListItem>()
       var offset = 0
 
       do{
-         val httpResponse = malApi.retrieveSeasonalAnimes(year, season, offset)
+         val httpResponse = malApi.retrieveSeasonalAnimes(dateTime.year, dateTime.date.getSeason(), offset)
          validate(httpResponse)
          val dataResponse = httpResponse.body()!!
-         animeMap += dataResponse.data.associateBy({ it.malAnimeDL.id }, { it.malAnimeDL.mapToMalSeasonalListItem() })
+         animeMap += dataResponse.data.associateBy({ it.malAnimeDL.id },
+            { it.malAnimeDL.mapToMalSeasonalListItem() }
+         )
          offset = nextOffset(dataResponse.paging)
 
       } while(offset > 0)
@@ -184,7 +187,9 @@ class MalRepository @Inject constructor(
       scraper.scrapeSeasonal(animeMap).forEach { key, value ->
          val seasonalAnime = animeMap[key]
          if(seasonalAnime == null) return@forEach
-         animeMap[key] = animeMap[key]!!.copy(nextEp = value)
+         animeMap[key] = animeMap[key]!!.copy(
+            htmlNextEp = value.number, htmlReleaseDate = value.releaseDate.toLocalDateTime()
+         )
       }
 
       emit(animeMap.values.toList())

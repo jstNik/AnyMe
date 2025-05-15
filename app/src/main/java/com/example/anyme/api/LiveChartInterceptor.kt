@@ -10,7 +10,7 @@ class LiveChartInterceptor: Interceptor {
    private val url = "https://www.livechart.me/schedule"
 
    private val cookie = """
-      preferences.schedule={"layout":"full","start":"monday","sort":"title","sort_dir":"asc",
+      preferences.schedule={"layout":"full","start":"today","sort":"title","sort_dir":"asc",
       "included_marks":{"completed":true,"rewatching":true,"watching":true,"planning":true,
       "considering":true,"paused":false,"dropped":false,"skipping":false,"unmarked":true}}
       """.replace("\n", "").replace(" ", "")

@@ -3,15 +3,21 @@ package com.example.anyme.domain.mal_dl
 
 import androidx.room.Entity
 import com.example.anyme.domain.mal_db.MalAnimeDB
-import com.example.anyme.domain.ui.MalAnimeListItem
+import com.example.anyme.domain.ui.MalUserListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.toIsoString
+import com.example.anyme.utils.toLocalDateTime
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.format
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
 @Entity
 data class MalAnimeDL(
@@ -26,7 +32,7 @@ data class MalAnimeDL(
    @SerializedName("created_at")
    var createdAt: String = "",
    @SerializedName("end_date")
-   var endDate: LocalDate = LocalDate(0, 1, 1),
+   var endDate: String = "",
    @SerializedName("genres")
    var genres: List<Genre> = listOf(),
    @SerializedName("id")
@@ -64,7 +70,7 @@ data class MalAnimeDL(
    @SerializedName("source")
    var source: String = "",
    @SerializedName("start_date")
-   var startDate: LocalDate = LocalDate(0, 1, 1),
+   var startDate: String =  "",
    @SerializedName("start_season")
    var season: Season = Season(),
    @SerializedName("statistics")
@@ -156,7 +162,7 @@ data class MalAnimeDL(
          broadcast.dayOfTheWeek,
          broadcast.startTime,
          createdAt,
-         endDate.toIsoString(),
+         endDate,
          gson.toJson(genres),
          id,
          mainPicture.large,
@@ -180,7 +186,7 @@ data class MalAnimeDL(
          gson.toJson(relatedAnime),
          gson.toJson(listOf<Any>()),
          source,
-         startDate.toIsoString(),
+         startDate,
          season.season,
          season.year,
          statistics.numListUsers,
@@ -201,8 +207,8 @@ data class MalAnimeDL(
 
    }
 
-   fun mapToMalAnimeListItem(): MalAnimeListItem =
-      MalAnimeListItem(
+   fun mapToMalAnimeListItem(): MalUserListItem =
+      MalUserListItem(
          id,
          title,
          mainPicture,
@@ -215,15 +221,32 @@ data class MalAnimeDL(
          hasNotificationsOn
       )
 
-   fun mapToMalSeasonalListItem(): MalSeasonalListItem =
-      MalSeasonalListItem(
+   fun mapToMalSeasonalListItem(): MalSeasonalListItem {
+
+      val startDate = LocalDate.Formats.ISO.parseOrNull(startDate)
+      val time = LocalTime.Formats.ISO.parseOrNull(broadcast.startTime)
+      val endDate = LocalDate.Formats.ISO.parseOrNull(endDate)
+      var startDateTime: LocalDateTime? = null
+      var endDateTime: LocalDateTime? = null
+      time?.let{
+         if(startDate != null)
+            startDateTime = LocalDateTime(startDate, it)
+               .toInstant(TimeZone.of("Asia/Tokyo"))
+               .toLocalDateTime(TimeZone.currentSystemDefault())
+         if(endDate != null)
+            endDateTime = LocalDateTime(endDate, it)
+               .toInstant(TimeZone.of("Asia/Tokyo"))
+               .toLocalDateTime(TimeZone.currentSystemDefault())
+      }
+
+      return MalSeasonalListItem(
          id,
          title,
          mainPicture,
-         broadcast,
-         startDate,
-         endDate,
-         nextEp
+         startDateTime,
+         endDateTime,
+         nextEp.number,
+         if(nextEp.releaseDate != 0.milliseconds) nextEp.releaseDate.toLocalDateTime() else null
       )
-
+   }
 }

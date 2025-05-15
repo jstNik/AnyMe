@@ -28,12 +28,11 @@ interface MalApi {
             "my_list_status"
         )
         val SEASON_LIST_FIELDS = setOf(
-            "broadcast", "mean"
+            "broadcast", "mean", "end_date", "start_date"
         )
         val DETAILS_FIELDS = setOf(
-            "alternative_titles", "start_date", "end_date", "synopsis", "rank",
-            "popularity", "num_scoring_users", "nsfw", "created_at", "updated_at",
-            "media_type", "genres", "start_season", "source",
+            "alternative_titles", "synopsis", "rank", "popularity", "num_scoring_users", "nsfw",
+            "created_at", "updated_at", "media_type", "genres", "start_season", "source",
             "average_episode_duration", "rating", "pictures", "background", "related_anime",
             "related_manga", "recommendations", "studios", "statistics"
         )
@@ -55,6 +54,7 @@ interface MalApi {
         @Query("ranking_type") type: String,
         @Query("limit") limit: Int = RANKING_LIST_LIMIT,
         @Query("offset") offset: Int = 0,
+        @Query("nsfw") nsfw: String = "true",
         @Query("fields") fields: String = (BASIC_FIELDS + RANKING_LIST_FIELDS).joinToString(",")
     ): Response<MalAnimeListGetResponse>
 
@@ -65,6 +65,7 @@ interface MalApi {
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = SEASONAL_LIST_LIMIT,
         @Query("sort") sort: String = "anime_score",
+        @Query("nsfw") nsfw: String = "true",
         @Query("fields") fields: String = (BASIC_FIELDS + SEASON_LIST_FIELDS).joinToString(",")
     ): Response<MalAnimeListGetResponse>
 

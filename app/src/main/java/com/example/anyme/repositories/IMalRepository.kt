@@ -25,15 +25,17 @@ interface IMalRepository {
    suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem>
 
    fun <T> validate(response: Response<T>) {
+      if(response.code() == 401)
+
       if (!response.isSuccessful) {
          val unsuccessful =
-            ApiCallNotSuccessfulException("Server replied with ${response.code()} code")
-         Log.e("ApiCallNotSuccessfulException", unsuccessful.message ?: "")
+            ApiCallNotSuccessfulException(response.raw())
+         Log.e("$unsuccessful", unsuccessful.message, unsuccessful)
          throw unsuccessful
       }
       if (response.body() == null) {
-         val unsuccessful = ApiCallNotSuccessfulException("Server replied with null body")
-         Log.e("ApiCallNotSuccessfulException", unsuccessful.message ?: "")
+         val unsuccessful = ApiCallNotSuccessfulException(response.raw())
+         Log.e("$unsuccessful", unsuccessful.message, unsuccessful)
          throw unsuccessful
       }
    }

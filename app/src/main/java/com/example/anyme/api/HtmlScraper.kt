@@ -13,6 +13,7 @@ import org.jsoup.Jsoup
 import java.net.URL
 import java.util.Calendar
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 open class HtmlScraper @Inject constructor(
    private val networkManager: JsoupNetworkManager
@@ -39,8 +40,7 @@ open class HtmlScraper @Inject constructor(
       val epOffset = animeFillerListHtml
          .select("tbody tr")
          .first { tr ->
-            LocalDate.Formats.ISO
-               .parseOrNull(tr.select("td.Date").first()?.text() ?: "") == malAnime.startDate
+            (tr.select("td.Date").first()?.text() ?: "") == malAnime.startDate
          }.select("td.Number")
          .text()
          .toInt() - 1
@@ -127,10 +127,7 @@ open class HtmlScraper @Inject constructor(
       }
       val nextEp =
          article.select(".release-schedule-info").text().filter { it.isDigit() }.toInt()
-      val releaseDate = Instant
-            .fromEpochSeconds(article.select("time").attr("data-timestamp").toLong())
-            .toLocalDateTime(TimeZone.UTC)
-
+      val releaseDate = article.select("time").attr("data-timestamp").toLong().seconds
 
       malAnime.nextEp = NextEpisode(nextEp, releaseDate)
       return malAnime
@@ -151,9 +148,8 @@ open class HtmlScraper @Inject constructor(
             val malAnime = malSeasonalAnimes[malId]
             if (malAnime == null) return@forEach
 
-            val releaseDate = Instant
-               .fromEpochSeconds(article.getElementsByTag("time").attr("data-timestamp").toLong())
-               .toLocalDateTime(TimeZone.UTC)
+            val releaseDate =
+               article.getElementsByTag("time").attr("data-timestamp").toLong().seconds
 
             val spanTag = article.getElementsByTag("span").firstOrNull()
 

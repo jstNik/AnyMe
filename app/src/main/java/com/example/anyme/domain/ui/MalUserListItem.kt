@@ -32,7 +32,7 @@ import com.example.anyme.ui.composables.BlurredGlideImage
 import com.example.anyme.utils.RangeMap
 
 @Immutable
-data class MalAnimeListItem(
+data class MalUserListItem(
    override val id: Int = 0,
    override val title: String = "",
    override val mainPicture: MainPicture = MainPicture(),

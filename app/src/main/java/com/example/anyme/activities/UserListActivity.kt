@@ -32,49 +32,49 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class UserListActivity: AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            AnyMeTheme(darkTheme = true) {
-                ComposeUserListActivity()
-            }
-        }
-    }
+   override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      enableEdgeToEdge()
+      setContent {
+         AnyMeTheme(darkTheme = true) {
+            ComposeUserListActivity()
+         }
+      }
+   }
 
 }
 
 @Composable
 fun ComposeUserListActivity(
-    viewModel: UserAnimeListViewModel = viewModel()
+   viewModel: UserAnimeListViewModel = viewModel()
 ){
 
-    val list = viewModel.list.collectAsLazyPagingItems()
-    val lazyColumnState = rememberLazyListState()
+   val list = viewModel.list.collectAsLazyPagingItems()
+   val lazyColumnState = rememberLazyListState()
 
-    Scaffold (
-        contentWindowInsets = WindowInsets.safeDrawing,
+   Scaffold (
+      contentWindowInsets = WindowInsets.safeDrawing,
 
-        topBar = {
-            MyListStatusTabRow(
-                tabLabels = MyListStatus.Status.entries.map { it.toString() },
-            ) { }
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
-        RefreshingColumnList(
-            list,
-            lazyColumnState,
-            key = { list[it]?.id ?: 0 },
-            contentPadding = paddingValues
-        )
-    }
+      topBar = {
+         MyListStatusTabRow(
+            tabLabels = MyListStatus.Status.entries.map { it.toString() },
+         ) { }
+      },
+      modifier = Modifier.fillMaxSize()
+   ) { paddingValues ->
+      RefreshingColumnList(
+         list,
+         lazyColumnState,
+         key = { list[it]?.id ?: (-it - 1) },
+         contentPadding = paddingValues
+      )
+   }
 }
 
 @Preview
 @Composable
 fun ComposeUserListActivityPreview(){
-    AnyMeTheme {
-        ComposeUserListActivity()
-    }
+   AnyMeTheme {
+      ComposeUserListActivity()
+   }
 }

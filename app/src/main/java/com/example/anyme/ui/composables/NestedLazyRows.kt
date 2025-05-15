@@ -49,7 +49,7 @@ fun NestedLazyRows(
 
       items(
          lists.size,
-         key = { titles.getOrNull(it) ?: 0}
+         key = { titles.getOrNull(it) ?: (-it - 1)}
          ) { colIdx ->
 
          val pagingItems = lists[colIdx].collectAsLazyPagingItems()
@@ -66,7 +66,7 @@ fun NestedLazyRows(
 
             items(
                pagingItems.itemCount,
-               { pagingItems[it]?.id ?: 0 }
+               { pagingItems[it]?.id ?: (-it - 1) }
             ){ rowIdx ->
 
                pagingItems[rowIdx]?.Render(

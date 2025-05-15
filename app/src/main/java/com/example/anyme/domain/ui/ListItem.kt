@@ -12,7 +12,7 @@ interface ListItem {
 
    @Composable
    fun Render(
-      modifier: Modifier = Modifier,
+      modifier: Modifier,
       onClick: (ListItem) -> Unit
    )
 

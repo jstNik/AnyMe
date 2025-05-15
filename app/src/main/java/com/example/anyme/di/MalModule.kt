@@ -10,6 +10,7 @@ import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.api.HtmlScraper
 import com.example.anyme.api.LiveChartInterceptor
+import com.example.anyme.api.MalTokenManager
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
 import com.example.anyme.utils.LocalDateTimeAdapter
@@ -52,8 +53,12 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesMalInterceptor(@ApplicationContext context: Context): MalInterceptor =
-        MalInterceptor(context)
+    fun providesMalTokenManager(@ApplicationContext context: Context) = MalTokenManager(context)
+
+    @Provides
+    @Singleton
+    fun providesMalInterceptor(tokenManager: MalTokenManager): MalInterceptor =
+        MalInterceptor(tokenManager)
 
     @Provides
     @Singleton

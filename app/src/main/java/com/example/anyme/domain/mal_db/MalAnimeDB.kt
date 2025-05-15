@@ -96,7 +96,7 @@ data class MalAnimeDB(
                 background,
                 Broadcast(broadcastDayOfTheWeek, broadcastStartTime),
                 createdAt,
-                endDate.toLocalDate(),
+                endDate,
                 gson.fromJson(genres, object : TypeToken<List<Genre>>() {}),
                 id,
                 MainPicture(mainPictureLarge, mainPictureMedium),
@@ -122,7 +122,7 @@ data class MalAnimeDB(
                     object : TypeToken<List<Recommendation>>() {}),
                 gson.fromJson(relatedAnime, object : TypeToken<List<RelatedAnime>>() {}),
                 source,
-                startDate.toLocalDate(),
+                startDate,
                 Season(startSeasonSeason, startSeasonYear),
                 Statistics(
                     statisticsNumListUsers,

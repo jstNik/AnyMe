@@ -32,10 +32,11 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.CodeVerifierUtil
 import net.openid.appauth.ResponseTypeValues
 import org.json.JSONException
+import androidx.core.net.toUri
+import androidx.core.content.edit
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthorizationService
-    private lateinit var jwt: JWT
     private val clientId: String = BuildConfig.API_KEY
     private var authState: AuthState = AuthState()
 
@@ -55,7 +56,6 @@ class LoginActivity : AppCompatActivity() {
                         throw exception
                     }
                     authState.update(res, null)
-                    jwt = JWT(res!!.accessToken!!)
                     authState.performActionWithFreshTokens(authService) { _, _, _ ->
                         persistState()
                          val intent = Intent(this, UserListActivity::class.java)
@@ -87,15 +87,15 @@ class LoginActivity : AppCompatActivity() {
 
     fun login() {
         val serviceConfig = AuthorizationServiceConfiguration(
-            Uri.parse(MalApi.AUTHORIZATION_URL),
-            Uri.parse(MalApi.TOKEN_URL), null, null
+           MalApi.AUTHORIZATION_URL.toUri(),
+           MalApi.TOKEN_URL.toUri(), null, null
         )
         val codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier()
         val authRequest = AuthorizationRequest.Builder(
             serviceConfig,
             clientId,
             ResponseTypeValues.CODE,
-            Uri.parse(MalApi.CALLBACK_URL)
+           MalApi.CALLBACK_URL.toUri()
         ).setCodeVerifier(codeVerifier, codeVerifier, "plain").build()
         authService = AuthorizationService(this)
         val intent = authService.getAuthorizationRequestIntent(authRequest)
@@ -108,8 +108,9 @@ class LoginActivity : AppCompatActivity() {
 
 
     private fun persistState() {
-        application.getSharedPreferences("AUTH_STATE_PREFERENCE", MODE_PRIVATE).edit()
-            .putString("AUTH_STATE", authState.jsonSerializeString()).apply()
+        application.getSharedPreferences("AUTH_STATE_PREFERENCE", MODE_PRIVATE).edit {
+           putString("AUTH_STATE", authState.jsonSerializeString())
+        }
     }
 
     @Throws(ClassCastException::class)
@@ -129,9 +130,6 @@ class LoginActivity : AppCompatActivity() {
 
             else -> false
         }
-
-        if (restoreSuccessful)
-            jwt = JWT(authState.accessToken!!)
 
         return restoreSuccessful
     }
