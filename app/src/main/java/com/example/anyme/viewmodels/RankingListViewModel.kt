@@ -28,13 +28,17 @@ open class RankingListViewModel @Inject constructor(
       prefetchDistance = 15
    )
 
+
+
    @OptIn(ExperimentalPagingApi::class)
    val rankingLists = MalRepository.RankingListType.entries.map {
       Pager<Int, MalRankingListItem>(
          pagingConfig,
          0,
          null
-      ){ RankingListPagination(malRepository, it) }.flow.cachedIn(viewModelScope)
+      ){
+         RankingListPagination(malRepository, it)
+      }.flow.cachedIn(viewModelScope)
    }
 
 }
