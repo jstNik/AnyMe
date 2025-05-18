@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.domain.mal_dl.MyListStatus
-import com.example.anyme.domain.ui.MalAnimeListItem
+import com.example.anyme.domain.ui.MalUserListItem
 import com.example.anyme.ui.composables.RefreshingColumnList
 import com.example.anyme.ui.composables.MyListStatusTabRow
 import com.example.anyme.ui.theme.AnyMeTheme
