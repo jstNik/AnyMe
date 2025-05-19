@@ -3,7 +3,6 @@ package com.example.anyme.ui.composables
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
@@ -20,23 +19,36 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-
 
 @Composable
-fun MyListStatusTabRow(
+fun AnimatedTabRow(
    tabLabels: List<String>,
+   isScrollable: Boolean,
+   modifier: Modifier = Modifier,
+   containerColor: Color = TabRowDefaults.primaryContainerColor,
+   contentColor: Color = TabRowDefaults.primaryContentColor,
+   edgePadding: Dp = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
+   divider: @Composable () -> Unit = { },
    onPageSelected: (Int) -> Unit
 ){
 
    var page by remember { mutableIntStateOf(0) }
+   val indicator: @Composable (tabPositions: List<TabPosition>) -> Unit = @Composable { tabPositions ->
 
-   AnimatedTabRow(
-      selectedTabIndex = page,
-      isScrollable = true,
-      edgePadding = 0.dp,
-      divider = {},
-   ) {
+      val animation by animateDpAsState(
+         targetValue = tabPositions[page].contentWidth,
+         label = "",
+         animationSpec = tween(500, easing = FastOutSlowInEasing)
+      )
+
+      TabRowDefaults.PrimaryIndicator(
+         width = animation,
+         modifier = Modifier
+            .tabIndicatorOffset(tabPositions[page])
+      )
+
+   }
+   val tabs = @Composable {
       tabLabels.forEachIndexed { index, tabText ->
 
          Tab(
@@ -55,39 +67,10 @@ fun MyListStatusTabRow(
          )
       }
    }
-}
-
-
-@Composable
-fun AnimatedTabRow(
-   selectedTabIndex: Int,
-   isScrollable: Boolean,
-   modifier: Modifier = Modifier,
-   containerColor: Color = TabRowDefaults.primaryContainerColor,
-   contentColor: Color = TabRowDefaults.primaryContentColor,
-   edgePadding: Dp = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
-   indicator: @Composable (tabPositions: List<TabPosition>) -> Unit = @Composable { tabPositions ->
-
-      val animation by animateDpAsState(
-         targetValue = tabPositions[selectedTabIndex].contentWidth,
-         label = "",
-         animationSpec = tween(500, easing = FastOutSlowInEasing)
-      )
-
-      TabRowDefaults.PrimaryIndicator(
-         width = animation,
-         modifier = Modifier
-            .tabIndicatorOffset(tabPositions[selectedTabIndex])
-      )
-
-   },
-   divider: @Composable () -> Unit = @Composable { HorizontalDivider() },
-   tabs: @Composable () -> Unit,
-) {
 
    if(!isScrollable)
       TabRow(
-         selectedTabIndex = selectedTabIndex,
+         selectedTabIndex = page,
          modifier = modifier,
          containerColor = containerColor,
          contentColor = contentColor,
@@ -97,7 +80,7 @@ fun AnimatedTabRow(
       )
    else
       ScrollableTabRow(
-         selectedTabIndex = selectedTabIndex,
+         selectedTabIndex = page,
          modifier = modifier,
          containerColor = containerColor,
          contentColor = contentColor,
@@ -106,5 +89,6 @@ fun AnimatedTabRow(
          divider = divider,
          tabs = tabs
       )
+
 
 }

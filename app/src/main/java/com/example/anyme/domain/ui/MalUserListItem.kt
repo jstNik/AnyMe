@@ -26,7 +26,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.anyme.domain.mal_dl.MainPicture
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
-import com.example.anyme.domain.mal_dl.MyListStatus
+import com.example.anyme.domain.mal_dl.MyList
 import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.ui.composables.BlurredGlideImage
 import com.example.anyme.utils.RangeMap
@@ -38,7 +38,7 @@ data class MalUserListItem(
    override val mainPicture: MainPicture = MainPicture(),
    val numEpisodes: Int = 0,
    val myListStatusNumEpisodesWatched: Int = 0,
-   val myListStatusStatus: MyListStatus.Status = MyListStatus.Status.Undefined,
+   val myListStatus: MyList.Status = MyList.Status.Undefined,
    val status: MalAnimeDL.AiringStatus = MalAnimeDL.AiringStatus.Undefined,
    val episodesType: RangeMap<MalAnimeDL.EpisodesType> = RangeMap(),
    val nextEp: NextEpisode = NextEpisode(),

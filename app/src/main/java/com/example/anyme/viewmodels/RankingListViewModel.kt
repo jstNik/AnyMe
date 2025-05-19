@@ -15,6 +15,8 @@ import com.example.anyme.repositories.MalRepository
 import com.example.anyme.repositories.MalRepository.RankingListType.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +29,6 @@ open class RankingListViewModel @Inject constructor(
       initialLoadSize = MalApi.RANKING_LIST_LIMIT,
       prefetchDistance = 15
    )
-
 
 
    @OptIn(ExperimentalPagingApi::class)

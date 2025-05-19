@@ -11,7 +11,7 @@ import com.example.anyme.domain.mal_dl.MainPicture
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MalAnimeDL.EpisodesType
-import com.example.anyme.domain.mal_dl.MyListStatus
+import com.example.anyme.domain.mal_dl.MyList
 import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.domain.mal_dl.Picture
 import com.example.anyme.domain.mal_dl.Recommendation
@@ -21,7 +21,6 @@ import com.example.anyme.domain.mal_dl.Statistics
 import com.example.anyme.domain.mal_dl.Status
 import com.example.anyme.domain.mal_dl.Studio
 import com.example.anyme.utils.RangeMap
-import com.example.anyme.utils.toLocalDate
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -102,11 +101,11 @@ data class MalAnimeDB(
                 MainPicture(mainPictureLarge, mainPictureMedium),
                 mean,
                 mediaType,
-                MyListStatus(
+                MyList(
                     myListStatusIsRewatching,
                     myListStatusNumEpisodesWatched,
                     myListStatusScore,
-                    MyListStatus.Status.getEnum(myListStatusStatus),
+                    MyList.Status.getEnum(myListStatusStatus),
                     myListStatusUpdatedAt
                 ),
                 nsfw,

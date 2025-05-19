@@ -7,11 +7,9 @@ import com.example.anyme.daos.MalDao
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_api.Paging
 import com.example.anyme.domain.mal_dl.MalAnimeDL
-import com.example.anyme.domain.mal_dl.MyListStatus
-import com.example.anyme.domain.mal_dl.NextEpisode
+import com.example.anyme.domain.mal_dl.MyList
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
-import com.example.anyme.utils.getDateOfNext
 import com.example.anyme.utils.getSeason
 import com.example.anyme.utils.toLocalDateTime
 import com.google.gson.Gson
@@ -21,7 +19,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -36,11 +33,17 @@ class MalRepository @Inject constructor(
 ) : IMalRepository {
 
    enum class RankingListType {
-      Tv, Movie, All, Airing,
-      Popularity{
+      Tv,
+      Movie,
+      All,
+      Airing,
+      Popularity {
          override val apiValue: String = "bypopularity"
       },
-      Favorite, Upcoming, Ova, Special;
+      Favorite,
+      Upcoming,
+      Ova,
+      Special;
 
       open val apiValue: String = toString().lowercase()
 
@@ -108,7 +111,7 @@ class MalRepository @Inject constructor(
                   }
 
                   // If the anime is not in the watching list, skip
-                  if (apiMalAnime.myListStatus.status == MyListStatus.Status.Watching) {
+                  if (apiMalAnime.myList.status == MyList.Status.Watching) {
                      launch {
                         try {
                            val result = scraper.scrapeEpisodesType(apiMalAnime)
@@ -153,10 +156,14 @@ class MalRepository @Inject constructor(
    }
 
    override fun fetchMalUserAnime(
+      myListStatus: MyList.Status,
       orderBy: MalDatabase.OrderBy,
       orderDirection: MalDatabase.OrderDirection,
       filter: String
-   ) = malDao.fetchUserAnime(orderBy.toString(), orderDirection.toString())
+   ) = if(orderDirection == MalDatabase.OrderDirection.Asc)
+      malDao.fetchUserAnimeAsc(myListStatus.toString(), orderBy.toString(), filter)
+   else malDao.fetchUserAnimeDesc(myListStatus.toString(), orderBy.toString(), filter)
+
 
    override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<MalRankingListItem> = withContext(dispatcher){
       val response = malApi.retrieveRankingList(type.apiValue, offset = offset)

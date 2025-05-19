@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_db.MalAnimeDB
+import com.example.anyme.domain.mal_dl.MyList
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.repositories.MalRepository.RankingListType
@@ -15,6 +16,7 @@ interface IMalRepository {
    suspend fun retrieveUserAnimeList()
 
    fun fetchMalUserAnime(
+      myListStatus: MyList.Status,
       orderBy: MalDatabase.OrderBy,
       orderDirection: MalDatabase.OrderDirection,
       filter: String = ""

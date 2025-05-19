@@ -6,11 +6,9 @@ import com.example.anyme.domain.mal_db.MalAnimeDB
 import com.example.anyme.domain.ui.MalUserListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.RangeMap
-import com.example.anyme.utils.toIsoString
 import com.example.anyme.utils.toLocalDateTime
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -44,7 +42,7 @@ data class MalAnimeDL(
    @SerializedName("media_type")
    var mediaType: String = "",
    @SerializedName("my_list_status")
-   var myListStatus: MyListStatus = MyListStatus(),
+   var myList: MyList = MyList(),
    @SerializedName("nsfw")
    var nsfw: String = "",
    @SerializedName("num_episodes")
@@ -169,11 +167,11 @@ data class MalAnimeDL(
          mainPicture.medium,
          mean,
          mediaType,
-         myListStatus.isRewatching,
-         myListStatus.numEpisodesWatched,
-         myListStatus.score,
-         myListStatus.status.toString(),
-         myListStatus.updatedAt,
+         myList.isRewatching,
+         myList.numEpisodesWatched,
+         myList.score,
+         myList.status.toString(),
+         myList.updatedAt,
          nsfw,
          numEpisodes,
          numListUsers,
@@ -213,8 +211,8 @@ data class MalAnimeDL(
          title,
          mainPicture,
          numEpisodes,
-         myListStatus.numEpisodesWatched,
-         myListStatus.status,
+         myList.numEpisodesWatched,
+         myList.status,
          status,
          episodesType,
          nextEp,

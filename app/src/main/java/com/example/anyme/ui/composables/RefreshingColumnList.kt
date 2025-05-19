@@ -29,9 +29,9 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun <T>RefreshingColumnList(
    lazyColumnState: LazyListState,
-   listSize: Int,
+   listSize: () -> Int,
    getElement: @Composable (idx: Int) -> T?,
-   content: @Composable LazyItemScope.(T) -> Unit,
+   content: @Composable LazyItemScope.(Int, T) -> Unit,
    key: ((Int) -> Any)? = null,
    enableSwipeStartToEnd: Boolean = false,
    enableSwipeEndToStart: Boolean = false,
@@ -74,7 +74,7 @@ fun <T>RefreshingColumnList(
       ) {
 
          items(
-            listSize,
+            listSize(),
             key
          ) {
 
@@ -111,7 +111,7 @@ fun <T>RefreshingColumnList(
                   }
                ) {
 
-                  content(item)
+                  content(it, item)
 
                }
             }

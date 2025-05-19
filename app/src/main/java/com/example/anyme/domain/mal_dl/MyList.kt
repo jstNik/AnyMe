@@ -2,7 +2,7 @@ package com.example.anyme.domain.mal_dl
 
 import com.google.gson.annotations.SerializedName
 
-data class MyListStatus(
+data class MyList(
     @SerializedName("is_rewatching")
     var isRewatching: Boolean = false,
     @SerializedName("num_episodes_watched")
@@ -34,6 +34,8 @@ data class MyListStatus(
         Undefined{
             override fun toString() = ""
         };
+
+        override fun toString() = super.toString().lowercase()
 
         companion object {
             fun getEnum(value: String): Status = when (value) {
