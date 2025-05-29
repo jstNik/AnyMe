@@ -10,6 +10,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -41,7 +42,7 @@ class SeasonalAnimeListViewModel @Inject constructor(
 
    init {
       viewModelScope.launch {
-         malRepository.retrieveMalSeasonalAnimes().collect {
+         malRepository.retrieveMalSeasonalAnimes().collectLatest {
             _seasonalAnimes.value = it
                .filter { it.getDateTimeNextEp() != null }
                .sortedBy { it.getDateTimeNextEp() }

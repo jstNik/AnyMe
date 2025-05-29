@@ -16,13 +16,14 @@ interface MalApi {
 
       const val USER_LIST_LIMIT = 1000
       const val RANKING_LIST_LIMIT = 30
+      const val SEARCHING_LIST_LIMIT = 50
       const val SEASONAL_LIST_LIMIT = 500
 
       val BASIC_FIELDS = setOf(
          "id", "title", "main_picture"
       )
       val RANKING_LIST_FIELDS = setOf(
-         "popularity", "rating", "num_list_users", "num_episodes", "status"
+         "popularity", "rating", "num_list_users", "num_episodes", "status", "mean"
       )
       val USER_LIST_FIELDS = setOf(
          "my_list_status"
@@ -70,5 +71,29 @@ interface MalApi {
       @Query("nsfw") nsfw: String = "true",
       @Query("fields") fields: String = (BASIC_FIELDS + SEASON_LIST_FIELDS).joinToString(",")
    ): Response<MalAnimeListGetResponse>
+
+   @GET("anime")
+   suspend fun search(
+      @Query("q") title: String,
+      @Query("offset") offset: Int = 0,
+      @Query("limit") limit: Int = SEARCHING_LIST_LIMIT,
+      @Query("fields") fields: String = (BASIC_FIELDS + RANKING_LIST_FIELDS + USER_LIST_FIELDS).joinToString(",")
+      ): Response<MalAnimeListGetResponse>
+
+   @GET("anime/suggestions")
+   suspend fun retrieveSuggestions(
+      @Query("offset") offset: Int = 0,
+      @Query("limit") limit: Int = SEARCHING_LIST_LIMIT,
+      @Query("fields") fields: String = (BASIC_FIELDS + RANKING_LIST_FIELDS + USER_LIST_FIELDS).joinToString(",")
+   ): Response<MalAnimeListGetResponse>
+
+   @GET("anime/{anime_id}")
+   suspend fun retrieveAnimeDetails(
+      @Path("anime_id") id: Int,
+      @Query("fields") fields: String = (
+         BASIC_FIELDS + USER_LIST_FIELDS + RANKING_LIST_FIELDS + SEASON_LIST_FIELDS + DETAILS_FIELDS
+         ).joinToString(",")
+   ): Response<MalAnimeListGetResponse>
+
 
 }

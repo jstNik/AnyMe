@@ -1,5 +1,6 @@
 package com.example.anyme.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
@@ -17,6 +18,7 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -62,6 +64,13 @@ class UserListViewModel @Inject constructor(
       )
    }
 
+   private val pager = Pager(
+      PagingConfig(50, 10),
+      0,
+      null,
+      pagingSourceFactory
+   )
+
    private val _list = MutableStateFlow<PagingData<MalUserListItem>>(PagingData.empty())
    val list get() = _list.asStateFlow()
 
@@ -71,16 +80,13 @@ class UserListViewModel @Inject constructor(
       }
 
       viewModelScope.launch{
-         Pager(
-            PagingConfig(50, 10),
-            0,
-            null,
-            pagingSourceFactory
-         ).flow.map { pagingData ->
+         pager.flow.map { pagingData ->
             pagingData.map { item ->
                item.mapToMalAnimeDL(gson).mapToMalAnimeListItem()
             }
-         }.cachedIn(viewModelScope).collectLatest {
+         }.cachedIn(viewModelScope).catch{
+            Log.e("$it", it.message, it)
+         }.collectLatest {
             _list.value = it
          }
       }

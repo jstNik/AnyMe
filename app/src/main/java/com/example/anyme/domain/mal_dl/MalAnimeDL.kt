@@ -3,6 +3,7 @@ package com.example.anyme.domain.mal_dl
 
 import androidx.room.Entity
 import com.example.anyme.domain.mal_db.MalAnimeDB
+import com.example.anyme.domain.ui.MalListGridItem
 import com.example.anyme.domain.ui.MalUserListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.RangeMap
@@ -247,4 +248,14 @@ data class MalAnimeDL(
          if(nextEp.releaseDate != 0.milliseconds) nextEp.releaseDate.toLocalDateTime() else null
       )
    }
+
+   fun mapToMalListGridItem(): MalListGridItem{
+      return MalListGridItem(
+         id,
+         title,
+         mainPicture,
+         mean
+      )
+   }
+
 }

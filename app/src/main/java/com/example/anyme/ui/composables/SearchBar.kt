@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.anyme.ui.theme.AnyMeTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun SearchBar(
    modifier: Modifier = Modifier,
    textFieldState: TextFieldState = rememberTextFieldState(),
-   onTextChange: (String) -> Unit
+   onTextChange: suspend CoroutineScope.(String) -> Unit
 ){
 
    LaunchedEffect(Unit) {

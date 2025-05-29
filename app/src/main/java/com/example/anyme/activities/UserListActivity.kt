@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,9 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.domain.mal_dl.MyList
-import com.example.anyme.ui.composables.RefreshingColumnList
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.AnimatedTabRow
+import com.example.anyme.ui.composables.LazyColumnList
+import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.viewmodels.UserListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,19 +79,30 @@ fun ComposeUserListActivity(
          val list = viewModel.list.collectAsLazyPagingItems()
          val lazyColumnState = rememberLazyListState()
 
-         RefreshingColumnList(
-            lazyColumnState = lazyColumnState,
-            listSize = { list.itemCount },
-            getElement = { list[it] },
-            key = { list.peek(it)?.id ?: (-it - 1) },
-            content = { idx, item ->
+         SwipeUpToRefresh(
+            lazyColumnState,
+            onRefresh = { },
+         ) { scrollableState ->
+
+            LazyColumnList(
+               scrollableState,
+               listSize = { list.itemCount },
+               getElement = { list[it] },
+               key = {
+                  val item = list.peek(it)
+                  if (item != null && item.id != 0)
+                     item.id
+                  else
+                     (-it - 1)
+               }
+            ) { idx, item ->
                item.Render(
                   Modifier
                      .animateItem(/* TODO */),
                   onClick = { }
                )
             }
-         )
+         }
       }
    }
 }

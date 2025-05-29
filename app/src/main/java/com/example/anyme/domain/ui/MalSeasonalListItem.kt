@@ -3,6 +3,7 @@ package com.example.anyme.domain.ui
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.anyme.domain.mal_dl.MainPicture
 import com.example.anyme.domain.mal_dl.MalAnime
 import com.example.anyme.domain.mal_dl.NextEpisode
@@ -49,8 +50,9 @@ data class MalSeasonalListItem(
       onClick: (ListItem) -> Unit
    ) {
 
-      ListEntry(this, modifier, onClick) {
+      ListEntry(
+         imageHeight = 128.dp
+      ) { }
 
-      }
    }
 }

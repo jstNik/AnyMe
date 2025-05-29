@@ -2,11 +2,16 @@ package com.example.anyme.ui.composables
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -23,31 +28,20 @@ import androidx.compose.ui.graphics.Color
 import com.example.anyme.domain.ui.ListItem
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.datetime.format.Padding
 
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun <T>RefreshingColumnList(
-   lazyColumnState: LazyListState,
-   listSize: () -> Int,
-   getElement: @Composable (idx: Int) -> T?,
-   content: @Composable LazyItemScope.(Int, T) -> Unit,
-   key: ((Int) -> Any)? = null,
-   enableSwipeStartToEnd: Boolean = false,
-   enableSwipeEndToStart: Boolean = false,
-   swipeStartToEndContent: @Composable RowScope.() -> Unit = { },
-   swipeEndToStartContent: @Composable RowScope.() -> Unit = { },
-   contentPadding: PaddingValues = PaddingValues(),
+fun <T: ScrollableState> SwipeUpToRefresh(
+   scrollableState: T,
    onRefresh: () -> Unit = { },
-   onSwipeStartToEnd: (listItem: T) -> Unit = { },
-   onSwipeEndToStart: (listItem: T) -> Unit = { },
-) {
-
+   content: @Composable (T) -> Unit
+){
    var isRefreshing by remember { mutableStateOf(false) }
    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
    val isSwipeEnabled = remember {
       derivedStateOf {
-         !lazyColumnState.canScrollBackward && !lazyColumnState.isScrollInProgress
+         !scrollableState.canScrollBackward && !scrollableState.isScrollInProgress
             || swipeRefreshState.isSwipeInProgress
       }
    }
@@ -65,20 +59,118 @@ fun <T>RefreshingColumnList(
       onRefresh = {
          isRefreshing = true
       },
+      content = { content(scrollableState) }
+   )
+}
+
+//
+//@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+//@Composable
+//fun <T> RefreshingColumnList(
+//   scrollableState: ScrollableState,
+//   listSize: () -> Int,
+//   getElement: (idx: Int) -> T?,
+//   key: ((Int) -> Any)? = null,
+//   enableSwipeStartToEnd: Boolean = false,
+//   enableSwipeEndToStart: Boolean = false,
+//   swipeStartToEndContent: @Composable RowScope.() -> Unit = { },
+//   swipeEndToStartContent: @Composable RowScope.() -> Unit = { },
+//   contentPadding: PaddingValues = PaddingValues(),
+//   onRefresh: () -> Unit = { },
+//   onSwipeStartToEnd: (listItem: T) -> Unit = { },
+//   onSwipeEndToStart: (listItem: T) -> Unit = { },
+//   divisor: @Composable LazyItemScope.(Int, T) -> Unit = { idx, item -> },
+//   content: @Composable LazyItemScope.(Int, T) -> Unit,
+//) {
+//
+//   var isRefreshing by remember { mutableStateOf(false) }
+//   val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+//   val isSwipeEnabled = remember {
+//      derivedStateOf {
+//         !scrollableState.canScrollBackward && !scrollableState.isScrollInProgress
+//            || swipeRefreshState.isSwipeInProgress
+//      }
+//   }
+//
+//   LaunchedEffect(isRefreshing) {
+//      if (isRefreshing) {
+//         onRefresh.invoke()
+//         isRefreshing = false
+//      }
+//   }
+//
+//   SwipeRefresh(
+//      state = swipeRefreshState,
+//      swipeEnabled = isSwipeEnabled.value,
+//      onRefresh = {
+//         isRefreshing = true
+//      },
+//   ) {
+//
+//      when (listType) {
+//         ListTypes.Column -> {
+//            val state = scrollableState as? LazyListState ?: rememberLazyListState()
+//            ColumnList(
+//               state,
+//               listSize,
+//               getElement,
+//               key,
+//               enableSwipeStartToEnd,
+//               enableSwipeEndToStart,
+//               swipeStartToEndContent,
+//               swipeEndToStartContent,
+//               contentPadding,
+//               onRefresh,
+//               onSwipeStartToEnd,
+//               onSwipeEndToStart,
+//               divisor,
+//               content
+//            )
+//         }
+//
+//         ListTypes.Grid -> {
+//            val state = scrollableState as? LazyGridState ?: rememberLazyGridState()
+//            VerticalGridList(
+//
+//            )
+//         }
+//      }
+//
+//   }
+//}
+
+@Composable
+fun <T> LazyColumnList(
+   lazyColumnState: LazyListState,
+   listSize: () -> Int,
+   getElement: (idx: Int) -> T?,
+   key: ((Int) -> Any)? = null,
+   enableSwipeStartToEnd: Boolean = false,
+   enableSwipeEndToStart: Boolean = false,
+   swipeStartToEndContent: @Composable RowScope.() -> Unit = { },
+   swipeEndToStartContent: @Composable RowScope.() -> Unit = { },
+   contentPadding: PaddingValues = PaddingValues(),
+   onSwipeStartToEnd: (listItem: T) -> Unit = { },
+   onSwipeEndToStart: (listItem: T) -> Unit = { },
+   divisor: @Composable LazyItemScope.(Int, T) -> Unit = { idx, item -> },
+   content: @Composable LazyItemScope.(Int, T) -> Unit,
+) {
+   LazyColumn(
+      state = lazyColumnState,
+      contentPadding = contentPadding,
+      modifier = Modifier.background(Color.Transparent)
    ) {
 
-      LazyColumn(
-         state = lazyColumnState,
-         contentPadding = contentPadding,
-         modifier = Modifier.background(Color.Transparent)
+      items(
+         listSize(),
+         key
       ) {
 
-         items(
-            listSize(),
-            key
-         ) {
+         getElement(it)?.let { item ->
 
-            getElement(it)?.let { item ->
+            divisor(it, item)
+
+            if (enableSwipeEndToStart || enableSwipeStartToEnd) {
                var isSwiped by remember { mutableStateOf(false) }
                val swipeToDismissState = rememberSwipeToDismissBoxState(
                   confirmValueChange = { _ ->
@@ -110,11 +202,10 @@ fun <T>RefreshingColumnList(
                         swipeEndToStartContent()
                   }
                ) {
-
                   content(it, item)
-
                }
-            }
+            } else
+               content(it, item)
          }
       }
    }

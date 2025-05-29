@@ -18,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         tools:targetApi="31">
+
         <activity
             android:name=".activities.LoginActivity"
             android:exported="true">
@@ -42,6 +43,12 @@
 
         <activity
             android:name=".activities.SeasonalListActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            />
+
+        <activity
+            android:name=".activities.SearchingActivity"
             android:exported="true"
             android:launchMode="singleTask"
             />

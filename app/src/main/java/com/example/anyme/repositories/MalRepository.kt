@@ -1,6 +1,7 @@
 package com.example.anyme.repositories
 
 import android.util.Log
+import androidx.paging.PagingData
 import com.example.anyme.api.HtmlScraper
 import com.example.anyme.api.MalApi
 import com.example.anyme.daos.MalDao
@@ -8,6 +9,7 @@ import com.example.anyme.db.MalDatabase
 import com.example.anyme.domain.mal_api.Paging
 import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyList
+import com.example.anyme.domain.ui.MalListGridItem
 import com.example.anyme.domain.ui.MalRankingListItem
 import com.example.anyme.domain.ui.MalSeasonalListItem
 import com.example.anyme.utils.getSeason
@@ -192,14 +194,29 @@ class MalRepository @Inject constructor(
       emit(animeMap.values.toList())
 
       scraper.scrapeSeasonal(animeMap).forEach { key, value ->
-         val seasonalAnime = animeMap[key]
-         if(seasonalAnime == null) return@forEach
-         animeMap[key] = animeMap[key]!!.copy(
-            htmlNextEp = value.number, htmlReleaseDate = value.releaseDate.toLocalDateTime()
-         )
+         animeMap[key]?.let {
+            animeMap[key] = it.copy(
+               htmlNextEp = value.number, htmlReleaseDate = value.releaseDate.toLocalDateTime()
+            )
+         }
       }
 
       emit(animeMap.values.toList())
 
    }
+
+   override suspend fun search(title: String, offset: Int): List<MalListGridItem> {
+      val response = if (title.isBlank())
+         malApi.retrieveSuggestions(offset)
+      else malApi.search(title, offset)
+
+      validate(response)
+      val result = response.body()!!
+
+      return result.data.map{
+         it.malAnimeDL.mapToMalListGridItem()
+      }
+
+   }
+
 }

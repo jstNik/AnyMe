@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -20,20 +23,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.repositories.MalRepository
 import com.example.anyme.repositories.MalRepository.RankingListType
-import com.example.anyme.ui.composables.NestedLazyRows
-import com.example.anyme.ui.composables.RefreshingColumnList
+import com.example.anyme.ui.composables.LazyColumnList
+import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.viewmodels.RankingListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.datetime.LocalDate
 
 @AndroidEntryPoint
-class RankingListActivity: AppCompatActivity() {
+class RankingListActivity : AppCompatActivity() {
 
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
       enableEdgeToEdge()
-      setContent{
+      setContent {
          AnyMeTheme(darkTheme = true) {
             ComposeRankingLists()
          }
@@ -45,7 +48,7 @@ class RankingListActivity: AppCompatActivity() {
 }
 
 @Composable
-fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()){
+fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()) {
    Scaffold(
       topBar = {
 
@@ -53,20 +56,24 @@ fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()){
       bottomBar = {
 
       }
-   ){ contentPadding ->
+   ) { contentPadding ->
 
       val ranks = RankingListType.entries.map { it.toString() }
       val rowStates = List(viewModel.rankingLists.size) { rememberLazyListState() }
       val lazyColumState = rememberLazyListState()
 
 
-      RefreshingColumnList(
-         lazyColumnState = lazyColumState,
-         listSize = { viewModel.rankingLists.size },
-         getElement = { viewModel.rankingLists.getOrNull(it) },
-         key = { it },
-         contentPadding = contentPadding,
-         content = { idx, item ->
+      SwipeUpToRefresh(
+         lazyColumState
+      ) { scrollableState ->
+
+         LazyColumnList(
+            lazyColumnState = scrollableState,
+            listSize = { viewModel.rankingLists.size },
+            getElement = { viewModel.rankingLists.getOrNull(it) },
+            key = { it },
+            contentPadding = contentPadding
+         ) { idx, item ->
 
             val pagingItems = item.collectAsLazyPagingItems()
 
@@ -77,16 +84,25 @@ fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()){
 
             LazyRow(
                state = rowStates.getOrNull(idx) ?: rememberLazyListState(),
-               modifier = Modifier.fillMaxWidth()
+               modifier = Modifier
+                  .fillMaxWidth()
             ) {
 
                items(
-                  pagingItems.itemCount,
-                  { pagingItems.peek(it)?.id ?: (-it - 1) }
-               ){ rowIdx ->
+                  count = pagingItems.itemCount,
+                  key = {
+                     val item = pagingItems.peek(it)
+                     if (item != null && item.id != 0)
+                        item.id
+                     else
+                        (-it - 1)
+                  }
+               ) { rowIdx ->
 
                   pagingItems[rowIdx]?.Render(
-                     modifier = Modifier.padding(8.dp),
+                     modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp),
                      onClick = { }
                   )
 
@@ -94,14 +110,7 @@ fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()){
 
             }
          }
-      )
 
-//      NestedLazyRows(
-//         ranks,
-//         viewModel.rankingLists,
-//         listOf(),
-//         contentPadding = contentPadding
-//      )
-
+      }
    }
 }

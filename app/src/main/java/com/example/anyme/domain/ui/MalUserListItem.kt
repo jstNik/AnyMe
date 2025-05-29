@@ -29,6 +29,7 @@ import com.example.anyme.domain.mal_dl.MalAnimeDL
 import com.example.anyme.domain.mal_dl.MyList
 import com.example.anyme.domain.mal_dl.NextEpisode
 import com.example.anyme.ui.composables.BlurredGlideImage
+import com.example.anyme.ui.composables.ListEntry
 import com.example.anyme.utils.RangeMap
 
 @Immutable
@@ -51,88 +52,143 @@ data class MalUserListItem(
       modifier: Modifier,
       onClick: (ListItem) -> Unit
    ) {
-      Card(
-         onClick = { onClick(this) },
-         modifier = Modifier
-            .fillMaxWidth()
-            .height(128.dp)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .then(modifier)
-      ) {
-         Row {
 
-            BlurredGlideImage(
-               model = mainPicture.medium,
-               contentDescription = "Anime image",
-               minRatio = 0.4F,
-               maxRatio = 1F,
-               blur = 16.dp,
-               modifier = Modifier.width(90.dp).fillMaxHeight()
+      ListEntry(
+         128.dp
+      ) {
+         Spacer(Modifier.weight(1F))
+
+         Row(
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+               .padding(10.dp)
+               .fillMaxWidth()
+         ) {
+            Text(
+               "$myListStatusNumEpisodesWatched / $numEpisodes",
+               color = MaterialTheme.colorScheme.primary
+            )
+         }
+         Box(
+            Modifier.padding()
+         ) {
+            LinearProgressIndicator(
+               progress = {
+                  if (nextEp.number > 0 && numEpisodes == 0)
+                     1F
+                  else if (nextEp.number > 0 && numEpisodes > 0 && nextEp.number <= numEpisodes)
+                     nextEp.number / numEpisodes.toFloat()
+                  else 0F
+               },
+               drawStopIndicator = { },
+               modifier = Modifier
+                  .fillMaxWidth()
+                  .height(4.dp),
+               color = MaterialTheme.colorScheme.tertiary,
+               strokeCap = StrokeCap.Round,
+               gapSize = 0.dp
             )
 
-            Column(
+            LinearProgressIndicator(
+               progress = {
+                  if (numEpisodes > 0)
+                     myListStatusNumEpisodesWatched / numEpisodes.toFloat()
+                  else 0F
+               },
+               drawStopIndicator = { },
                modifier = Modifier
-                  .padding(8.dp)
                   .fillMaxWidth()
-            ) {
-
-               Text(
-                  title,
-                  color = MaterialTheme.colorScheme.primary,
-                  fontWeight = FontWeight.Bold
-               )
-
-               Spacer(Modifier.weight(1F))
-
-               Row(
-                  horizontalArrangement = Arrangement.End,
-                  modifier = Modifier
-                     .padding(10.dp)
-                     .fillMaxWidth()
-               ) {
-                  Text(
-                     "$myListStatusNumEpisodesWatched / $numEpisodes",
-                     color = MaterialTheme.colorScheme.primary
-                  )
-               }
-               Box(
-                  Modifier.padding()
-               ) {
-                  LinearProgressIndicator(
-                     progress = {
-                        if (nextEp.number > 0 && numEpisodes == 0)
-                           1F
-                        else if (nextEp.number > 0 && numEpisodes > 0 && nextEp.number <= numEpisodes)
-                           nextEp.number / numEpisodes.toFloat()
-                        else 0F
-                     },
-                     drawStopIndicator = { },
-                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp),
-                     color = MaterialTheme.colorScheme.tertiary,
-                     strokeCap = StrokeCap.Round,
-                     gapSize = 0.dp
-                  )
-
-                  LinearProgressIndicator(
-                     progress = {
-                        if (numEpisodes > 0)
-                           myListStatusNumEpisodesWatched / numEpisodes.toFloat()
-                        else 0F
-                     },
-                     drawStopIndicator = { },
-                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp),
-                     color = MaterialTheme.colorScheme.primary,
-                     trackColor = Color.Transparent,
-                     strokeCap = StrokeCap.Round,
-                     gapSize = 0.dp
-                  )
-               }
-            }
+                  .height(4.dp),
+               color = MaterialTheme.colorScheme.primary,
+               trackColor = Color.Transparent,
+               strokeCap = StrokeCap.Round,
+               gapSize = 0.dp
+            )
          }
       }
+
+//      Card(
+//         onClick = { onClick(this) },
+//         modifier = Modifier
+//            .fillMaxWidth()
+//            .height(128.dp)
+//            .background(MaterialTheme.colorScheme.surfaceContainer)
+//            .then(modifier)
+//      ) {
+//         Row {
+//
+//            BlurredGlideImage(
+//               model = mainPicture.medium,
+//               contentDescription = "Anime image",
+//               minRatio = 0.4F,
+//               maxRatio = 1F,
+//               blur = 16.dp,
+//               modifier = Modifier.width(90.dp).fillMaxHeight()
+//            )
+//
+//            Column(
+//               modifier = Modifier
+//                  .padding(8.dp)
+//                  .fillMaxWidth()
+//            ) {
+//
+//               Text(
+//                  title,
+//                  color = MaterialTheme.colorScheme.primary,
+//                  fontWeight = FontWeight.Bold
+//               )
+//
+//               Spacer(Modifier.weight(1F))
+//
+//               Row(
+//                  horizontalArrangement = Arrangement.End,
+//                  modifier = Modifier
+//                     .padding(10.dp)
+//                     .fillMaxWidth()
+//               ) {
+//                  Text(
+//                     "$myListStatusNumEpisodesWatched / $numEpisodes",
+//                     color = MaterialTheme.colorScheme.primary
+//                  )
+//               }
+//               Box(
+//                  Modifier.padding()
+//               ) {
+//                  LinearProgressIndicator(
+//                     progress = {
+//                        if (nextEp.number > 0 && numEpisodes == 0)
+//                           1F
+//                        else if (nextEp.number > 0 && numEpisodes > 0 && nextEp.number <= numEpisodes)
+//                           nextEp.number / numEpisodes.toFloat()
+//                        else 0F
+//                     },
+//                     drawStopIndicator = { },
+//                     modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(4.dp),
+//                     color = MaterialTheme.colorScheme.tertiary,
+//                     strokeCap = StrokeCap.Round,
+//                     gapSize = 0.dp
+//                  )
+//
+//                  LinearProgressIndicator(
+//                     progress = {
+//                        if (numEpisodes > 0)
+//                           myListStatusNumEpisodesWatched / numEpisodes.toFloat()
+//                        else 0F
+//                     },
+//                     drawStopIndicator = { },
+//                     modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(4.dp),
+//                     color = MaterialTheme.colorScheme.primary,
+//                     trackColor = Color.Transparent,
+//                     strokeCap = StrokeCap.Round,
+//                     gapSize = 0.dp
+//                  )
+//               }
+//            }
+//         }
+//      }
    }
 }
