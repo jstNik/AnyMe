@@ -2,8 +2,10 @@ package com.example.anyme.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.anyme.domain.ui.MalSeasonalListItem
+import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
+import com.example.anyme.domain.ui.mal.MalSeasonalListItem
 import com.example.anyme.repositories.IMalRepository
+import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
 import kotlinx.datetime.DatePeriod
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.currentCoroutineContext
@@ -28,7 +30,7 @@ class SeasonalAnimeListViewModel @Inject constructor(
    private val malRepository: IMalRepository
 ) : ViewModel() {
 
-   private val _seasonalAnimes = MutableStateFlow(listOf<MalSeasonalListItem>())
+   private val _seasonalAnimes = MutableStateFlow(listOf<MalSeasonalAnimeRender>())
    val seasonalAnimes get() = _seasonalAnimes.asStateFlow()
 
    private val calendar = Calendar.getInstance()
@@ -42,10 +44,14 @@ class SeasonalAnimeListViewModel @Inject constructor(
 
    init {
       viewModelScope.launch {
-         malRepository.retrieveMalSeasonalAnimes().collectLatest {
-            _seasonalAnimes.value = it
-               .filter { it.getDateTimeNextEp() != null }
-               .sortedBy { it.getDateTimeNextEp() }
+         malRepository.retrieveMalSeasonalAnimes().collectLatest { flow ->
+            _seasonalAnimes.value = flow.map {
+               MalSeasonalAnimeRender(it.mapToMalSeasonalListItem())
+            }.filter {
+               it.media.getDateTimeNextEp() != null
+            }.sortedBy {
+               it.media.getDateTimeNextEp()
+            }
          }
       }
       viewModelScope.launch {

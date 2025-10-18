@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.Placeholder
@@ -36,9 +37,9 @@ import com.bumptech.glide.request.target.Target
 fun BlurredGlideImage(
    model: Any?,
    contentDescription: String?,
-   @FloatRange(from = 0.0) minRatio: Float,
-   @FloatRange(from = 0.0) maxRatio: Float,
-   blur: Dp,
+   @FloatRange(from = 0.0) minRatio: Float = 0.4F,
+   @FloatRange(from = 0.0) maxRatio: Float = 1F,
+   blur: Dp = 16.dp,
    modifier: Modifier = Modifier,
    alignment: Alignment = Alignment.Center,
    contentScale: ContentScale = ContentScale.FillBounds,
@@ -105,7 +106,7 @@ fun BlurredGlideImage(
                   else ContentScale.FillWidth
                }
                false
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                background = null
                scale = contentScale
                true

@@ -54,6 +54,12 @@
             />
 
         <activity
+            android:name=".activities.DetailsActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            />
+
+        <activity
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
             android:exported="true"
             tools:node="replace">

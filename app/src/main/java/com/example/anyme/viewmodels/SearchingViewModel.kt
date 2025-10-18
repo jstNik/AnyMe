@@ -9,10 +9,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.anyme.api.MalApi
-import com.example.anyme.domain.ui.MalListGridItem
-import com.example.anyme.paging.SearchingListPagination
+import androidx.paging.map
+import com.example.anyme.domain.dl.mal.mapToMalListGridItem
+import com.example.anyme.remote.api.MalApi
+import com.example.anyme.domain.ui.mal.MalListGridItem
+import com.example.anyme.repositories.paging.SearchingListPagination
 import com.example.anyme.repositories.IMalRepository
+import com.example.anyme.ui.renders.mal.MalAnimeSearchFrameRender
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,13 +25,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchingViewModel @Inject constructor (
+class SearchingViewModel @Inject constructor(
    private val malRepository: IMalRepository
 ) : ViewModel() {
 
    var searchQuery = ""
       set(value) {
-         if(value != field) {
+         if (value != field) {
             field = value
             pagingSourceFactory.invalidate()
          }
@@ -40,7 +43,7 @@ class SearchingViewModel @Inject constructor (
       initialLoadSize = MalApi.SEARCHING_LIST_LIMIT
    )
 
-   private val pagingSourceFactory = InvalidatingPagingSourceFactory{
+   private val pagingSourceFactory = InvalidatingPagingSourceFactory {
       SearchingListPagination(malRepository, searchQuery)
    }
 
@@ -52,19 +55,22 @@ class SearchingViewModel @Inject constructor (
       pagingSourceFactory
    )
 
-   private val _searchList = MutableStateFlow(PagingData.empty<MalListGridItem>())
+   private val _searchList = MutableStateFlow(PagingData.empty<MalAnimeSearchFrameRender>())
    val searchList get() = _searchList.asStateFlow()
 
-   init{
-      viewModelScope.launch{
-         pager.flow.cachedIn(viewModelScope).catch{
+   init {
+      viewModelScope.launch {
+         pager.flow.cachedIn(viewModelScope).catch {
             Log.e("$it", it.message, it)
          }.collectLatest {
-            _searchList.value = it
+            _searchList.value = it.map { malAnime ->
+               MalAnimeSearchFrameRender(
+                  malAnime.mapToMalListGridItem()
+               )
+            }
          }
       }
    }
-
 
 
 }

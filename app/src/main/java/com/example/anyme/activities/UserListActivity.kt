@@ -5,13 +5,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.anyme.domain.mal_dl.MyList
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.AnimatedTabRow
 import com.example.anyme.ui.composables.LazyColumnList
@@ -89,18 +91,16 @@ fun ComposeUserListActivity(
                listSize = { list.itemCount },
                getElement = { list[it] },
                key = {
-                  val item = list.peek(it)
+                  val item = list.peek(it)?.media
                   if (item != null && item.id != 0)
                      item.id
                   else
                      (-it - 1)
                }
             ) { idx, item ->
-               item.Render(
-                  Modifier
-                     .animateItem(/* TODO */),
-                  onClick = { }
-               )
+               item.Compose {
+
+               }
             }
          }
       }

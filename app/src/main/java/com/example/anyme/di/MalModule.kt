@@ -2,19 +2,24 @@ package com.example.anyme.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.anyme.api.BufferInterceptor
-import com.example.anyme.api.JsoupNetworkManager
-import com.example.anyme.api.MalApi
-import com.example.anyme.api.MalInterceptor
-import com.example.anyme.daos.MalDao
-import com.example.anyme.db.MalDatabase
-import com.example.anyme.api.HtmlScraper
-import com.example.anyme.api.LiveChartInterceptor
-import com.example.anyme.api.MalTokenManager
+import com.example.anyme.remote.interceptors.BufferInterceptor
+import com.example.anyme.remote.scrapers.JsoupHtmlCacher
+import com.example.anyme.remote.api.MalApi
+import com.example.anyme.remote.interceptors.MalInterceptor
+import com.example.anyme.local.daos.MalDao
+import com.example.anyme.local.db.MalDatabase
+import com.example.anyme.remote.scrapers.HtmlScraper
+import com.example.anyme.remote.interceptors.LiveChartInterceptor
+import com.example.anyme.remote.interceptors.MalTokenManager
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
-import com.example.anyme.utils.LocalDateTimeAdapter
+import com.example.anyme.utils.OffsetDateTimeAdapter
 import com.example.anyme.utils.LocalDateTypeAdapter
+import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
+import com.example.anyme.remote.interceptors.SP_FILE_NAME
+import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.utils.OffsetWeekTimeAdapter
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -24,6 +29,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -53,7 +59,8 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesMalTokenManager(@ApplicationContext context: Context) = MalTokenManager(context)
+    fun providesMalTokenManager(@ApplicationContext context: Context) =
+        MalTokenManager(context, SP_FILE_NAME, MAL_AUTH_STATE_NAME)
 
     @Provides
     @Singleton
@@ -68,7 +75,8 @@ object MalModule {
     @Singleton
     fun providesGson(): Gson = GsonBuilder()
         .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
-        .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+        .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter())
+        .registerTypeAdapter(OffsetWeekTime::class.java, OffsetWeekTimeAdapter(TimeZone.of("Asia/Tokyo")))
         .create()
 
 
@@ -98,8 +106,8 @@ object MalModule {
     fun providesNetworkManager(
         bufferInterceptor: BufferInterceptor,
         liveChartInterceptor: LiveChartInterceptor
-    ): JsoupNetworkManager =
-        JsoupNetworkManager(
+    ): JsoupHtmlCacher =
+        JsoupHtmlCacher(
             OkHttpClient
                 .Builder()
                 .addInterceptor(liveChartInterceptor)
@@ -109,7 +117,7 @@ object MalModule {
 
     @Provides
     @Singleton
-    fun providesEpisodeInfoScraper(networkManager: JsoupNetworkManager): HtmlScraper =
+    fun providesEpisodeInfoScraper(networkManager: JsoupHtmlCacher): HtmlScraper =
         HtmlScraper(networkManager)
 
     @Provides

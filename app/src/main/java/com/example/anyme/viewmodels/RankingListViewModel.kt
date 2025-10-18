@@ -7,16 +7,18 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.anyme.api.MalApi
-import com.example.anyme.domain.ui.MalRankingListItem
-import com.example.anyme.paging.RankingListPagination
+import androidx.paging.map
+import com.example.anyme.domain.dl.mal.MalAnime
+import com.example.anyme.domain.remote.mal.Data
+import com.example.anyme.domain.remote.mal.mapToMalRankingListItem
+import com.example.anyme.remote.api.MalApi
+import com.example.anyme.domain.ui.mal.MalRankingListItem
+import com.example.anyme.repositories.paging.RankingListPagination
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
-import com.example.anyme.repositories.MalRepository.RankingListType.*
+import com.example.anyme.ui.renders.mal.MalRankingFrameRender
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,13 +35,17 @@ open class RankingListViewModel @Inject constructor(
 
    @OptIn(ExperimentalPagingApi::class)
    val rankingLists = MalRepository.RankingListType.entries.map {
-      Pager<Int, MalRankingListItem>(
+      Pager(
          pagingConfig,
          0,
          null
       ){
          RankingListPagination(malRepository, it)
-      }.flow.cachedIn(viewModelScope)
+      }.flow.transform <PagingData<Data>, PagingData<MalRankingFrameRender>> { pagingData ->
+         pagingData.map { data ->
+            MalRankingFrameRender(data.mapToMalRankingListItem())
+         }
+      }.cachedIn(viewModelScope)
    }
 
 }

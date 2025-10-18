@@ -7,8 +7,8 @@ class ApiCallNotSuccessfulException(
    val response: Response
 ) : Exception() {
 
-   override val message: String = response.message()
-   val code: Int = response.code()
-   val body: String? = response.body().toString()
+   override val message: String = response.message
+   val code: Int = response.code
+   val body: String? = response.body.toString()
 
 }

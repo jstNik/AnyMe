@@ -1,7 +1,6 @@
 package com.example.anyme.activities
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -19,9 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.auth0.android.jwt.JWT
 import com.example.anyme.BuildConfig
-import com.example.anyme.api.MalApi
+import com.example.anyme.remote.api.MalApi
 import com.example.anyme.ui.theme.AnyMeTheme
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
@@ -34,6 +32,8 @@ import net.openid.appauth.ResponseTypeValues
 import org.json.JSONException
 import androidx.core.net.toUri
 import androidx.core.content.edit
+import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
+import com.example.anyme.remote.interceptors.SP_FILE_NAME
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthorizationService
@@ -108,16 +108,16 @@ class LoginActivity : AppCompatActivity() {
 
 
     private fun persistState() {
-        application.getSharedPreferences("AUTH_STATE_PREFERENCE", MODE_PRIVATE).edit {
-           putString("AUTH_STATE", authState.jsonSerializeString())
+        application.getSharedPreferences(SP_FILE_NAME, MODE_PRIVATE).edit {
+           putString(MAL_AUTH_STATE_NAME, authState.jsonSerializeString())
         }
     }
 
     @Throws(ClassCastException::class)
     private fun canRestoreState(): Boolean {
         val jsonString =
-            application.getSharedPreferences("AUTH_STATE_PREFERENCE", MODE_PRIVATE)
-                .getString("AUTH_STATE", null)
+            application.getSharedPreferences(SP_FILE_NAME, MODE_PRIVATE)
+                .getString(MAL_AUTH_STATE_NAME, null)
 
         val restoreSuccessful = when {
 

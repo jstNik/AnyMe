@@ -5,13 +5,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,25 +30,32 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.anyme.R
-import com.example.anyme.domain.mal_dl.MainPicture
-import com.example.anyme.domain.ui.ListItem
+import com.example.anyme.domain.dl.Media
+import com.example.anyme.domain.dl.mal.MainPicture
+import com.example.anyme.domain.dl.mal.mapToMalAnimeListItem
+import com.example.anyme.domain.ui.mal.MalUserListItem
+import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.ui.theme.IMAGE_IDEAL_RATIO
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun ListItem.ListEntry(
+fun ListEntry(
+   media: Media,
    imageHeight: Dp,
+   contentPadding: PaddingValues,
+   colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
    modifier: Modifier = Modifier,
    imageIdealRatio: Double = IMAGE_IDEAL_RATIO,
    roundedCornerSize: Dp = 16.dp,
-   onClick: (ListItem) -> Unit = { },
+   onClick: (Media) -> Unit = { },
    overImageContent: @Composable BoxScope.() -> Unit = { },
    content: @Composable ColumnScope.() -> Unit
 ) {
 
    Card(
-      onClick = { onClick(this) },
+      colors = colors,
+      onClick = { onClick(media) },
       shape = RoundedCornerShape(roundedCornerSize),
       modifier = Modifier
          .fillMaxWidth()
@@ -68,9 +79,8 @@ fun ListItem.ListEntry(
                )
          ) {
             BlurredGlideImage(
-               model = mainPicture.medium,
+               model = media.mainPicture.medium,
                contentDescription = "Anime image",
-               failure = placeholder(R.drawable.main_picture),
                minRatio = 0.4F,
                maxRatio = 1F,
                blur = 16.dp
@@ -81,11 +91,13 @@ fun ListItem.ListEntry(
          }
 
          Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+               .fillMaxWidth()
+               .padding(contentPadding)
          ) {
 
             Text(
-               title,
+               media.title,
                color = MaterialTheme.colorScheme.primary,
                fontWeight = FontWeight.Bold,
                maxLines = 2,
@@ -102,14 +114,20 @@ fun ListItem.ListEntry(
 @Preview
 @Composable
 fun PreviewListEntry(){
-   val item = object : ListItem {
-      override val id = 1
-      override val mainPicture = MainPicture()
-      override val title = "Hello world"
+
+   val media = getMediaPreview()
+
+   val render = object : MediaListItemRender {
+
+      override val media: MalUserListItem = media.mapToMalAnimeListItem()
 
       @Composable
-      override fun Render(modifier: Modifier, onClick: (ListItem) -> Unit) {
+      override fun Compose(
+         onClick: (Media) -> Unit
+      ) {
          ListEntry(
+            contentPadding = PaddingValues(),
+            media = media,
             imageHeight = 128.dp,
          ) {
 
@@ -118,6 +136,8 @@ fun PreviewListEntry(){
    }
 
    AnyMeTheme {
-      item.Render(Modifier) { }
+      render.Compose {
+
+      }
    }
 }

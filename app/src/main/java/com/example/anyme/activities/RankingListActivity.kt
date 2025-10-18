@@ -4,31 +4,26 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.anyme.repositories.MalRepository
 import com.example.anyme.repositories.MalRepository.RankingListType
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.viewmodels.RankingListViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.datetime.LocalDate
 
 @AndroidEntryPoint
 class RankingListActivity : AppCompatActivity() {
@@ -91,7 +86,7 @@ fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()) {
                items(
                   count = pagingItems.itemCount,
                   key = {
-                     val item = pagingItems.peek(it)
+                     val item = pagingItems.peek(it)?.media
                      if (item != null && item.id != 0)
                         item.id
                      else
@@ -99,12 +94,9 @@ fun ComposeRankingLists(viewModel: RankingListViewModel = viewModel()) {
                   }
                ) { rowIdx ->
 
-                  pagingItems[rowIdx]?.Render(
-                     modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(8.dp),
-                     onClick = { }
-                  )
+                  pagingItems[rowIdx]?.Compose{
+
+                  }
 
                }
 

@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "com.example.anyme"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.anyme"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -35,9 +35,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_22
         targetCompatibility = JavaVersion.VERSION_22
-    }
-    kotlinOptions {
-        jvmTarget = "22"
+        // jvmTarget = "23"
     }
     buildFeatures {
         compose = true
@@ -110,5 +108,6 @@ dependencies {
 
     // Kotlinx DateTime
     implementation(libs.kotlinx.datetime)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 }

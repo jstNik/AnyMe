@@ -1,35 +1,28 @@
 package com.example.anyme.ui.composables
 
-import android.graphics.fonts.FontStyle
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.anyme.domain.ui.MalRankingListItem
+import com.example.anyme.domain.ui.mal.MalRankingListItem
+import com.example.anyme.ui.renders.mal.MalRankingFrameRender
 import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun NestedLazyRows(
    titles: List<String>,
-   lists: List<Flow<PagingData<MalRankingListItem>>>,
+   lists: List<Flow<PagingData<MalRankingFrameRender>>>,
    rowsState: List<LazyListState>,
    modifier: Modifier = Modifier,
    columnState: LazyListState = rememberLazyListState(),
@@ -66,11 +59,10 @@ fun NestedLazyRows(
 
             items(
                pagingItems.itemCount,
-               { pagingItems[it]?.id ?: (-it - 1) }
+               { pagingItems[it]?.media?.id ?: (-it - 1) }
             ){ rowIdx ->
 
-               pagingItems[rowIdx]?.Render(
-                  modifier = Modifier.padding(8.dp),
+               pagingItems[rowIdx]?.Compose(
                   onClick = { }
                )
 
