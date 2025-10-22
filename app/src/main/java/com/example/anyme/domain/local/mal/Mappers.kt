@@ -15,10 +15,13 @@ import com.example.anyme.domain.dl.mal.Season
 import com.example.anyme.domain.dl.mal.Statistics
 import com.example.anyme.domain.dl.mal.Status
 import com.example.anyme.domain.dl.mal.Studio
-import com.example.anyme.utils.OffsetDateTime
-import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.remote.Host
+import com.example.anyme.utils.time.OffsetDateTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.parseOrNull
+import com.example.anyme.utils.time.Date
+import com.example.anyme.utils.time.Offset
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -29,48 +32,47 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
 
    try{
       return MalAnime(
-         AlternativeTitles(
+         alternativeTitles = AlternativeTitles(
             alternativeTitlesEn,
             alternativeTitlesJa,
             gson.fromJson(alternativeTitlesSynonyms, object : TypeToken<List<String>>() {})
          ),
-         averageEpisodeDuration,
-         background,
-         OffsetWeekTime.create(
+         averageEpisodeDuration = averageEpisodeDuration,
+         background = background,
+         broadcast = OffsetWeekTime.create(
             broadcastDayOfTheWeek.uppercase(),
-            broadcastStartTime,
-            TimeZone.of("Asia/Tokyo")
+            broadcastStartTime
          ),
-         OffsetDateTime.parse(createdAt),
-         LocalDate.parseOrNull(endDate),
-         gson.fromJson(genres, object : TypeToken<List<Genre>>() {}),
-         id,
-         MainPicture(mainPictureLarge, mainPictureMedium),
-         mean,
-         mediaType,
-         MyList(
+         createdAt = OffsetDateTime.parse(createdAt),
+         endDate = Date.parse(endDate),
+         genres = gson.fromJson(genres, object : TypeToken<List<Genre>>() {}),
+         id = id,
+         mainPicture = MainPicture(mainPictureLarge, mainPictureMedium),
+         mean = mean,
+         mediaType = mediaType,
+         myList = MyList(
             myListStatusIsRewatching,
             myListStatusNumEpisodesWatched,
             myListStatusScore,
             MyList.Status.getEnum(myListStatusStatus),
             OffsetDateTime.parse(myListStatusUpdatedAt)
          ),
-         nsfw,
-         numEpisodes,
-         numListUsers,
-         numScoringUsers,
-         gson.fromJson(pictures, object : TypeToken<List<Picture>>() {}),
-         popularity,
-         rank,
-         rating,
-         gson.fromJson(
+         nsfw = nsfw,
+         numEpisodes = numEpisodes,
+         numListUsers = numListUsers,
+         numScoringUsers = numScoringUsers,
+         pictures = gson.fromJson(pictures, object : TypeToken<List<Picture>>() {}),
+         popularity = popularity,
+         rank = rank,
+         rating = rating,
+         recommendations = gson.fromJson(
             recommendations,
             object : TypeToken<List<Recommendation>>() {}),
-         gson.fromJson(relatedAnime, object : TypeToken<List<RelatedAnime>>() {}),
-         source,
-         LocalDate.parseOrNull(startDate),
-         Season(startSeasonSeason, startSeasonYear),
-         Statistics(
+         relatedAnime = gson.fromJson(relatedAnime, object : TypeToken<List<RelatedAnime>>() {}),
+         source = source,
+         startDate = Date.parse(startDate),
+         season = Season(startSeasonSeason, startSeasonYear),
+         statistics = Statistics(
             statisticsNumListUsers,
             Status(
                statisticsStatusCompleted,
@@ -80,16 +82,17 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
                statisticsStatusWatching
             )
          ),
-         MalAnime.AiringStatus.getEnum(status),
-         gson.fromJson(studios, object : TypeToken<List<Studio>>() {}),
-         synopsis,
-         title,
-         OffsetDateTime.parse(updatedAt),
-         gson.fromJson(
+         status = MalAnime.AiringStatus.getEnum(status),
+         studios = gson.fromJson(studios, object : TypeToken<List<Studio>>() {}),
+         synopsis = synopsis,
+         title = title,
+         updatedAt = OffsetDateTime.parse(updatedAt),
+         episodesType = gson.fromJson(
             episodesType,
             object : TypeToken<RangeMap<EpisodesType>>() {}),
-         gson.fromJson(nextEp, NextEpisode::class.java),
-         hasNotificationsOn
+         nextEp = gson.fromJson(nextEp, NextEpisode::class.java),
+         hasNotificationsOn = hasNotificationsOn,
+         host = host
       )
    } catch (ex: JsonSyntaxException){
       Log.e(ex.toString(), ex.message ?: "")

@@ -1,5 +1,7 @@
 package com.example.anyme.ui.composables.details
 
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,28 +34,30 @@ fun TitleSection(
    softWrap: Boolean = true,
    maxLines: Int = Int.MAX_VALUE,
    minLines: Int = 1,
-   onTextLayout: ((TextLayoutResult) -> Unit)? = null,
-   style: TextStyle = MaterialTheme.typography.titleLarge
+   onTextLayout: (TextLayoutResult) -> Unit = { },
+   style: TextStyle = MaterialTheme.typography.titleLarge,
+   autoSize: TextAutoSize? = null
 ) {
 
    Text(
       text = text,
       modifier,
-      color,
-      fontSize,
-      fontStyle,
-      fontWeight,
-      fontFamily,
-      letterSpacing,
-      textDecoration,
-      textAlign,
-      lineHeight,
-      overflow,
-      softWrap,
-      maxLines,
-      minLines,
-      onTextLayout,
-      style
+      color = color,
+      fontSize = fontSize,
+      fontStyle = fontStyle,
+      fontWeight = fontWeight,
+      fontFamily = fontFamily,
+      letterSpacing = letterSpacing,
+      textDecoration = textDecoration,
+      textAlign = textAlign,
+      lineHeight = lineHeight,
+      overflow = overflow,
+      softWrap = softWrap,
+      maxLines = maxLines,
+      minLines = minLines,
+      onTextLayout = onTextLayout,
+      style = style,
+      autoSize = autoSize
    )
 
 }

@@ -9,7 +9,7 @@ interface MediaListItemRender {
 
    @Composable
    fun Compose(
-      onClick: (Media) -> Unit
+      onClick: () -> Unit
    )
 
 }

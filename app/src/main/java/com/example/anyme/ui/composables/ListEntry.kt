@@ -44,18 +44,18 @@ fun ListEntry(
    media: Media,
    imageHeight: Dp,
    contentPadding: PaddingValues,
-   colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
    modifier: Modifier = Modifier,
+   colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
    imageIdealRatio: Double = IMAGE_IDEAL_RATIO,
    roundedCornerSize: Dp = 16.dp,
-   onClick: (Media) -> Unit = { },
+   onClick: () -> Unit = { },
    overImageContent: @Composable BoxScope.() -> Unit = { },
    content: @Composable ColumnScope.() -> Unit
 ) {
 
    Card(
       colors = colors,
-      onClick = { onClick(media) },
+      onClick = onClick,
       shape = RoundedCornerShape(roundedCornerSize),
       modifier = Modifier
          .fillMaxWidth()
@@ -123,7 +123,7 @@ fun PreviewListEntry(){
 
       @Composable
       override fun Compose(
-         onClick: (Media) -> Unit
+         onClick: () -> Unit
       ) {
          ListEntry(
             contentPadding = PaddingValues(),

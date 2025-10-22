@@ -1,5 +1,6 @@
-package com.example.anyme.utils
+package com.example.anyme.utils.time
 
+import android.util.Log
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import kotlinx.datetime.Instant
@@ -59,31 +60,52 @@ class OffsetWeekTime private constructor(
 
    companion object {
 
-      @Throws(IllegalStateException::class, DateTimeParseException::class, IllegalTimeZoneException::class)
-      fun create(weekDay: String, time: String, offset: Offset): OffsetWeekTime {
-         val dayOfWeek = DayOfWeek.valueOf(weekDay.uppercase())
-         val localTime = LocalTime.parse(time)
-         return OffsetWeekTime(dayOfWeek, localTime, offset)
+
+      fun create(weekDay: String, time: String, offset: Offset): OffsetWeekTime? {
+         try {
+            val dayOfWeek = DayOfWeek.valueOf(weekDay.uppercase())
+            val localTime = LocalTime.parse(time)
+            return OffsetWeekTime(dayOfWeek, localTime, offset)
+         } catch (_: Exception){
+            return null
+         }
       }
 
-      @Throws(IllegalStateException::class, DateTimeParseException::class, IllegalTimeZoneException::class)
-      fun create(weekDay: String, time: String, timeZone: TimeZone): OffsetWeekTime {
-         val dayOfWeek = DayOfWeek.valueOf(weekDay.uppercase())
-         val localTime = LocalTime.parse(time)
-         return create(dayOfWeek, localTime, timeZone)
+      fun create(weekDay: String, time: String): OffsetWeekTime? {
+         try {
+            val (time, offset) = Offset.splitTimeWithOffset(time)
+            return create(weekDay, time, Offset.create(offset))
+         } catch (_: Exception) {
+            return null
+         }
       }
 
-      fun create(weekDay: DayOfWeek, time: LocalTime, timeZone: TimeZone): OffsetWeekTime {
-         val zoneLocalDate = Instant
-            .fromEpochSeconds(time.toSecondOfDay().toLong())
-            .toLocalDateTime(TimeZone.UTC)
-         val utcInstant = zoneLocalDate.toInstant(timeZone).epochSeconds.seconds
-         val zoneInstant = time.toSecondOfDay().seconds
-         return OffsetWeekTime(
-            weekDay,
-            zoneLocalDate.time,
-            Offset.create(zoneInstant - utcInstant)
-         )
+
+      fun create(weekDay: String, time: String, timeZone: TimeZone): OffsetWeekTime? {
+         try {
+            val dayOfWeek = DayOfWeek.valueOf(weekDay.uppercase())
+            val localTime = LocalTime.parse(time)
+            return create(dayOfWeek, localTime, timeZone)
+         } catch (_: Exception) {
+            return null
+         }
+      }
+
+      fun create(weekDay: DayOfWeek, time: LocalTime, timeZone: TimeZone): OffsetWeekTime? {
+         try {
+            val zoneLocalDate = Instant
+               .fromEpochSeconds(time.toSecondOfDay().toLong())
+               .toLocalDateTime(TimeZone.UTC)
+            val utcInstant = zoneLocalDate.toInstant(timeZone).epochSeconds.seconds
+            val zoneInstant = time.toSecondOfDay().seconds
+            return OffsetWeekTime(
+               weekDay,
+               zoneLocalDate.time,
+               Offset.create(zoneInstant - utcInstant)
+            )
+         } catch (_: Exception) {
+            return null
+         }
       }
 
    }

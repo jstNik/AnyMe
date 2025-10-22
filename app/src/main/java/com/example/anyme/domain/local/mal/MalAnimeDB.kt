@@ -3,11 +3,11 @@ package com.example.anyme.domain.local.mal
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.anyme.remote.Host
 import java.io.Serializable
 
 @Entity
 data class MalAnimeDB(
-
     var alternativeTitlesEn: String = "",
     var alternativeTitlesJa: String = "",
     var alternativeTitlesSynonyms: String = "",
@@ -58,5 +58,6 @@ data class MalAnimeDB(
     // Only local values
     var episodesType: String = "",
     var nextEp: String = "",
-    var hasNotificationsOn: Boolean = false
+    var hasNotificationsOn: Boolean = false,
+    var host: Host
 ): Serializable

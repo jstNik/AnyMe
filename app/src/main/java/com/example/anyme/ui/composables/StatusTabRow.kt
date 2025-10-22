@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import com.example.anyme.ui.composables.details.TitleSection
 
 @Composable
 fun AnimatedTabRow(
@@ -60,8 +62,9 @@ fun AnimatedTabRow(
             text = {
                Text(
                   text = tabText,
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onBackground
+                  style = MaterialTheme.typography.titleMedium,
+                  color = MaterialTheme.colorScheme.onBackground,
+                  fontWeight = FontWeight.Bold
                )
             }
          )

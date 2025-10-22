@@ -3,7 +3,6 @@ package com.example.anyme.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
-import com.example.anyme.domain.ui.mal.MalSeasonalListItem
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
 import kotlinx.datetime.DatePeriod
@@ -26,7 +25,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
-class SeasonalAnimeListViewModel @Inject constructor(
+class SeasonalViewModel @Inject constructor(
    private val malRepository: IMalRepository
 ) : ViewModel() {
 

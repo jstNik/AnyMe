@@ -5,78 +5,80 @@ import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalListGridItem
 import com.example.anyme.domain.ui.mal.MalSeasonalListItem
 import com.example.anyme.domain.ui.mal.MalUserListItem
+import com.example.anyme.remote.Host
 import com.example.anyme.ui.renders.mal.MalRelatedItemRender
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.utils.time.OffsetDateTime
 import com.google.gson.Gson
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 fun MalAnime.mapToMalAnimeDB(gson: Gson): MalAnimeDB = MalAnimeDB(
-   alternativeTitles.en,
-   alternativeTitles.ja,
-   gson.toJson(alternativeTitles.synonyms),
-   averageEpisodeDuration,
-   background,
-   "${broadcast?.weekDay ?: ""}",
-   broadcast?.time?.toString() ?: "",
-   "$createdAt",
-   "$endDate",
-   gson.toJson(genres),
-   id,
-   mainPicture.large,
-   mainPicture.medium,
-   mean,
-   mediaType,
-   myList.isRewatching,
-   myList.numEpisodesWatched,
-   myList.score,
-   myList.status.toString(),
-   "${myList.updatedAt}",
-   nsfw,
-   numEpisodes,
-   numListUsers,
-   numScoringUsers,
-   gson.toJson(pictures),
-   popularity,
-   rank,
-   rating,
-   gson.toJson(recommendations),
-   gson.toJson(relatedAnime),
-   gson.toJson(listOf<Any>()),
-   source,
-   "$startDate",
-   season.season,
-   season.year,
-   statistics.numListUsers,
-   statistics.status.completed,
-   statistics.status.dropped,
-   statistics.status.onHold,
-   statistics.status.planToWatch,
-   statistics.status.watching,
-   status.toString(),
-   gson.toJson(studios),
-   synopsis,
-   title,
-   "$updatedAt",
-   gson.toJson(episodesType),
-   gson.toJson(nextEp),
-   hasNotificationsOn
+   alternativeTitlesEn = alternativeTitles.en,
+   alternativeTitlesJa = alternativeTitles.ja,
+   alternativeTitlesSynonyms = gson.toJson(alternativeTitles.synonyms),
+   averageEpisodeDuration = averageEpisodeDuration,
+   background = background,
+   broadcastDayOfTheWeek = "${broadcast?.weekDay ?: ""}",
+   broadcastStartTime = broadcast?.let{ "${it.time}${it.offset}" } ?: "",
+   createdAt = "${createdAt ?: ""}",
+   endDate = "${endDate ?: ""}",
+   genres = gson.toJson(genres),
+   id = id,
+   mainPictureLarge = mainPicture.large,
+   mainPictureMedium = mainPicture.medium,
+   mean = mean,
+   mediaType = mediaType,
+   myListStatusIsRewatching = myList.isRewatching,
+   myListStatusNumEpisodesWatched = myList.numEpisodesWatched,
+   myListStatusScore = myList.score,
+   myListStatusStatus = myList.status.toString(),
+   myListStatusUpdatedAt = "${myList.updatedAt ?: ""}",
+   nsfw = nsfw,
+   numEpisodes = numEpisodes,
+   numListUsers = numListUsers,
+   numScoringUsers = numScoringUsers,
+   pictures = gson.toJson(pictures),
+   popularity = popularity,
+   rank = rank,
+   rating = rating,
+   recommendations = gson.toJson(recommendations),
+   relatedAnime = gson.toJson(relatedAnime),
+   relatedManga = gson.toJson(listOf<Any>()),
+   source = source,
+   startDate = "${startDate ?: ""}",
+   startSeasonSeason = season.season,
+   startSeasonYear = season.year,
+   statisticsNumListUsers = statistics.numListUsers,
+   statisticsStatusCompleted = statistics.status.completed,
+   statisticsStatusDropped = statistics.status.dropped,
+   statisticsStatusOnHold = statistics.status.onHold,
+   statisticsStatusPlanToWatch = statistics.status.planToWatch,
+   statisticsStatusWatching = statistics.status.watching,
+   status = status.toString(),
+   studios = gson.toJson(studios),
+   synopsis = synopsis,
+   title = title,
+   updatedAt = "${updatedAt ?: ""}",
+   episodesType = gson.toJson(episodesType),
+   nextEp = gson.toJson(nextEp),
+   hasNotificationsOn = hasNotificationsOn,
+   host = host
 )
 
 fun MalAnime.mapToMalAnimeListItem(): MalUserListItem =
    MalUserListItem(
-      id,
-      title,
-      mainPicture,
-      numEpisodes,
-      myList.numEpisodesWatched,
-      myList.status,
-      status,
-      episodesType,
-      nextEp,
-      hasNotificationsOn
+      id = id,
+      title = title,
+      mainPicture = mainPicture,
+      numEpisodes = numEpisodes,
+      myListStatusNumEpisodesWatched = myList.numEpisodesWatched,
+      myListStatus = myList.status,
+      status = status,
+      episodesType = episodesType,
+      nextEp = nextEp,
+      hasNotificationsOn = hasNotificationsOn,
+      host = host
    )
 
 @OptIn(ExperimentalTime::class)
@@ -86,13 +88,13 @@ fun MalAnime.mapToMalSeasonalListItem(): MalSeasonalListItem {
    var startDateTime: OffsetDateTime? = null
    var endDateTime: OffsetDateTime? = null
    time?.let{ time ->
-      startDate?.let { startDate ->
+      startDate?.toLocalDate()?.let { startDate ->
          startDateTime = OffsetDateTime.create(
             LocalDateTime(startDate, time),
             TimeZone.of("Asia/Tokyo")
          )
       }
-      endDate?.let { endDate ->
+      endDate?.toLocalDate()?.let { endDate ->
          endDateTime = OffsetDateTime.create(
             LocalDateTime(endDate, time),
             TimeZone.of("Asia/Tokyo")
@@ -101,21 +103,23 @@ fun MalAnime.mapToMalSeasonalListItem(): MalSeasonalListItem {
    }
 
    return MalSeasonalListItem(
-      id,
-      title,
-      mainPicture,
-      startDateTime,
-      endDateTime,
-      nextEp.number,
-      nextEp.releaseDate
+      id = id,
+      title = title,
+      mainPicture = mainPicture,
+      startDate = startDateTime,
+      endDate = endDateTime,
+      htmlNextEp = nextEp.number,
+      htmlReleaseDate = nextEp.releaseDate,
+      host = host
    )
 }
 
 fun MalAnime.mapToMalListGridItem(): MalListGridItem = MalListGridItem(
-   id,
-   title,
-   mainPicture,
-   mean
+   id = id,
+   title = title,
+   mainPicture = mainPicture,
+   mean = mean,
+   host = host
 )
 
 fun MalAnime.mapToMalAnimeDetails(): MalAnimeDetails = MalAnimeDetails(
@@ -142,20 +146,22 @@ fun MalAnime.mapToMalAnimeDetails(): MalAnimeDetails = MalAnimeDetails(
    season = season,
    statistics = statistics,
    status = status,
-   studios = studios
+   studios = studios,
+   host = host
 )
 
 fun MalAnimeNode.mapToMalAnimeDL() = MalAnime(
-   id = id, mainPicture = mainPicture, title = title
+   id = id, mainPicture = mainPicture, title = title, host = Host.Mal
 )
 
 fun RelatedAnime.mapToMalRelatedAnime() = MalAnimeDetails.MalRelatedAnime(
-   media.id,
-   media.title,
-   media.mainPicture,
-   relationTypeFormatted
+   id = media.id,
+   title = media.title,
+   mainPicture = media.mainPicture,
+   relationTypeFormatted = relationTypeFormatted,
+   host = Host.Mal
 )
 
 fun Recommendation.mapToMalRelatedAnime() = MalAnimeDetails.MalRelatedAnime(
-   media.id, media.title, media.mainPicture
+   id = media.id, title = media.title, mainPicture = media.mainPicture, host = Host.Mal
 )

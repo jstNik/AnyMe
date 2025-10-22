@@ -19,9 +19,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.AlternativeTitles
-import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MalAnime.AiringStatus
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
@@ -29,6 +27,7 @@ import com.example.anyme.ui.composables.details.GeneralInfoCard
 import com.example.anyme.ui.composables.details.RelatedMediaCard
 import com.example.anyme.ui.composables.details.TitleCard
 import com.example.anyme.ui.composables.getMediaPreview
+import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaDetailsRender
 import com.example.anyme.ui.theme.AnyMeTheme
 import kotlinx.datetime.TimeZone
@@ -66,7 +65,7 @@ class MalAnimeDetailsRender(
                colors = CardDefaults.cardColors(containerColor = cs.surfaceContainer),
                contentPadding = PaddingValues(contentPadding),
                modifier = Modifier.padding(horizontal = externalPadding),
-               debug = true
+               debug = Debug
             )
 
             Spacer(Modifier.height(externalPadding))

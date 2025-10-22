@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -23,10 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,8 +30,6 @@ import androidx.compose.ui.graphics.Brush.Companion.linearGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,11 +42,12 @@ import com.example.anyme.R
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.ui.composables.BlurredGlideImage
+import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.theme.AnyMeTheme
-import com.example.anyme.utils.LocalDateTypeAdapter
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.utils.DateTypeAdapter
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.OffsetDateTimeAdapter
-import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.OffsetWeekTimeAdapter
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -283,7 +276,7 @@ fun PreviewTitleCard() {
 
    val json = stringResource(R.string.placeholder_media).replace("–", "-")
    val gson = GsonBuilder()
-      .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+      .registerTypeAdapter(LocalDate::class.java, DateTypeAdapter())
       .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter())
       .registerTypeAdapter(
          OffsetWeekTime::class.java,
@@ -303,7 +296,7 @@ fun PreviewTitleCard() {
          rightStat = "Rank" to media.rank,
          mainPicture = media.mainPicture,
          backgroundPicture = "",
-         debug = true,
+         debug = Debug,
          modifier = Modifier.padding(horizontal = 16.dp),
          myList = media.myList.status,
          alternativeTitle = media.alternativeTitles.en,

@@ -18,14 +18,14 @@ class MalSeasonalAnimeRender(
 
    @Composable
    override fun Compose(
-      onClick: (Media) -> Unit
+      onClick: () -> Unit
    ) {
       with(media) {
 
          ListEntry(
             media = media,
             imageHeight = 128.dp,
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(8.dp)
          ) {
 
          }

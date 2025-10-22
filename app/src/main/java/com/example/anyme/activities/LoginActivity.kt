@@ -2,22 +2,10 @@ package com.example.anyme.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import com.example.anyme.BuildConfig
 import com.example.anyme.remote.api.MalApi
 import com.example.anyme.ui.theme.AnyMeTheme
@@ -34,6 +22,7 @@ import androidx.core.net.toUri
 import androidx.core.content.edit
 import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
 import com.example.anyme.remote.interceptors.SP_FILE_NAME
+import com.example.anyme.ui.screens.LoginScreen
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthorizationService
@@ -58,7 +47,7 @@ class LoginActivity : AppCompatActivity() {
                     authState.update(res, null)
                     authState.performActionWithFreshTokens(authService) { _, _, _ ->
                         persistState()
-                         val intent = Intent(this, UserListActivity::class.java)
+                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
                         finish()
                     }
@@ -71,13 +60,13 @@ class LoginActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent{
             AnyMeTheme {
-                ComposeLoginUi()
+                LoginScreen()
             }
         }
         if (canRestoreState()) {
             authService = AuthorizationService(this)
             persistState()
-            val intent = Intent(this, UserListActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
         }
@@ -138,38 +127,4 @@ class LoginActivity : AppCompatActivity() {
         super.onDestroy()
         authService.dispose()
     }
-}
-
-@Composable
-fun ComposeLoginUi() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-
-        val context = LocalContext.current
-
-        Button(
-            onClick = {
-                try {
-                    if (context is LoginActivity)
-                        context.login()
-                } catch (e: Exception) {
-                    Toast.makeText(
-                        context,
-                        "Something went wrong. Try later.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        ) {
-            Text(
-                text = "Login"
-            )
-        }
-    }
-
 }

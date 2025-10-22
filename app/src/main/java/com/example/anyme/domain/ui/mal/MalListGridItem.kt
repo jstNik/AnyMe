@@ -11,6 +11,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
@@ -18,13 +19,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.anyme.domain.dl.mal.MainPicture
 import com.example.anyme.domain.dl.Media
+import com.example.anyme.remote.Host
 import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.ui.composables.GridEntry
 import com.google.gson.annotations.SerializedName
 
+@Immutable
 data class MalListGridItem(
    override val id: Int = 0,
    override val title: String = "",
    override val mainPicture: MainPicture = MainPicture(),
-   val mean: Double = 0.0
+   val mean: Double = 0.0,
+   override val host: Host = Host.Unknown
 ): Media

@@ -1,6 +1,10 @@
 package com.example.anyme.utils
 
 import android.util.Log
+import com.example.anyme.utils.time.Date
+import com.example.anyme.utils.time.Offset
+import com.example.anyme.utils.time.OffsetDateTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -12,20 +16,18 @@ import kotlinx.datetime.TimeZone
 import java.lang.reflect.Type
 import kotlin.time.ExperimentalTime
 
-class LocalDateTypeAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate?> {
+class DateTypeAdapter : JsonSerializer<Date?>, JsonDeserializer<Date?> {
    override fun serialize(
-      src: LocalDate?,
+      src: Date?,
       typeOfSrc: Type?,
       context: JsonSerializationContext?
-   ): JsonElement = JsonPrimitive(src?.toIsoString() ?: "")
+   ): JsonElement = JsonPrimitive(src?.toString())
 
    override fun deserialize(
       json: JsonElement?,
       typeOfT: Type?,
       context: JsonDeserializationContext?
-   ): LocalDate? = json?.asString?.let {
-      LocalDate.parse(it.replace("–", "-"))
-   }
+   ): Date? = json?.asString?.let { Date.parse(it) }
 
 }
 

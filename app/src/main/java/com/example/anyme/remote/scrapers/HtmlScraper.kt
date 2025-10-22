@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.NextEpisode
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.RangeMap
 import kotlinx.datetime.TimeZone
 import org.jsoup.Jsoup

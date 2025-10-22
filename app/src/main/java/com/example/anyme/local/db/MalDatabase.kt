@@ -7,9 +7,9 @@ import com.example.anyme.domain.local.mal.MalAnimeDB
 
 
 @Database(
-    entities=[MalAnimeDB::class],
-    version=2,
-    exportSchema=false
+    entities = [MalAnimeDB::class],
+    version = 3,
+    exportSchema = false
 )
 abstract class MalDatabase: RoomDatabase() {
 

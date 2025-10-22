@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -17,12 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.ui.composables.GridEntry
 import com.example.anyme.ui.composables.getMediaPreview
-import com.example.anyme.ui.renders.DEBUG
+import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.ui.theme.AnyMeTheme
 class MalRelatedItemRender(
@@ -31,7 +29,7 @@ class MalRelatedItemRender(
 
    @Composable
    override fun Compose(
-      onClick: (Media) -> Unit
+      onClick: () -> Unit
    ) {
       with(media) {
 
@@ -46,7 +44,7 @@ class MalRelatedItemRender(
             width = 150.dp,
             contentPadding = PaddingValues(8.dp),
             belowImageContentHeight = belowImageContentHeight,
-            debug = DEBUG,
+            debug = Debug,
             colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerHighest),
          ) {
             Column(

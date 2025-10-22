@@ -28,10 +28,10 @@ import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MalAnime.AiringStatus
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.ui.theme.AnyMeTheme
-import com.example.anyme.utils.LocalDateTypeAdapter
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.utils.DateTypeAdapter
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.OffsetDateTimeAdapter
-import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.OffsetWeekTimeAdapter
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -101,7 +101,7 @@ fun PreviewGeneralInfoCard(){
 
    val json = stringResource(R.string.placeholder_media).replace("–", "-")
    val gson = GsonBuilder()
-      .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+      .registerTypeAdapter(LocalDate::class.java, DateTypeAdapter())
       .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter())
       .registerTypeAdapter(
          OffsetWeekTime::class.java,

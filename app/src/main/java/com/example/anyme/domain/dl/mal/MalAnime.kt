@@ -2,13 +2,13 @@ package com.example.anyme.domain.dl.mal
 
 
 import com.example.anyme.domain.dl.Media
-import com.example.anyme.utils.OffsetDateTime
-import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.remote.Host
+import com.example.anyme.utils.time.OffsetDateTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
-import com.example.anyme.utils.toCurrentDateTime
+import com.example.anyme.utils.time.Date
 import com.google.gson.annotations.SerializedName
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import java.lang.IllegalArgumentException
 
 data class MalAnime(
@@ -23,7 +23,7 @@ data class MalAnime(
    @SerializedName("created_at")
    var createdAt: OffsetDateTime? = null,
    @SerializedName("end_date")
-   var endDate: LocalDate? = null,
+   var endDate: Date? = null,
    @SerializedName("genres")
    var genres: List<Genre> = listOf(),
    @SerializedName("id")
@@ -61,7 +61,7 @@ data class MalAnime(
    @SerializedName("source")
    var source: String = "",
    @SerializedName("start_date")
-   var startDate: LocalDate? =  null,
+   var startDate: Date? =  null,
    @SerializedName("start_season")
    var season: Season = Season(),
    @SerializedName("statistics")
@@ -81,8 +81,9 @@ data class MalAnime(
    var episodesType: RangeMap<EpisodesType> = RangeMap(),
    var nextEp: NextEpisode = NextEpisode(),
    var hasNotificationsOn: Boolean = false,
+   override var host: Host = Host.Unknown
 
-) : Media {
+   ) : Media {
 
    enum class EpisodesType {
       MangaCanon {

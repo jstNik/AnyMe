@@ -1,4 +1,4 @@
-package com.example.anyme.utils
+package com.example.anyme.utils.time
 
 import android.util.Log
 import kotlinx.datetime.LocalDateTime

@@ -30,31 +30,7 @@
         </activity>
 
         <activity
-            android:name=".activities.UserListActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            />
-
-        <activity
-            android:name=".activities.RankingListActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            />
-
-        <activity
-            android:name=".activities.SeasonalListActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            />
-
-        <activity
-            android:name=".activities.SearchingActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            />
-
-        <activity
-            android:name=".activities.DetailsActivity"
+            android:name=".activities.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             />

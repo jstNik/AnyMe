@@ -1,55 +1,41 @@
-package com.example.anyme.activities
+package com.example.anyme.ui.screens
 
-import android.os.Bundle
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.SwipeUpToRefresh
-import com.example.anyme.ui.theme.AnyMeTheme
-import com.example.anyme.viewmodels.SearchingViewModel
-import dagger.hilt.android.AndroidEntryPoint
+import com.example.anyme.ui.theme.Details
+import com.example.anyme.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
-@AndroidEntryPoint
-class SearchingActivity: AppCompatActivity() {
-
-   override fun onCreate(savedInstanceState: Bundle?) {
-      super.onCreate(savedInstanceState)
-      enableEdgeToEdge()
-      setContent{
-         AnyMeTheme {
-            ComposeSearchingActivity()
-         }
-      }
-   }
-
-}
-
 @Composable
-fun ComposeSearchingActivity(viewModel: SearchingViewModel = viewModel()){
+fun SearchScreen(
+   navigator: NavHostController,
+   contentPadding: PaddingValues,
+   viewModel: SearchViewModel = hiltViewModel<SearchViewModel>()
+){
 
    Column(
-      modifier = Modifier.fillMaxSize()
-   ){
+      modifier = Modifier
+         .fillMaxSize()
+         .padding(contentPadding)
+   ) {
 
       SearchBar(
          modifier = Modifier.fillMaxWidth()
@@ -76,17 +62,17 @@ fun ComposeSearchingActivity(viewModel: SearchingViewModel = viewModel()){
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
          ) {
 
-            items(
+            items (
                count = searchList.itemCount,
                key = {
                   val id = searchList.peek(it)?.media?.id
                   if(id != null && id != 0) id else -it - 1
                }
-            ){
+            ){ idx ->
 
-               searchList[it]?.let{
-                  it.Compose {
-
+               searchList[idx]?.let { render ->
+                  render.Compose {
+                     navigator.navigate("$Details/${render.media.host}/${render.media.id}")
                   }
                }
 

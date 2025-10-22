@@ -30,7 +30,7 @@ class MalAnimeSearchFrameRender(
 
    @Composable
    override fun Compose(
-      onClick: (Media) -> Unit
+      onClick: () -> Unit
    ) {
       with(media) {
          GridEntry(

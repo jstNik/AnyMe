@@ -12,7 +12,6 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.anyme.domain.dl.mal.mapToMalListGridItem
 import com.example.anyme.remote.api.MalApi
-import com.example.anyme.domain.ui.mal.MalListGridItem
 import com.example.anyme.repositories.paging.SearchingListPagination
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.ui.renders.mal.MalAnimeSearchFrameRender
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchingViewModel @Inject constructor(
+class SearchViewModel @Inject constructor(
    private val malRepository: IMalRepository
 ) : ViewModel() {
 

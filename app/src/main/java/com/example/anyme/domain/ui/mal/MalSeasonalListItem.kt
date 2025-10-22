@@ -1,25 +1,18 @@
 package com.example.anyme.domain.ui.mal
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.CardColors
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Immutable
 import com.example.anyme.domain.dl.mal.MainPicture
 import com.example.anyme.domain.dl.Media
-import com.example.anyme.ui.renders.MediaListItemRender
-import com.example.anyme.ui.composables.ListEntry
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.remote.Host
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.getDateOfNext
-import com.example.anyme.utils.toCurrentDateTime
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Calendar
-import kotlin.time.Duration.Companion.milliseconds
 
+@Immutable
 data class MalSeasonalListItem(
    override val id: Int = 0,
    override val title: String = "",
@@ -27,7 +20,8 @@ data class MalSeasonalListItem(
    private val startDate: OffsetDateTime? = null,
    private val endDate: OffsetDateTime? = null,
    private val htmlNextEp: Int = 0,
-   private val htmlReleaseDate: OffsetDateTime? = null
+   private val htmlReleaseDate: OffsetDateTime? = null,
+   override val host: Host = Host.Unknown
 ): Media {
 
    fun getDateTimeNextEp(): OffsetDateTime? {

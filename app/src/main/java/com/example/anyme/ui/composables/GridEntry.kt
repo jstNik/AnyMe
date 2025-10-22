@@ -61,7 +61,7 @@ fun GridEntry(
    verticalArrangement: Arrangement.Vertical = Arrangement.SpaceAround,
    colors: CardColors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainer),
    debug: Boolean = false,
-   onClick: (Media) -> Unit = { },
+   onClick: () -> Unit = { },
    overImageContent: @Composable BoxScope.() -> Unit = { },
    content: @Composable ColumnScope.() -> Unit
 ) {
@@ -69,7 +69,7 @@ fun GridEntry(
    val shape = remember { RoundedCornerShape(roundedCornerSize) }
 
    Card(
-      onClick = { onClick(media) },
+      onClick = onClick,
       shape = shape,
       colors = colors,
       modifier = modifier
@@ -138,7 +138,7 @@ fun GridEntry(
    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
    verticalArrangement: Arrangement.Vertical = Arrangement.SpaceAround,
    colors: CardColors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainer),
-   onClick: (Media) -> Unit = { },
+   onClick: () -> Unit = { },
    overImageContent: @Composable BoxScope.() -> Unit = { },
    content: @Composable ColumnScope.() -> Unit
 ) {
@@ -170,7 +170,7 @@ private fun PreviewGridItem() {
       override val media: MalListGridItem = media.mapToMalListGridItem()
 
       @Composable
-      override fun Compose(onClick: (Media) -> Unit) {
+      override fun Compose(onClick: () -> Unit) {
          GridEntry(
             width = 130.dp,
             media = media,

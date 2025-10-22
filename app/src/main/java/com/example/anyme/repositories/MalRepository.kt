@@ -10,15 +10,9 @@ import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.NextEpisode
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDB
-import com.example.anyme.domain.dl.mal.mapToMalListGridItem
-import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
 import com.example.anyme.domain.local.mal.mapToMalAnimeDL
 import com.example.anyme.domain.remote.mal.Data
-import com.example.anyme.domain.remote.mal.mapToMalRankingListItem
-import com.example.anyme.domain.ui.mal.MalListGridItem
-import com.example.anyme.domain.ui.mal.MalRankingListItem
-import com.example.anyme.domain.ui.mal.MalSeasonalListItem
-import com.example.anyme.utils.OffsetDateTime
+import com.example.anyme.remote.Host
 import com.example.anyme.utils.getSeason
 import com.example.anyme.utils.toCurrentDateTime
 import com.google.gson.Gson
@@ -31,7 +25,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.TimeZone
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -78,7 +71,7 @@ class MalRepository @Inject constructor(
    override suspend fun retrieveUserAnimeList() {
       withContext(dispatcher) {
          try {
-            var dbMalAnimeList = mutableMapOf<Int, MalAnime>()
+            val dbMalAnimeList = mutableMapOf<Int, MalAnime>()
             var offset = 0
 
             do {
@@ -101,7 +94,7 @@ class MalRepository @Inject constructor(
 
                apiMalAnimeList.forEach forEach@{ entry ->
                   val apiMalAnime = entry.value.malAnime
-
+                  apiMalAnime.host = Host.Mal
                   val dbMalAnime = dbMalAnimeList[entry.key]
 
                   val upsertJob = launch {
@@ -177,11 +170,13 @@ class MalRepository @Inject constructor(
       malDao.fetchUserAnimeAsc(myListStatus.toString(), orderBy.toString(), filter)
    else malDao.fetchUserAnimeDesc(myListStatus.toString(), orderBy.toString(), filter)
 
-   override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<Data> =
-      withContext(dispatcher){
-      val response = malApi.retrieveRankingList(type.apiValue, offset = offset)
-      validate(response)
-      response.body()!!.data
+   override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<Data> {
+      return withContext(dispatcher) {
+         val response = malApi.retrieveRankingList(type.apiValue, offset = offset)
+         validate(response)
+         response.body()!!.data.forEach { it.malAnime.host = Host.Mal }
+         response.body()!!.data
+      }
    }
 
    override suspend fun retrieveMalSeasonalAnimes() = flow {
@@ -194,7 +189,7 @@ class MalRepository @Inject constructor(
          validate(httpResponse)
          val dataResponse = httpResponse.body()!!
          animeMap += dataResponse.data.associateBy({ it.malAnime.id },
-            { it.malAnime }
+            { it.malAnime.apply { host = Host.Mal } }
          )
          offset = nextOffset(dataResponse.paging)
 
@@ -226,6 +221,7 @@ class MalRepository @Inject constructor(
       val result = response.body()!!
 
       return result.data.map{
+         it.malAnime.host = Host.Mal
          it.malAnime
       }
 
@@ -242,6 +238,7 @@ class MalRepository @Inject constructor(
                val apiResponse = malApi.retrieveAnimeDetails(animeId)
                validate(apiResponse)
                apiResponse.body()?.let { apiAnime ->
+                  apiAnime.host = Host.Mal
                   val dbAnime = flowAnime.first()
                   val updateAnime = apiAnime.merge(dbAnime)
                   malDao.update(updateAnime.mapToMalAnimeDB(gson))

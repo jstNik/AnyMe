@@ -14,12 +14,13 @@ import com.example.anyme.remote.interceptors.MalTokenManager
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.repositories.MalRepository
 import com.example.anyme.utils.OffsetDateTimeAdapter
-import com.example.anyme.utils.LocalDateTypeAdapter
+import com.example.anyme.utils.DateTypeAdapter
 import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
 import com.example.anyme.remote.interceptors.SP_FILE_NAME
-import com.example.anyme.utils.OffsetDateTime
-import com.example.anyme.utils.OffsetWeekTime
+import com.example.anyme.utils.time.OffsetDateTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.OffsetWeekTimeAdapter
+import com.example.anyme.utils.time.Date
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -28,7 +29,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -74,7 +74,7 @@ object MalModule {
     @Provides
     @Singleton
     fun providesGson(): Gson = GsonBuilder()
-        .registerTypeAdapter(LocalDate::class.java, LocalDateTypeAdapter())
+        .registerTypeAdapter(Date::class.java, DateTypeAdapter())
         .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter())
         .registerTypeAdapter(OffsetWeekTime::class.java, OffsetWeekTimeAdapter(TimeZone.of("Asia/Tokyo")))
         .create()

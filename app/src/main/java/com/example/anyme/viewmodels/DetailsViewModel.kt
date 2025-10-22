@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
+import com.example.anyme.remote.Host
 import com.example.anyme.repositories.IMalRepository
 import com.example.anyme.ui.renders.MediaDetailsRender
 import com.example.anyme.ui.renders.mal.MalAnimeDetailsRender
@@ -25,7 +26,9 @@ class DetailsViewModel @Inject constructor(
    private val _animeDetails = MutableStateFlow<MediaDetailsRender>(MalAnimeDetailsRender())
    val animeDetails get() = _animeDetails.asStateFlow()
 
-   private val mediaId: Int = (savedStateHandle["mediaId"] as Int?)!!
+   private val mediaId: Int = checkNotNull(savedStateHandle["media_id"] as Int?)
+   private val host: Host = Host.valueOf(checkNotNull(savedStateHandle["host"] as String?))
+
 
    init{
       fetchAnimeDetails()
@@ -42,7 +45,6 @@ class DetailsViewModel @Inject constructor(
          }
       }
    }
-
 
 
 }

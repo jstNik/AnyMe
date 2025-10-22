@@ -1,4 +1,4 @@
-package com.example.anyme.utils
+package com.example.anyme.utils.time
 
 import kotlin.math.abs
 import kotlin.time.Duration
