@@ -14,62 +14,59 @@ import com.example.anyme.domain.dl.mal.mapToMalListGridItem
 import com.example.anyme.remote.api.MalApi
 import com.example.anyme.repositories.paging.SearchingListPagination
 import com.example.anyme.repositories.IMalRepository
+import com.example.anyme.repositories.SettingsRepository
 import com.example.anyme.ui.renders.mal.MalAnimeSearchFrameRender
+import com.example.anyme.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
+   private val settingsRepo: SettingsRepository,
    private val malRepository: IMalRepository
 ) : ViewModel() {
 
-   var searchQuery = ""
-      set(value) {
-         if (value != field) {
-            field = value
-            pagingSourceFactory.invalidate()
-         }
-      }
 
-   private val pagingConfig = PagingConfig(
-      MalApi.SEARCHING_LIST_LIMIT,
-      1,
-      initialLoadSize = MalApi.SEARCHING_LIST_LIMIT
-   )
+   private val _searchQuery = MutableStateFlow("")
 
-   private val pagingSourceFactory = InvalidatingPagingSourceFactory {
-      SearchingListPagination(malRepository, searchQuery)
+   fun setSearchQuery(searchQuery: String){
+      _searchQuery.value = searchQuery
    }
 
-   @OptIn(ExperimentalPagingApi::class)
-   private val pager = Pager(
-      pagingConfig,
-      0,
-      null,
-      pagingSourceFactory
+   @OptIn(ExperimentalCoroutinesApi::class)
+   val searchList = combine(_searchQuery) {
+      it.first()
+   }.distinctUntilChanged().flatMapLatest {
+      malRepository.search(it)
+   }.cachedIn(viewModelScope).map { pagingData ->
+      val transform = pagingData.map { data ->
+         MalAnimeSearchFrameRender(data.mapToMalListGridItem())
+      }
+      Resource.success(transform)
+   }.onStart {
+      emit(Resource.loading())
+   }.catch { e ->
+      if(e is Exception) emit(Resource.failure(e)) else throw e
+   }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.WhileSubscribed(5000L),
+      initialValue = Resource.loading()
    )
 
-   private val _searchList = MutableStateFlow(PagingData.empty<MalAnimeSearchFrameRender>())
-   val searchList get() = _searchList.asStateFlow()
 
-   init {
-      viewModelScope.launch {
-         pager.flow.cachedIn(viewModelScope).catch {
-            Log.e("$it", it.message, it)
-         }.collectLatest {
-            _searchList.value = it.map { malAnime ->
-               MalAnimeSearchFrameRender(
-                  malAnime.mapToMalListGridItem()
-               )
-            }
-         }
-      }
-   }
 
 
 }

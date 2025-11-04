@@ -1,6 +1,7 @@
 package com.example.anyme.repositories
 
 import android.util.Log
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.example.anyme.local.db.MalDatabase
 import com.example.anyme.domain.dl.mal.MalAnime
@@ -23,22 +24,17 @@ interface IMalRepository {
       orderBy: MalDatabase.OrderBy,
       orderDirection: MalDatabase.OrderDirection,
       filter: String = ""
-   ): PagingSource<Int, MalAnimeDB>
+   ): Flow<PagingData<MalAnime>>
 
-   suspend fun retrieveMalSeasonalAnimes(): Flow<List<MalAnime>>
+   fun retrieveMalSeasonalAnimes(): Flow<List<MalAnime>>
 
-   suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<Data>
+   fun fetchRankingLists(type: RankingListType): Flow<PagingData<Data>>
 
-   suspend fun search(title: String, offset: Int): List<MalAnime>
+   fun search(searchQuery: String): Flow<PagingData<MalAnime>>
 
-   suspend fun fetchAnimeDetails(animeId: Int): Flow<MalAnime>
+   fun fetchAnimeDetails(animeId: Int): Flow<MalAnime>
 
-   fun <T> validate(response: Response<T>) {
-      if (!response.isSuccessful || response.body() == null) {
-         val unsuccessful =
-            ApiCallNotSuccessfulException(response.raw())
-         Log.e("$unsuccessful", unsuccessful.message, unsuccessful)
-         throw unsuccessful
-      }
-   }
+   suspend fun synchronizeApiWithDB(dbAnime: MalAnime)
+
+   suspend fun downlaodBanner(anime: MalAnime)
 }

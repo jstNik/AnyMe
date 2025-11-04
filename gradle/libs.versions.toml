@@ -5,6 +5,7 @@ appauth = "0.11.1"
 appcompat = "1.7.1"
 compose = "1.0.0-beta01"
 converterGson = "3.0.0"
+datastorePreferences = "1.1.7"
 desugar_jdk_libs = "2.1.5"
 foundation = "1.9.3"
 foundationText = "1.6.0"
@@ -30,12 +31,14 @@ secretsGradlePlugin = "2.0.1"
 hiltAndroid = "2.57.2"
 ksp = "2.2.20-2.0.4"
 navigationCompose = "2.9.5"
+apolloGraphql = "4.3.3"
 
 [libraries]
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefresh" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-foundation-text = { module = "androidx.compose.foundation:foundation-text", version.ref = "foundationText" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -75,6 +78,7 @@ secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.se
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+apollo-graphql = { group = "com.apollographql.apollo", name = "apollo-runtime", version.ref = "apolloGraphql" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -82,3 +86,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid"}
 ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
+apollo-graphql = { id = "com.apollographql.apollo", version.ref = "apolloGraphql" }

@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.ui.composables.AnimatedTabRow
@@ -35,7 +37,9 @@ import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.ui.theme.CS
 import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.Pages
+import com.example.anyme.utils.Resource
 import com.example.anyme.viewmodels.UserListViewModel
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun UserListScreen(
@@ -44,71 +48,80 @@ fun UserListScreen(
    viewModel: UserListViewModel = hiltViewModel<UserListViewModel>()
 ) {
 
-   Column(
-      modifier = Modifier
-         .fillMaxSize()
-         .padding(contentPadding)
-   ) {
+   val list = viewModel.list.collectAsLazyPagingItems()
 
-      val contentPadding = 8.dp
-
-      AnimatedTabRow(
-         tabLabels = MyList.Status.entries.map { it.toText() },
-         edgePadding = 0.dp,
-         isScrollable = true
-      ) {
-         MyList.Status.entries.getOrNull(it)?.let { status ->
-            viewModel.myListStatus = status
-         }
-      }
-
-      SearchBar(
-         onTextChange = { viewModel.filter = it },
-         modifier = Modifier
-            .fillMaxWidth()
-            .padding(contentPadding, contentPadding, contentPadding)
-      )
-
-
-      val list = viewModel.list.collectAsLazyPagingItems()
-      val lazyColumnState = rememberLazyListState()
-
-      SwipeUpToRefresh(
-         lazyColumnState,
-         onRefresh = { },
-      ) { scrollableState ->
-
-         LazyColumnList(
-            scrollableState,
-            listSize = { list.itemCount },
-            getElement = { list[it] },
+   when(list.loadState.refresh){
+      is LoadState.NotLoading -> {
+         Column(
             modifier = Modifier
-               .background(CS.background)
-               .padding(contentPadding),
-            key = {
-               val item = list.peek(it)?.media
-               if (item != null && item.id != 0)
-                  item.id
-               else
-                  (-it - 1)
-            }
-         ) { idx, item ->
+               .fillMaxSize()
+               .padding(contentPadding)
+         ) {
 
-            item.Compose {
-               try {
-                  navigator.navigate("$Details/${item.media.host}/${item.media.id}")
-                  Log.d("OnClick", "${item.media.title} clicked")
-               } catch (e: NullPointerException) {
-                  Log.e("$e", "${e.message}", e)
+            val contentPadding = 8.dp
+
+            AnimatedTabRow(
+               tabLabels = MyList.Status.entries.map { it.toText() },
+               edgePadding = 0.dp,
+               isScrollable = true
+            ) {
+               MyList.Status.entries.getOrNull(it)?.let { status ->
+                  viewModel.setMyListStatus(status)
                }
             }
 
-            if (idx != list.itemCount - 1)
-               Spacer(Modifier.height(contentPadding))
+            SearchBar(
+               onTextChange = { viewModel.setFilter(it) },
+               modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(contentPadding, contentPadding, contentPadding)
+            )
 
+            val lazyColumnState = rememberLazyListState()
+
+            list.loadState.refresh
+
+            SwipeUpToRefresh(
+               lazyColumnState,
+               onRefresh = { },
+            ) { scrollableState ->
+
+               LazyColumnList(
+                  scrollableState,
+                  listSize = { list.itemCount },
+                  getElement = { list[it] },
+                  modifier = Modifier
+                     .background(CS.background)
+                     .padding(contentPadding),
+                  key = {
+                     val item = list.peek(it)?.media
+                     if (item != null && item.id != 0)
+                        item.id
+                     else
+                        (-it - 1)
+                  }
+               ) { idx, item ->
+
+                  item.Compose {
+                     try {
+                        navigator.navigate("$Details/${item.media.host}/${item.media.id}")
+                        Log.d("OnClick", "${item.media.title} clicked")
+                     } catch (e: NullPointerException) {
+                        Log.e("$e", "${e.message}", e)
+                     }
+                  }
+
+                  if (idx != list.itemCount - 1)
+                     Spacer(Modifier.height(contentPadding))
+
+               }
+            }
          }
       }
+      is LoadState.Loading -> { /* TODO */ }
+      is LoadState.Error -> { /* TODO */ }
    }
+
 }
 
 @Preview

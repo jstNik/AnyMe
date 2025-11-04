@@ -8,7 +8,6 @@ import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.time.Date
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.LocalDate
 import java.lang.IllegalArgumentException
 
 data class MalAnime(
@@ -33,7 +32,7 @@ data class MalAnime(
    @SerializedName("mean")
    var mean: Double = 0.0,
    @SerializedName("media_type")
-   var mediaType: String = "",
+   var mediaType: MediaType = MediaType.Unknown,
    @SerializedName("my_list_status")
    var myList: MyList = MyList(),
    @SerializedName("nsfw")
@@ -140,6 +139,31 @@ data class MalAnime(
             FinishedAiring.toString() -> FinishedAiring
             else -> Undefined
          }
+      }
+
+   }
+
+   enum class MediaType {
+      Unknown{
+         override fun toString(): String = "unknown"
+      },
+      Tv{
+         override fun toString(): String = "tv"
+      },
+      OVA{
+         override fun toString(): String = "ova"
+      },
+      Movie{
+         override fun toString(): String = "movie"
+      },
+      Special{
+         override fun toString(): String = "special"
+      },
+      ONA{
+         override fun toString(): String = "ona"
+      },
+      Music{
+         override fun toString(): String = "music"
       }
 
    }

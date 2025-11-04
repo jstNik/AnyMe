@@ -126,8 +126,8 @@ fun PreviewGeneralInfoCard(){
                   put("Synonims", alternativeTitles.synonyms.joinToString())
             }
          this["General Info"] = buildMap {
-            if (mediaType.isNotBlank())
-               put("Media Type", mediaType)
+            if (mediaType != MalAnime.MediaType.Unknown)
+               put("Media Type", mediaType.toString())
             if (numEpisodes != 0)
                put("Episodes", "$numEpisodes")
             if (status != AiringStatus.Undefined)

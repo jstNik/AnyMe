@@ -5,6 +5,7 @@ import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.AlternativeTitles
 import com.example.anyme.domain.dl.mal.Genre
 import com.example.anyme.domain.dl.mal.MainPicture
+import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MalAnime.AiringStatus
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.Season
@@ -14,7 +15,6 @@ import com.example.anyme.remote.Host
 import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.utils.time.Date
 import com.example.anyme.utils.time.OffsetWeekTime
-import kotlinx.datetime.LocalDate
 
 @Immutable
 data class MalAnimeDetails(
@@ -30,7 +30,7 @@ data class MalAnimeDetails(
    val broadcast: OffsetWeekTime? = null,
    val endDate: Date? = null,
    val genres: List<Genre> = listOf(),
-   val mediaType: String = "",
+   val mediaType: MalAnime.MediaType = MalAnime.MediaType.Unknown,
    val nsfw: String = "",
    val numEpisodes: Int = 0,
    val popularity: Int = 0,

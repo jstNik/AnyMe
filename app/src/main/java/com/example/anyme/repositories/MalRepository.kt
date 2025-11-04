@@ -1,6 +1,11 @@
 package com.example.anyme.repositories
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.example.anyme.remote.scrapers.HtmlScraper
 import com.example.anyme.remote.api.MalApi
 import com.example.anyme.local.daos.MalDao
@@ -13,21 +18,25 @@ import com.example.anyme.domain.dl.mal.mapToMalAnimeDB
 import com.example.anyme.domain.local.mal.mapToMalAnimeDL
 import com.example.anyme.domain.remote.mal.Data
 import com.example.anyme.remote.Host
+import com.example.anyme.repositories.paging.ExploreListPagination
+import com.example.anyme.repositories.paging.SearchingListPagination
 import com.example.anyme.utils.getSeason
-import com.example.anyme.utils.toCurrentDateTime
+import com.example.anyme.utils.time.toLocalDataTime
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
 
 class MalRepository @Inject constructor(
    val malApi: MalApi,
@@ -82,7 +91,6 @@ class MalRepository @Inject constructor(
 
                // Check if the api response is successful
                val apiResponse = deferredApiResponse.await()
-               validate(apiResponse)
 
                offset = nextOffset(apiResponse.body()!!.paging)
 
@@ -161,32 +169,50 @@ class MalRepository @Inject constructor(
       }
    }
 
+   @OptIn(ExperimentalPagingApi::class)
    override fun fetchMalUserAnime(
       myListStatus: MyList.Status,
       orderBy: MalDatabase.OrderBy,
       orderDirection: MalDatabase.OrderDirection,
       filter: String
-   ) = if(orderDirection == MalDatabase.OrderDirection.Asc)
-      malDao.fetchUserAnimeAsc(myListStatus.toString(), orderBy.toString(), filter)
-   else malDao.fetchUserAnimeDesc(myListStatus.toString(), orderBy.toString(), filter)
-
-   override suspend fun fetchRankingLists(type: RankingListType, offset: Int): List<Data> {
-      return withContext(dispatcher) {
-         val response = malApi.retrieveRankingList(type.apiValue, offset = offset)
-         validate(response)
-         response.body()!!.data.forEach { it.malAnime.host = Host.Mal }
-         response.body()!!.data
+   ): Flow<PagingData<MalAnime>> {
+      return Pager(
+         PagingConfig(50, 10),
+         0,
+         null
+      ) {
+         if (orderDirection == MalDatabase.OrderDirection.Asc)
+            malDao.fetchUserAnimeAsc(myListStatus.toString(), orderBy.toString(), filter)
+         else malDao.fetchUserAnimeDesc(myListStatus.toString(), orderBy.toString(), filter)
+      }.flow.map { data ->
+         data.map {
+            it.mapToMalAnimeDL(gson)
+         }
       }
    }
 
-   override suspend fun retrieveMalSeasonalAnimes() = flow {
-      val dateTime = Calendar.getInstance().timeInMillis.milliseconds.toCurrentDateTime()
+   @OptIn(ExperimentalPagingApi::class)
+   override fun fetchRankingLists(type: RankingListType): Flow<PagingData<Data>> {
+      return Pager(
+         PagingConfig(
+            MalApi.RANKING_LIST_LIMIT,
+            initialLoadSize = MalApi.RANKING_LIST_LIMIT,
+            prefetchDistance = 15
+         ),
+         0,
+         null
+      ){
+         ExploreListPagination(malApi, type)
+      }.flow
+   }
+
+   override fun retrieveMalSeasonalAnimes() = flow {
+      val dateTime = Calendar.getInstance().timeInMillis.toLocalDataTime()
       val animeMap = mutableMapOf<Int, MalAnime>()
       var offset = 0
 
-      do{
+      do {
          val httpResponse = malApi.retrieveSeasonalAnimes(dateTime.year, dateTime.date.getSeason(), offset)
-         validate(httpResponse)
          val dataResponse = httpResponse.body()!!
          animeMap += dataResponse.data.associateBy({ it.malAnime.id },
             { it.malAnime.apply { host = Host.Mal } }
@@ -197,7 +223,7 @@ class MalRepository @Inject constructor(
 
       emit(animeMap.values.toList())
 
-      scraper.scrapeSeasonal(animeMap).forEach { key, value ->
+      scraper.scrapeSeasonal(animeMap).forEach { (key, value) ->
          animeMap[key]?.let {
             animeMap[key] = it.copy(
                nextEp = NextEpisode(
@@ -212,43 +238,40 @@ class MalRepository @Inject constructor(
 
    }
 
-   override suspend fun search(title: String, offset: Int): List<MalAnime> {
-      val response = if (title.isBlank())
-         malApi.retrieveSuggestions(offset)
-      else malApi.search(title, offset)
-
-      validate(response)
-      val result = response.body()!!
-
-      return result.data.map{
-         it.malAnime.host = Host.Mal
-         it.malAnime
-      }
-
+   @OptIn(ExperimentalPagingApi::class)
+   override fun search(searchQuery: String): Flow<PagingData<MalAnime>> {
+      return Pager(
+         PagingConfig(
+            MalApi.SEARCHING_LIST_LIMIT,
+            1,
+            initialLoadSize = MalApi.SEARCHING_LIST_LIMIT
+         ),
+         0,
+         null
+      ){
+         SearchingListPagination(malApi, searchQuery)
+      }.flow
    }
 
    @Throws(IllegalArgumentException::class)
-   override suspend fun fetchAnimeDetails(animeId: Int): Flow<MalAnime> {
+   override fun fetchAnimeDetails(animeId: Int): Flow<MalAnime> =
+      malDao.getAnimeById(animeId).map { it.mapToMalAnimeDL(gson) }
 
-      val flowAnime = malDao.getAnimeById(animeId).transform { emit(it.mapToMalAnimeDL(gson)) }
-
-      withContext(dispatcher) {
-         launch {
-            try {
-               val apiResponse = malApi.retrieveAnimeDetails(animeId)
-               validate(apiResponse)
-               apiResponse.body()?.let { apiAnime ->
-                  apiAnime.host = Host.Mal
-                  val dbAnime = flowAnime.first()
-                  val updateAnime = apiAnime.merge(dbAnime)
-                  malDao.update(updateAnime.mapToMalAnimeDB(gson))
-               }
-            } catch (e: Exception) {
-               Log.e("$e", "${e.message}", e)
-            }
+   override suspend fun synchronizeApiWithDB(dbAnime: MalAnime){
+      withContext(dispatcher){
+         val apiResponse = malApi.retrieveAnimeDetails(dbAnime.id)
+         apiResponse.body()?.let { apiAnime ->
+            apiAnime.host = Host.Mal
+            val updateAnime = apiAnime.merge(dbAnime)
+            malDao.update(updateAnime.mapToMalAnimeDB(gson))
          }
       }
-      return flowAnime
+   }
+
+   override suspend fun downlaodBanner(anime: MalAnime){
+      withContext(dispatcher){
+
+      }
    }
 
 

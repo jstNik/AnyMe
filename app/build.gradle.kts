@@ -1,12 +1,13 @@
 import org.gradle.kotlin.dsl.libs
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.dagger.hilt)
+   alias(libs.plugins.android.application)
+   alias(libs.plugins.kotlin.android)
+   alias(libs.plugins.kotlin.compose)
+   id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+   alias(libs.plugins.ksp)
+   alias(libs.plugins.dagger.hilt)
+   alias(libs.plugins.apollo.graphql)
 }
 
 android {
@@ -41,6 +42,18 @@ android {
         compose = true
         buildConfig = true
     }
+
+}
+
+apollo {
+   service("service") {
+      packageName.set("com.example")
+
+      introspection {
+         endpointUrl.set("https://graphql.anilist.co")
+         schemaFile.set(file("src/main/graphql/schema.graphqls"))
+      }
+   }
 }
 
 dependencies {
@@ -55,6 +68,7 @@ dependencies {
     implementation(libs.androidx.material3)
    implementation(libs.androidx.compose.material.icons.extended)
    implementation(libs.androidx.hilt.navigation.compose)
+   implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.foundation)
    implementation(libs.androidx.navigation.compose)
    testImplementation(libs.junit)
@@ -112,5 +126,8 @@ dependencies {
     // Kotlinx DateTime
     implementation(libs.kotlinx.datetime)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+   // Apollo GraphQL
+   implementation(libs.apollo.graphql)
 
 }

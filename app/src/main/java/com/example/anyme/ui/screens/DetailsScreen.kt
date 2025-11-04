@@ -11,6 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.anyme.utils.Resource
 import com.example.anyme.viewmodels.DetailsViewModel
 
 @Composable
@@ -20,13 +21,21 @@ fun DetailsScreen(
    viewModel: DetailsViewModel = hiltViewModel<DetailsViewModel>()
 ){
 
-   Column(
-      modifier = Modifier
-         .fillMaxSize()
-         .padding(contentPadding)
-   ) {
-      val media by viewModel.animeDetails.collectAsStateWithLifecycle()
-      media.Compose()
+   val resource by viewModel.animeDetails.collectAsStateWithLifecycle()
+
+   when(resource.status){
+      Resource.Status.Success -> {
+         Column(
+            modifier = Modifier
+               .fillMaxSize()
+               .padding(contentPadding)
+         ) {
+            val media = resource.data!!
+            media.Compose()
+         }
+      }
+      Resource.Status.Loading -> { /* TODO */ }
+      Resource.Status.Failure -> { /* TODO */ }
    }
 
 }

@@ -1,7 +1,9 @@
 package com.example.anyme.remote.api
 
+import android.util.Log
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.remote.mal.MalAnimeListGetResponse
+import com.example.anyme.repositories.ApiCallNotSuccessfulException
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -95,6 +97,5 @@ interface MalApi {
          BASIC_FIELDS + USER_LIST_FIELDS + RANKING_LIST_FIELDS + SEASON_LIST_FIELDS + DETAILS_FIELDS
          ).joinToString(",")
    ): Response<MalAnime>
-
 
 }

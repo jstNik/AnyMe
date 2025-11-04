@@ -22,6 +22,7 @@ import com.example.anyme.ui.composables.AnyMeScaffold
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.Details
+import com.example.anyme.utils.Resource
 import com.example.anyme.utils.shift
 import com.example.anyme.viewmodels.SeasonalViewModel
 import kotlinx.datetime.DatePeriod
@@ -48,68 +49,78 @@ fun SeasonalScreen(
          derivedStateOf {
             val weekDay = today.dayOfWeek.ordinal
             DayOfWeek.entries.shift(weekDay).mapIndexed { idx, item ->
-               today.plus(DatePeriod(days = idx))
+               today.date.plus(DatePeriod(days = idx))
             }
          }
       }
       var chosenDate by remember(today) { mutableStateOf(weekDays[0]) }
       val labels = weekDays.map { it.dayOfWeek.name.lowercase() + " ${it.dayOfMonth}" }
       val lazyListState = rememberLazyListState()
-      val seasonals by viewModel.seasonalAnimes.collectAsStateWithLifecycle()
+      val resource by viewModel.seasonalAnimes.collectAsStateWithLifecycle()
       var currentTime: LocalTime? = null
 
-      AnimatedTabRow(
-         tabLabels = labels,
-         isScrollable = true,
-         edgePadding = 0.dp,
-      ) { idx ->
-         weekDays.getOrNull(idx)?.let { weekDays ->
-            chosenDate = weekDays
-         }
-      }
+      when(resource.status){
+         Resource.Status.Success -> {
 
-      SwipeUpToRefresh(
-         lazyListState,
-         onRefresh = { }
-      ) { scrollableState ->
+            val seasonals = resource.data!!
 
-         LazyColumnList(
-            lazyColumnState = scrollableState,
-            listSize = { seasonals.size },
-            getElement = { seasonals.getOrNull(it) },
-            key = {
-               val item = seasonals.getOrNull(it)?.media
-               if (item != null && item.id != 0)
-                  item.id
-               else
-                  (-it - 1)
-            },
-            divisor = { idx, render ->
-               val media = render.media
-               media.getDateTimeNextEp()?.let { releaseDate ->
+            AnimatedTabRow(
+               tabLabels = labels,
+               isScrollable = true,
+               edgePadding = 0.dp,
+            ) { idx ->
+               weekDays.getOrNull(idx)?.let { weekDays ->
+                  chosenDate = weekDays
+               }
+            }
 
-                  val date = releaseDate.dateTime.date
-                  val time = releaseDate.dateTime.time
+            SwipeUpToRefresh(
+               lazyListState,
+               onRefresh = { }
+            ) { scrollableState ->
 
-                  if (date == chosenDate && time != currentTime) {
-                     Text(
-                        text = time.toString()
-                     )
-                     currentTime = time
+               LazyColumnList(
+                  lazyColumnState = scrollableState,
+                  listSize = { seasonals.size },
+                  getElement = { seasonals.getOrNull(it) },
+                  key = {
+                     val item = seasonals.getOrNull(it)?.media
+                     if (item != null && item.id != 0)
+                        item.id
+                     else
+                        (-it - 1)
+                  },
+                  divisor = { idx, render ->
+                     val media = render.media
+                     media.getDateTimeNextEp()?.let { releaseDate ->
+
+                        val date = releaseDate.dateTime.date
+                        val time = releaseDate.dateTime.time
+
+                        if (date == chosenDate && time != currentTime) {
+                           Text(
+                              text = time.toString()
+                           )
+                           currentTime = time
+                        }
+                     }
+                  }
+               ) { idx, render ->
+
+                  val media = render.media
+
+                  media.getDateTimeNextEp()?.let { releaseDate ->
+                     if (releaseDate.dateTime.date == chosenDate)
+                        render.Compose {
+                           navigator.navigate("$Details/${media.host}/${media.id}")
+                        }
                   }
                }
             }
-         ) { idx, render ->
 
-            val media = render.media
-
-            media.getDateTimeNextEp()?.let { releaseDate ->
-               if (releaseDate.dateTime.date == chosenDate)
-                  render.Compose {
-                     navigator.navigate("$Details/${media.host}/${media.id}")
-                  }
-            }
          }
+         Resource.Status.Loading -> { /* TODO */ }
+         Resource.Status.Failure -> { /* TODO */ }
       }
    }
 }

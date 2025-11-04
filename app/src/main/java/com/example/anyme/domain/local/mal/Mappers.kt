@@ -15,18 +15,13 @@ import com.example.anyme.domain.dl.mal.Season
 import com.example.anyme.domain.dl.mal.Statistics
 import com.example.anyme.domain.dl.mal.Status
 import com.example.anyme.domain.dl.mal.Studio
-import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
-import com.example.anyme.utils.parseOrNull
 import com.example.anyme.utils.time.Date
-import com.example.anyme.utils.time.Offset
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 
 fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
 
@@ -49,7 +44,12 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
          id = id,
          mainPicture = MainPicture(mainPictureLarge, mainPictureMedium),
          mean = mean,
-         mediaType = mediaType,
+         mediaType = try {
+            MalAnime.MediaType.valueOf(mediaType)
+         } catch (e: Exception) {
+            Log.e("$e", "${e.message}", e)
+            MalAnime.MediaType.Unknown
+         },
          myList = MyList(
             myListStatusIsRewatching,
             myListStatusNumEpisodesWatched,

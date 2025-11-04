@@ -6,27 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.example.anyme.BuildConfig
-import com.example.anyme.remote.api.MalApi
 import com.example.anyme.ui.theme.AnyMeTheme
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
-import net.openid.appauth.AuthorizationServiceConfiguration
-import net.openid.appauth.CodeVerifierUtil
-import net.openid.appauth.ResponseTypeValues
 import org.json.JSONException
-import androidx.core.net.toUri
 import androidx.core.content.edit
+import com.example.anyme.remote.Host
 import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
 import com.example.anyme.remote.interceptors.SP_FILE_NAME
 import com.example.anyme.ui.screens.LoginScreen
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthorizationService
-    private val clientId: String = BuildConfig.API_KEY
     private var authState: AuthState = AuthState()
 
     private val launcher =
@@ -74,18 +67,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
 
-    fun login() {
-        val serviceConfig = AuthorizationServiceConfiguration(
-           MalApi.AUTHORIZATION_URL.toUri(),
-           MalApi.TOKEN_URL.toUri(), null, null
-        )
-        val codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier()
-        val authRequest = AuthorizationRequest.Builder(
-            serviceConfig,
-            clientId,
-            ResponseTypeValues.CODE,
-           MalApi.CALLBACK_URL.toUri()
-        ).setCodeVerifier(codeVerifier, codeVerifier, "plain").build()
+    fun login(host: Host) {
+        val authRequest = host.buildAuthorizationRequest()
         authService = AuthorizationService(this)
         val intent = authService.getAuthorizationRequestIntent(authRequest)
         try {

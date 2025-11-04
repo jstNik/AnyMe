@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.anyme.domain.dl.mal.AlternativeTitles
+import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MalAnime.AiringStatus
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
@@ -79,8 +80,8 @@ class MalAnimeDetailsRender(
                         put("Synonims", alternativeTitles.synonyms.joinToString())
                   }
                this["General Info"] = buildMap {
-                  if (mediaType.isNotBlank())
-                     put("Media Type", mediaType)
+                  if (mediaType != MalAnime.MediaType.Unknown)
+                     put("Media Type", mediaType.toString())
                   if (numEpisodes != 0)
                      put("Episodes", "$numEpisodes")
                   if (status != AiringStatus.Undefined)

@@ -1,7 +1,8 @@
-package com.example.anyme.remote.interceptors
+package com.example.anyme.remote.token_managers
 
 import android.content.Context
 import androidx.core.content.edit
+import com.example.anyme.remote.interceptors.ExpiredOrInvalidTokenException
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService

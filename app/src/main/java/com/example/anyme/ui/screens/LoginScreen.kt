@@ -9,41 +9,56 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.anyme.activities.LoginActivity
+import com.example.anyme.utils.Resource
+import com.example.anyme.viewmodels.SettingsViewModel
 
 @Composable
-fun LoginScreen() {
-   Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center,
-      modifier = Modifier
-         .fillMaxSize()
-         .background(MaterialTheme.colorScheme.background)
-   ) {
+fun LoginScreen(viewModel: SettingsViewModel = hiltViewModel<SettingsViewModel>()) {
 
-      val context = LocalContext.current
+   val resource by viewModel.settings.collectAsStateWithLifecycle()
 
-      Button(
-         onClick = {
-            try {
-               if (context is LoginActivity)
-                  context.login()
-            } catch (e: Exception) {
-               Toast.makeText(
-                  context,
-                  "Something went wrong. Try later.",
-                  Toast.LENGTH_LONG
-               ).show()
+   when(resource.status){
+      Resource.Status.Success -> {
+         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+               .fillMaxSize()
+               .background(MaterialTheme.colorScheme.background)
+         ) {
+
+            val context = LocalContext.current
+
+            Button(
+               onClick = {
+                  try {
+                     if (context is LoginActivity)
+                        context.login(resource.data!!.host)
+                  } catch (e: Exception) {
+                     Toast.makeText(
+                        context,
+                        "Something went wrong. Try later.",
+                        Toast.LENGTH_LONG
+                     ).show()
+                  }
+               }
+            ) {
+               Text(
+                  text = "Login"
+               )
             }
          }
-      ) {
-         Text(
-            text = "Login"
-         )
       }
+      Resource.Status.Loading -> TODO()
+      Resource.Status.Failure -> TODO()
    }
+
 
 }

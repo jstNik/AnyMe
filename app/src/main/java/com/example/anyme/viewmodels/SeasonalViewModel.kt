@@ -4,21 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
 import com.example.anyme.repositories.IMalRepository
+import com.example.anyme.repositories.SettingsRepository
 import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
-import kotlinx.datetime.DatePeriod
+import com.example.anyme.utils.Resource
+import com.example.anyme.utils.Result
+import com.example.anyme.utils.time.toLocalDataTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
@@ -26,39 +30,41 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class SeasonalViewModel @Inject constructor(
+   private val settingsRepo: SettingsRepository,
    private val malRepository: IMalRepository
 ) : ViewModel() {
 
-   private val _seasonalAnimes = MutableStateFlow(listOf<MalSeasonalAnimeRender>())
-   val seasonalAnimes get() = _seasonalAnimes.asStateFlow()
-
-   private val calendar = Calendar.getInstance()
-   private val localDate: LocalDateTime
-      get() = Instant
-         .fromEpochMilliseconds(calendar.timeInMillis)
-         .toLocalDateTime(TimeZone.currentSystemDefault())
-
-   private val _today = MutableStateFlow(localDate.date)
-   val today get() = _today.asStateFlow()
-
-   init {
-      viewModelScope.launch {
-         malRepository.retrieveMalSeasonalAnimes().collectLatest { flow ->
-            _seasonalAnimes.value = flow.map {
-               MalSeasonalAnimeRender(it.mapToMalSeasonalListItem())
-            }.filter {
-               it.media.getDateTimeNextEp() != null
-            }.sortedBy {
-               it.media.getDateTimeNextEp()
-            }
-         }
+   val seasonalAnimes = malRepository.retrieveMalSeasonalAnimes().map { list ->
+      val transform = list.map{
+         MalSeasonalAnimeRender(it.mapToMalSeasonalListItem())
       }
-      viewModelScope.launch {
-         while (currentCoroutineContext().isActive) {
-            val tomorrow = localDate.date.plus(DatePeriod(days = 1))
-            delay(tomorrow.toEpochDays().days - calendar.timeInMillis.milliseconds)
-            _today.value = tomorrow
-         }
+      Resource.success(transform)
+   }.onStart {
+      emit(Resource.loading())
+   }.catch { e ->
+      if(e is Exception) emit(Resource.failure(e)) else throw e
+   }.stateIn(
+      viewModelScope,
+      SharingStarted.WhileSubscribed(5000L),
+      Resource.loading()
+   )
+
+
+   val today = flow {
+
+      val calendar = Calendar.getInstance()
+
+      while(currentCoroutineContext().isActive) {
+         val now = calendar.timeInMillis.milliseconds
+         val tomorrow = (now + 1.days).inWholeDays.days
+
+         delay(tomorrow - now + 1.milliseconds)
+         emit(calendar.timeInMillis.toLocalDataTime())
       }
-   }
+   }.stateIn(
+      viewModelScope,
+      SharingStarted.WhileSubscribed(5000L),
+      Calendar.getInstance().timeInMillis.toLocalDataTime()
+   )
+
 }
