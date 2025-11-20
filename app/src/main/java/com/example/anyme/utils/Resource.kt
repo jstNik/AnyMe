@@ -8,8 +8,11 @@ class Resource<T> private constructor(
 
 
    init{
-      if(status == Status.Success)
-         checkNotNull(data)
+      when(status){
+         Status.Success -> checkNotNull(data)
+         Status.Loading -> check(data == null && error == null)
+         Status.Failure -> checkNotNull(error)
+      }
    }
 
    enum class Status{
@@ -25,8 +28,8 @@ class Resource<T> private constructor(
 }
 
 
-sealed class Result<out T>{
-   data class Success<out T>(val data: T): Result<T>()
-   data object Loading: Result<Nothing>()
-   data class Error<E: Exception>(val error: E): Result<Nothing>()
+sealed class Result{
+   data class Success<out T>(val data: T): Result()
+   data object Loading: Result()
+   data class Error<E: Exception>(val error: E): Result()
 }

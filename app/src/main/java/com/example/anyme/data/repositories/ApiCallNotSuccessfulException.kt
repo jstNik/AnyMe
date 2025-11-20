@@ -1,4 +1,4 @@
-package com.example.anyme.repositories;
+package com.example.anyme.data.repositories
 
 import okhttp3.Response
 

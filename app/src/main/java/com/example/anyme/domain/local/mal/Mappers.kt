@@ -44,12 +44,7 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
          id = id,
          mainPicture = MainPicture(mainPictureLarge, mainPictureMedium),
          mean = mean,
-         mediaType = try {
-            MalAnime.MediaType.valueOf(mediaType)
-         } catch (e: Exception) {
-            Log.e("$e", "${e.message}", e)
-            MalAnime.MediaType.Unknown
-         },
+         mediaType = MalAnime.MediaType.getEnum(mediaType),
          myList = MyList(
             myListStatusIsRewatching,
             myListStatusNumEpisodesWatched,
@@ -92,10 +87,11 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
             object : TypeToken<RangeMap<EpisodesType>>() {}),
          nextEp = gson.fromJson(nextEp, NextEpisode::class.java),
          hasNotificationsOn = hasNotificationsOn,
-         host = host
+         host = host,
+         banner = banner
       )
-   } catch (ex: JsonSyntaxException){
-      Log.e(ex.toString(), ex.message ?: "")
+   } catch (e: JsonSyntaxException){
+      Log.e("$e", "${e.message}", e)
       return MalAnime()
    }
 }

@@ -1,4 +1,4 @@
-package com.example.anyme.repositories
+package com.example.anyme.data.repositories
 
 import android.content.Context
 import android.util.Log
@@ -19,6 +19,8 @@ class SettingsRepository (
    companion object {
       private val defaultHost = stringPreferencesKey("default_host")
 
+      private val DEFAULT = Settings(Host.Mal)
+
    }
 
    val flow = applicationContext.dataStore.data.map { prefs ->
@@ -27,6 +29,7 @@ class SettingsRepository (
       )
    }.catch { e ->
       Log.e("$e", "${e.message}", e)
+      emit(DEFAULT)
    }
 
    suspend fun changeSettings(settings: Settings){

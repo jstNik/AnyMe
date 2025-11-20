@@ -4,9 +4,10 @@ import com.example.anyme.domain.ui.mal.MalRankingListItem
 
 fun Data.mapToMalRankingListItem() =
    MalRankingListItem(
-      malAnime.id,
-      malAnime.title,
-      malAnime.mainPicture,
-      ranking.rank,
-      malAnime.numListUsers
+      id = media.id,
+      title = media.title,
+      mainPicture = media.mainPicture,
+      rank = ranking.rank,
+      numListUsers = media.numListUsers,
+      host = media.host
    )

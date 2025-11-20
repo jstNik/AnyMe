@@ -41,6 +41,7 @@ class MalRankingFrameRender(
             media = media,
             width = 130.dp,
             belowImageContentHeight = 50.dp,
+            onClick = onClick,
             overImageContent = {
                Row(
                   modifier = Modifier

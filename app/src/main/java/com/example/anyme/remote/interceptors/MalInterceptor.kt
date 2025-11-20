@@ -1,8 +1,6 @@
 package com.example.anyme.remote.interceptors
 
-import android.util.Log
 import com.example.anyme.remote.token_managers.MalTokenManager
-import com.example.anyme.repositories.ApiCallNotSuccessfulException
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response

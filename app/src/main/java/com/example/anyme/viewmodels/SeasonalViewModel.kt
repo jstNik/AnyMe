@@ -2,27 +2,23 @@ package com.example.anyme.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
-import com.example.anyme.repositories.IMalRepository
-import com.example.anyme.repositories.SettingsRepository
+import com.example.anyme.data.repositories.Repository
+import com.example.anyme.data.repositories.SettingsRepository
 import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
 import com.example.anyme.utils.Resource
-import com.example.anyme.utils.Result
 import com.example.anyme.utils.time.toLocalDataTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
@@ -31,10 +27,10 @@ import kotlin.time.Duration.Companion.milliseconds
 @HiltViewModel
 class SeasonalViewModel @Inject constructor(
    private val settingsRepo: SettingsRepository,
-   private val malRepository: IMalRepository
+   private val malRepository: MalRepository
 ) : ViewModel() {
 
-   val seasonalAnimes = malRepository.retrieveMalSeasonalAnimes().map { list ->
+   val seasonalAnimes = malRepository.fetchSeasonalMedia().map { list ->
       val transform = list.map{
          MalSeasonalAnimeRender(it.mapToMalSeasonalListItem())
       }

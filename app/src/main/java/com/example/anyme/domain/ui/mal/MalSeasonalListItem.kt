@@ -1,6 +1,9 @@
 package com.example.anyme.domain.ui.mal
 
 import androidx.compose.runtime.Immutable
+import com.example.anyme.data.mappers.LayerMapper
+import com.example.anyme.data.visitors.ConverterAcceptor
+import com.example.anyme.data.visitors.ConverterVisitor
 import com.example.anyme.domain.dl.mal.MainPicture
 import com.example.anyme.domain.dl.Media
 import com.example.anyme.remote.Host
@@ -17,12 +20,12 @@ data class MalSeasonalListItem(
    override val id: Int = 0,
    override val title: String = "",
    override val mainPicture: MainPicture = MainPicture(),
-   private val startDate: OffsetDateTime? = null,
-   private val endDate: OffsetDateTime? = null,
-   private val htmlNextEp: Int = 0,
-   private val htmlReleaseDate: OffsetDateTime? = null,
+   val startDate: OffsetDateTime? = null,
+   val endDate: OffsetDateTime? = null,
+   val htmlNextEp: Int = 0,
+   val htmlReleaseDate: OffsetDateTime? = null,
    override val host: Host = Host.Unknown
-): Media {
+): Media, ConverterAcceptor {
 
    fun getDateTimeNextEp(): OffsetDateTime? {
 
@@ -54,4 +57,8 @@ data class MalSeasonalListItem(
       }
    }
 
+   override fun <T> acceptConverter(
+      converterVisitor: ConverterVisitor,
+      map: (LayerMapper) -> T
+   ): T = converterVisitor.visit(this, map)
 }

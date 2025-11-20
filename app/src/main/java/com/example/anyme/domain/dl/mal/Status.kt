@@ -1,8 +1,12 @@
 package com.example.anyme.domain.dl.mal
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
-
+@Serializable
+@Parcelize
 data class Status(
     @SerializedName("completed")
     var completed: String = "",
@@ -14,4 +18,4 @@ data class Status(
     var planToWatch: String = "",
     @SerializedName("watching")
     var watching: String = ""
-)
+): Parcelable

@@ -7,20 +7,13 @@ import com.example.anyme.domain.local.mal.MalAnimeDB
 
 
 @Database(
-    entities = [MalAnimeDB::class],
-    version = 3,
-    exportSchema = false
+   entities = [MalAnimeDB::class],
+   version = 4,
+   exportSchema = false
 )
-abstract class MalDatabase: RoomDatabase() {
+abstract class MalDatabase : RoomDatabase() {
 
-    abstract val userMalListDao: MalDao
+   abstract val userMalListDao: MalDao
 
-    enum class OrderBy{
-        Title, LastUpdateAt
-    }
-
-    enum class OrderDirection{
-        Asc, Desc
-    }
 
 }

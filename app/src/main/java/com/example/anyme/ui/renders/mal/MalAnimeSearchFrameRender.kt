@@ -39,6 +39,7 @@ class MalAnimeSearchFrameRender(
             width = 130.dp,
             belowImageContentHeight = 50.dp,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            onClick = onClick,
             overImageContent = {
                Row(
                   modifier = Modifier

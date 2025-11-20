@@ -1,7 +1,10 @@
 package com.example.anyme.remote.scrapers
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -12,6 +15,7 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
 
 class JsoupHtmlCacher @Inject constructor(
    private val client: OkHttpClient,

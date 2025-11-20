@@ -22,6 +22,7 @@ import com.example.anyme.ui.composables.AnyMeScaffold
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.Details
+import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.utils.Resource
 import com.example.anyme.utils.shift
 import com.example.anyme.viewmodels.SeasonalViewModel
@@ -33,10 +34,11 @@ import kotlinx.datetime.plus
 
 @Composable
 fun SeasonalScreen(
-   navigator: NavHostController,
    contentPadding: PaddingValues,
    viewModel: SeasonalViewModel = hiltViewModel<SeasonalViewModel>()
 ) {
+
+   val navigator = LocalNavHostController.current
 
    Column(
       modifier = Modifier

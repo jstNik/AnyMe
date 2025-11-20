@@ -11,4 +11,7 @@ open class RangeMap<V>(
       return null
    }
 
+   override fun toString(): String = map.toString()
+
+
 }

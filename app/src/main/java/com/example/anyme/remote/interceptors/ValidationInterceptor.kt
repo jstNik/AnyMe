@@ -1,7 +1,7 @@
 package com.example.anyme.remote.interceptors
 
 import android.util.Log
-import com.example.anyme.repositories.ApiCallNotSuccessfulException
+import com.example.anyme.data.repositories.ApiCallNotSuccessfulException
 import okhttp3.Interceptor
 import okhttp3.Response
 

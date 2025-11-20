@@ -46,6 +46,7 @@ class MalRelatedItemRender(
             belowImageContentHeight = belowImageContentHeight,
             debug = Debug,
             colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerHighest),
+            onClick = onClick
          ) {
             Column(
                horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,7 +86,7 @@ fun PreviewMediaDetailsScreen() {
 
    AnyMeTheme {
       media.mapToMalAnimeDetails().relatedAnime.getOrNull(0)?.let {
-         it.Compose {  }
+         MalRelatedItemRender(it).Compose {  }
       }
    }
 

@@ -1,6 +1,9 @@
 package com.example.anyme.domain.ui.mal
 
 import androidx.compose.runtime.Immutable
+import com.example.anyme.data.mappers.LayerMapper
+import com.example.anyme.data.visitors.ConverterAcceptor
+import com.example.anyme.data.visitors.ConverterVisitor
 import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.MainPicture
 import com.example.anyme.domain.dl.mal.MalAnime
@@ -16,10 +19,17 @@ data class MalUserListItem(
    override val mainPicture: MainPicture = MainPicture(),
    val numEpisodes: Int = 0,
    val myListStatusNumEpisodesWatched: Int = 0,
-   val myListStatus: MyList.Status = MyList.Status.Undefined,
-   val status: MalAnime.AiringStatus = MalAnime.AiringStatus.Undefined,
+   val myListStatus: MyList.Status = MyList.Status.Unknown,
+   val status: MalAnime.AiringStatus = MalAnime.AiringStatus.Unknown,
    val episodesType: RangeMap<MalAnime.EpisodesType> = RangeMap(),
    val nextEp: NextEpisode = NextEpisode(),
    val hasNotificationsOn: Boolean = false,
    override val host: Host = Host.Unknown
-) : Media
+) : Media, ConverterAcceptor {
+
+   override fun <T> acceptConverter(
+      converterVisitor: ConverterVisitor,
+      map: (LayerMapper) -> T
+   ): T = converterVisitor.visit(this, map)
+
+}

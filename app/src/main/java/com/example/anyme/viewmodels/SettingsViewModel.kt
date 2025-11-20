@@ -3,7 +3,7 @@ package com.example.anyme.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.anyme.domain.ui.Settings
-import com.example.anyme.repositories.SettingsRepository
+import com.example.anyme.data.repositories.SettingsRepository
 import com.example.anyme.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

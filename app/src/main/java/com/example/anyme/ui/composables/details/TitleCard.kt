@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +43,7 @@ import com.example.anyme.R
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.ui.composables.BlurredGlideImage
+import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.utils.DateTypeAdapter
@@ -64,10 +66,10 @@ fun TitleCard(
    backgroundPicture: Any,
    debug: Boolean,
    modifier: Modifier = Modifier,
-   myList: MyList.Status = MyList.Status.Undefined,
    alternativeTitle: String? = null,
    colors: CardColors = CardDefaults.cardColors(),
-   contentPadding: PaddingValues = PaddingValues()
+   contentPadding: PaddingValues = PaddingValues(),
+   bottomContent: @Composable RowScope.() -> Unit
 ) {
 
    val cs = MaterialTheme.colorScheme
@@ -162,19 +164,12 @@ fun TitleCard(
             }
 
             Row(
+               verticalAlignment = Alignment.CenterVertically,
                modifier = Modifier
                   .padding(top = yImagePadding)
                   .padding(contentPadding)
             ) {
-               OutlinedButton(
-                  onClick = { },
-                  border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-               ) {
-                  val text = if (myList != MyList.Status.Undefined)
-                     myList.toText() else "Add to list"
-
-                  TitleSection(text = text)
-               }
+               bottomContent()
             }
          }
       }
@@ -247,10 +242,10 @@ fun TitleCard(
    mainPicture: Any,
    backgroundPicture: Any,
    modifier: Modifier = Modifier,
-   myList: MyList.Status = MyList.Status.Undefined,
    alternativeTitle: String? = null,
    colors: CardColors = CardDefaults.cardColors(),
-   contentPadding: PaddingValues
+   contentPadding: PaddingValues,
+   bottomContent: @Composable RowScope.() -> Unit
 ) {
 
    TitleCard(
@@ -261,10 +256,10 @@ fun TitleCard(
       backgroundPicture,
       false,
       modifier,
-      myList,
       alternativeTitle,
       colors,
-      contentPadding
+      contentPadding,
+      bottomContent
    )
 
 }
@@ -274,20 +269,7 @@ fun TitleCard(
 @Composable
 fun PreviewTitleCard() {
 
-   val json = stringResource(R.string.placeholder_media).replace("–", "-")
-   val gson = GsonBuilder()
-      .registerTypeAdapter(LocalDate::class.java, DateTypeAdapter())
-      .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter())
-      .registerTypeAdapter(
-         OffsetWeekTime::class.java,
-         OffsetWeekTimeAdapter(TimeZone.of("Asia/Tokyo"))
-      )
-      .create()
-
-   val media = gson.fromJson(
-      json,
-      object : TypeToken<MalAnime>() {}
-   )
+   val media = getMediaPreview()
 
    AnyMeTheme {
       TitleCard(
@@ -298,11 +280,10 @@ fun PreviewTitleCard() {
          backgroundPicture = "",
          debug = Debug,
          modifier = Modifier.padding(horizontal = 16.dp),
-         myList = media.myList.status,
          alternativeTitle = media.alternativeTitles.en,
          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
          contentPadding = PaddingValues(8.dp),
-      )
+      ) { }
    }
 
 }

@@ -18,10 +18,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.Details
+import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.utils.Resource
 import com.example.anyme.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
@@ -30,70 +32,62 @@ import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun SearchScreen(
-   navigator: NavHostController,
    contentPadding: PaddingValues,
    viewModel: SearchViewModel = hiltViewModel<SearchViewModel>()
-){
+) {
 
-   val resource by viewModel.searchList.collectAsStateWithLifecycle()
+   val navigator = LocalNavHostController.current
+   val lazyItems = viewModel.searchList.collectAsLazyPagingItems()
 
-   when(resource.status){
-      Resource.Status.Success -> {
-         Column(
-            modifier = Modifier
-               .fillMaxSize()
-               .padding(contentPadding)
+   if (lazyItems.loadState.refresh !is LoadState.Loading || lazyItems.itemCount > 0) {
+
+      Column(
+         modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+      ) {
+
+         SearchBar(
+            modifier = Modifier.fillMaxWidth()
          ) {
+            delay(1.seconds)
+            if (it.length > 2)
+               viewModel.setSearchQuery(it)
+            else
+               viewModel.setSearchQuery("")
+         }
 
-            SearchBar(
-               modifier = Modifier.fillMaxWidth()
+         val state = rememberLazyGridState()
+
+         SwipeUpToRefresh(
+            scrollableState = state,
+            onRefresh = { },
+         ) { scrollableState ->
+
+            LazyVerticalGrid(
+               columns = GridCells.FixedSize(150.dp),
+               state = scrollableState,
+               horizontalArrangement = Arrangement.SpaceEvenly,
+               modifier = Modifier
+                  .fillMaxSize()
+                  .background(MaterialTheme.colorScheme.background)
             ) {
-               delay(1.seconds)
-               if(it.length > 2)
-                  viewModel.setSearchQuery(it)
-               else
-                  viewModel.setSearchQuery("")
-            }
 
-            val state = rememberLazyGridState()
-            val searchList = flowOf(resource.data!!).collectAsLazyPagingItems()
-
-            SwipeUpToRefresh(
-               scrollableState = state,
-               onRefresh = { },
-            ) { scrollableState ->
-
-               LazyVerticalGrid(
-                  columns = GridCells.FixedSize(150.dp),
-                  state = scrollableState,
-                  horizontalArrangement = Arrangement.SpaceEvenly,
-                  modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-               ) {
-
-                  items (
-                     count = searchList.itemCount,
-                     key = {
-                        val id = searchList.peek(it)?.media?.id
-                        if(id != null && id != 0) id else -it - 1
-                     }
-                  ){ idx ->
-
-                     searchList[idx]?.let { render ->
-                        render.Compose {
-                           navigator.navigate("$Details/${render.media.host}/${render.media.id}")
-                        }
-                     }
-
+               items(
+                  count = lazyItems.itemCount,
+                  key = {
+                     val id = lazyItems.peek(it)?.media?.id
+                     if (id != null && id != 0) id else -it - 1
                   }
-
+               ) { idx ->
+                  lazyItems[idx]?.let { render ->
+                     render.Compose {
+                        navigator.navigate("$Details/${render.media.host}/${render.media.id}")
+                     }
+                  }
                }
-
             }
-
          }
       }
-      Resource.Status.Loading -> { /* TODO */ }
-      Resource.Status.Failure -> { /* TODO */ }
    }
-
 }

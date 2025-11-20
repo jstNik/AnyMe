@@ -9,4 +9,9 @@ data class MalAnimeNode(
    var mainPicture: MainPicture = MainPicture(),
    @SerializedName("title")
    var title: String = "",
-)
+){
+
+   val malAnime: MalAnime
+      get() = MalAnime(id = id, title = title, mainPicture = mainPicture)
+
+}

@@ -8,9 +8,23 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 
 const val IMAGE_IDEAL_RATIO: Double = 0.7
+
+val TitleStyle @Composable get () = MaterialTheme.typography.titleLarge.copy(
+   color = MaterialTheme.colorScheme.primary,
+   fontWeight = FontWeight.Bold,
+   textAlign = TextAlign.Center
+)
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -34,6 +48,10 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+val LocalNavHostController = compositionLocalOf<NavHostController> {
+   error("Navigator host not provided")
+}
+
 @Composable
 fun AnyMeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -51,9 +69,14 @@ fun AnyMeTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+   val navController = rememberNavController()
+
+   CompositionLocalProvider(LocalNavHostController provides navController) {
+
+      MaterialTheme(
+         colorScheme = colorScheme,
+         typography = Typography,
+         content = content
+      )
+   }
 }

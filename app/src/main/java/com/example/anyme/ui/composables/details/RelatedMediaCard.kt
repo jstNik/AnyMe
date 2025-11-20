@@ -23,6 +23,7 @@ import com.example.anyme.domain.ui.MediaListItem
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.renders.MediaListItemRender
+import com.example.anyme.ui.renders.mal.MalRelatedItemRender
 import com.example.anyme.ui.theme.AnyMeTheme
 
 @Composable
@@ -74,13 +75,13 @@ fun RelatedMediaCard(
 fun PreviewRelatedMediaCard(){
 
    val media = getMediaPreview()
-   val related = media.mapToMalAnimeDetails().relatedAnime
+   val related = media.mapToMalAnimeDetails().relatedAnime.map { MalRelatedItemRender(it) }
    AnyMeTheme {
       RelatedMediaCard(
          cardTitle = "Related Anime",
          medias = related,
          contentPadding = PaddingValues(8.dp),
-      ) { idx, it ->
+      ) { _, it ->
          it.Compose {  }
       }
    }

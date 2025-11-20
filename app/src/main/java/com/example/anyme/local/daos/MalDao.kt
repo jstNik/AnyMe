@@ -53,6 +53,6 @@ interface MalDao {
    fun fetchAnimeIds(): List<MalAnimeDB>
 
    @Query("SELECT * FROM MalAnimeDB WHERE id = :animeId")
-   fun getAnimeById(animeId: Int): Flow<MalAnimeDB>
+   fun getAnimeById(animeId: Int): Flow<MalAnimeDB?>
 
 }

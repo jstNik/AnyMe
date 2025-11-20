@@ -1,10 +1,5 @@
-query BackgroundBanner($idMal: Int!) {
-    Media(idMal: $idMal,  type: ANIME){
-        id
-        title {
-            english
-            romaji
-        }
+query BackgroundBanner($idMal: Int!, $type: MediaType!) {
+    Media(idMal: $idMal,  type: $type){
         bannerImage
     }
 }

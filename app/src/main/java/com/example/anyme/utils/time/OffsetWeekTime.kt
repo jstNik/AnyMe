@@ -1,8 +1,11 @@
 package com.example.anyme.utils.time
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import com.example.anyme.utils.LocalTimeParceler
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -10,26 +13,31 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.IllegalTimeZoneException
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.WriteWith
+import kotlinx.serialization.Serializable
 import java.time.format.DateTimeParseException
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
+@Serializable
 class OffsetWeekTime private constructor(
    val weekDay: DayOfWeek,
    val time: LocalTime,
    val offset: Offset
-) {
+): Parcelable {
 
    fun toZone(timeZone: TimeZone): OffsetWeekTime {
       val duration = time.toSecondOfDay().seconds - offset.value
 
       val weekDays = DayOfWeek.entries
-      val newWeekDay = if(duration < 0.hours) weekDays[abs(weekDay.ordinal - 1) % weekDays.size]
+      val newWeekDay = if (duration < 0.hours) weekDays[abs(weekDay.ordinal - 1) % weekDays.size]
       else if (duration > 24.hours) weekDays[(weekDay.ordinal + 1) % weekDays.size]
       else weekDay
 
-      val localDateTime = Instant.fromEpochSeconds(duration.inWholeSeconds).toLocalDateTime(timeZone)
+      val localDateTime =
+         Instant.fromEpochSeconds(duration.inWholeSeconds).toLocalDateTime(timeZone)
 
       return OffsetWeekTime(
          newWeekDay,
@@ -58,7 +66,17 @@ class OffsetWeekTime private constructor(
 
    fun toText() = toString().lowercase().capitalize(Locale.current).dropLast(6)
 
-   companion object {
+   override fun describeContents(): Int {
+      return 0
+   }
+
+   override fun writeToParcel(parcel: Parcel, flags: Int) {
+      parcel.writeString(weekDay.toString())
+      parcel.writeString(time.toString())
+      parcel.writeParcelable(offset, flags)
+   }
+
+   companion object: Parcelable.Creator<OffsetWeekTime> {
 
 
       fun create(weekDay: String, time: String, offset: Offset): OffsetWeekTime? {
@@ -106,6 +124,22 @@ class OffsetWeekTime private constructor(
          } catch (_: Exception) {
             return null
          }
+      }
+
+      override fun createFromParcel(parcel: Parcel?): OffsetWeekTime? {
+         return try{
+            val weekDay = parcel?.readString()!!
+            val time = parcel.readString()!!
+            val offset = parcel.readParcelable(Offset::class.java.classLoader, Offset::class.java)!!
+            create(weekDay, time, offset)
+         } catch (e: Exception){
+            Log.e("$e", "${e.message}", e)
+            null
+         }
+      }
+
+      override fun newArray(size: Int): Array<out OffsetWeekTime?> {
+         return arrayOfNulls(size)
       }
 
    }

@@ -25,7 +25,8 @@ class MalSeasonalAnimeRender(
          ListEntry(
             media = media,
             imageHeight = 128.dp,
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(8.dp),
+            onClick =  onClick
          ) {
 
          }

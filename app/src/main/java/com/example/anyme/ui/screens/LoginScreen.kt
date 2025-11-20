@@ -56,8 +56,8 @@ fun LoginScreen(viewModel: SettingsViewModel = hiltViewModel<SettingsViewModel>(
             }
          }
       }
-      Resource.Status.Loading -> TODO()
-      Resource.Status.Failure -> TODO()
+      Resource.Status.Loading -> { /* TODO() */ }
+      Resource.Status.Failure -> { /* TODO() */ }
    }
 
 

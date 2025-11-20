@@ -1,13 +1,27 @@
 package com.example.anyme.utils.time
 
+import android.os.Parcelable
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
+import java.util.Calendar
 
-class Date private constructor(
+@Parcelize
+@Serializable
+class Date(
    val year: Int,
    val month: Int = 0,
    val day: Int = 0
-): Comparable<Date> {
+): Comparable<Date>, Parcelable {
 
+   init {
+      LocalDate(
+         year,
+         month,
+         day
+      )
+   }
 
    override fun equals(other: Any?): Boolean {
       val right: Date? = if(other is String) parse(other)
@@ -33,23 +47,26 @@ class Date private constructor(
    }
 
    companion object {
+
+      val TODAY: Date get() {
+            val localDate = Calendar
+               .getInstance()
+               .timeInMillis
+               .toLocalDataTime(TimeZone.currentSystemDefault()).date
+            return Date(localDate.year, localDate.monthNumber, localDate.dayOfMonth)
+         }
+
       fun parse(string: String): Date? {
-         try {
+         return try {
             val (year, month, day) = string.split("-")
-            if(year.length != 4) return null
-            val res = Date(
+            if (year.length != 4) return null
+            Date(
                year.toInt(),
-               if(month.isNotEmpty()) month.toInt() else 0,
-               if(day.isNotEmpty()) day.toInt() else 0
+               if (month.isNotEmpty()) month.toInt() else 0,
+               if (day.isNotEmpty()) day.toInt() else 0
             )
-            LocalDate(
-               res.year,
-               if(res.month != 0) res.month else 1,
-               if(res.day != 0) res.day else 1
-            )
-            return res
-         } catch(_: Exception){
-            return null
+         } catch (_: Exception) {
+            null
          }
       }
    }

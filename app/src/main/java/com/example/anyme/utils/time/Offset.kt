@@ -1,12 +1,17 @@
 package com.example.anyme.utils.time
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import kotlin.math.abs
 import kotlin.time.Duration
 
+@Serializable
+@Parcelize
 @JvmInline
 value class Offset(
    val value: Duration
-){
+): Parcelable {
 
    companion object {
       private val offsetRegex: Regex = Regex("[+-][0-9]{2}:[0-9]{2}(:[0-9]{2}\\.[0-9]*)?$")

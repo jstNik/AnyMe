@@ -130,7 +130,7 @@ fun PreviewGeneralInfoCard(){
                put("Media Type", mediaType.toString())
             if (numEpisodes != 0)
                put("Episodes", "$numEpisodes")
-            if (status != AiringStatus.Undefined)
+            if (status != AiringStatus.Unknown)
                put("Status", status.toText())
             if (startDate != null)
                put("Aired", "$startDate" + if (endDate != null) " to $endDate" else "")

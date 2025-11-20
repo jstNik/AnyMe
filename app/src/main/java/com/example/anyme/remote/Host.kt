@@ -40,4 +40,14 @@ enum class Host(val apiKey: String) {
 
    abstract fun buildAuthorizationRequest(): AuthorizationRequest
 
+   companion object{
+
+      fun getEnum(string: String) = when (string) {
+         Mal.toString() -> Mal
+         TheMovieDatabase.toString() -> TheMovieDatabase
+         else -> Unknown
+      }
+
+   }
+
 }

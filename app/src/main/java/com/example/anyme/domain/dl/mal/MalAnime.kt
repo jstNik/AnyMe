@@ -1,13 +1,25 @@
 package com.example.anyme.domain.dl.mal
 
 
+import com.example.anyme.data.repositories.Repository
+import com.example.anyme.data.visitors.ConverterAcceptor
+import com.example.anyme.data.visitors.ConverterVisitor
+import com.example.anyme.data.visitors.RepositoryAcceptor
+import com.example.anyme.data.visitors.RepositoryVisitor
+import com.example.anyme.data.mappers.LayerMapper
+import com.example.anyme.data.mappers.MalAnimeLayerMapper
+import com.example.anyme.data.repositories.MalRepository
+import com.example.anyme.data.repositories.RepositoryBundle
+import com.example.anyme.data.visitors.MalAnimeRepositoryAcceptor
 import com.example.anyme.domain.dl.Media
+import com.example.anyme.local.db.MalOrderOption
 import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.time.Date
 import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.coroutineScope
 import java.lang.IllegalArgumentException
 
 data class MalAnime(
@@ -66,7 +78,7 @@ data class MalAnime(
    @SerializedName("statistics")
    var statistics: Statistics = Statistics(),
    @SerializedName("status")
-   var status: AiringStatus = AiringStatus.Undefined,
+   var status: AiringStatus = AiringStatus.Unknown,
    @SerializedName("studios")
    var studios: List<Studio> = listOf(),
    @SerializedName("synopsis")
@@ -80,9 +92,10 @@ data class MalAnime(
    var episodesType: RangeMap<EpisodesType> = RangeMap(),
    var nextEp: NextEpisode = NextEpisode(),
    var hasNotificationsOn: Boolean = false,
-   override var host: Host = Host.Unknown
+   override val host: Host = Host.Mal,
+   var banner: String = ""
 
-   ) : Media {
+   ) : MalAnimeRepositoryAcceptor, Media {
 
    enum class EpisodesType {
       MangaCanon {
@@ -97,17 +110,17 @@ data class MalAnime(
       Filler {
          override fun toString() = "filler"
       },
-      Undefined {
+      Unknown {
          override fun toString() = ""
       };
 
       companion object {
-         fun getEnum(value: String) = when (value) {
+         fun getEnum(value: String?) = when (value) {
             MangaCanon.toString() -> MangaCanon
             AnimeCanon.toString() -> AnimeCanon
             MixedMangaCanon.toString() -> MixedMangaCanon
             Filler.toString() -> Filler
-            else -> Undefined
+            else -> Unknown
          }
       }
    }
@@ -125,7 +138,7 @@ data class MalAnime(
          override fun toString() = "finished_airing"
          override fun toText() = "Finished airing"
       },
-      Undefined {
+      Unknown {
          override fun toString() = ""
          override fun toText() = toString()
       };
@@ -133,11 +146,11 @@ data class MalAnime(
       abstract fun toText(): String
 
       companion object {
-         fun getEnum(value: String) = when (value) {
+         fun getEnum(value: String?) = when (value) {
             NotYetAired.toString() -> NotYetAired
             CurrentlyAiring.toString() -> CurrentlyAiring
             FinishedAiring.toString() -> FinishedAiring
-            else -> Undefined
+            else -> Unknown
          }
       }
 
@@ -147,16 +160,16 @@ data class MalAnime(
       Unknown{
          override fun toString(): String = "unknown"
       },
-      Tv{
+      TV{
          override fun toString(): String = "tv"
       },
       OVA{
          override fun toString(): String = "ova"
       },
-      Movie{
+      Movie {
          override fun toString(): String = "movie"
       },
-      Special{
+      Special {
          override fun toString(): String = "special"
       },
       ONA{
@@ -164,7 +177,20 @@ data class MalAnime(
       },
       Music{
          override fun toString(): String = "music"
+      };
+
+      companion object {
+         fun getEnum(string: String?) = when(string){
+            TV.toString() -> TV
+            OVA.toString() -> OVA
+            Movie.toString() -> Movie
+            Special.toString() -> Special
+            ONA.toString() -> ONA
+            Music.toString() -> Music
+            else -> Unknown
+         }
       }
+
 
    }
 
@@ -174,17 +200,31 @@ data class MalAnime(
       if(dbAnime.id == 0) return this
       if(dbAnime.id != this.id)
          throw IllegalArgumentException("Can't merge two different animes together")
+
+      this.apply {
+         episodesType = dbAnime.episodesType
+         nextEp = dbAnime.nextEp
+         hasNotificationsOn = dbAnime.hasNotificationsOn
+//         host = dbAnime.host
+         banner = dbAnime.banner
+      }
+
       if(dbAnime.myList.updatedAt == null) return this
 
-      return if (myList.updatedAt == null ||dbAnime.myList.updatedAt!! > myList.updatedAt!!)
-         this.copy(
-            myList = dbAnime.myList,
-
-            episodesType = dbAnime.episodesType,
-            nextEp = dbAnime.nextEp,
-            hasNotificationsOn = dbAnime.hasNotificationsOn
-         )
+      return if (myList.updatedAt == null || dbAnime.myList.updatedAt!! > myList.updatedAt!!)
+         this.apply { myList = dbAnime.myList }
       else this
    }
+
+   override suspend  fun <S> acceptRepository(
+      repositoryVisitor: RepositoryVisitor,
+      bundle: suspend (RepositoryBundle<MalAnime, MalRepository.MalRankingTypes, MyList.Status, MalOrderOption>) -> S
+   ): S = repositoryVisitor.visit(this@MalAnime, bundle)
+
+
+   override fun <T> acceptConverter(
+      converterVisitor: ConverterVisitor,
+      map: (LayerMapper) -> T
+   ): T = converterVisitor.visit(this, map)
 
 }

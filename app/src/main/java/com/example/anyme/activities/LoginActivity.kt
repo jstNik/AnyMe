@@ -17,7 +17,9 @@ import com.example.anyme.remote.Host
 import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
 import com.example.anyme.remote.interceptors.SP_FILE_NAME
 import com.example.anyme.ui.screens.LoginScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
     private lateinit var authService: AuthorizationService
     private var authState: AuthState = AuthState()

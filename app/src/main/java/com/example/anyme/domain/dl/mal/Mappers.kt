@@ -63,7 +63,8 @@ fun MalAnime.mapToMalAnimeDB(gson: Gson): MalAnimeDB = MalAnimeDB(
    episodesType = gson.toJson(episodesType),
    nextEp = gson.toJson(nextEp),
    hasNotificationsOn = hasNotificationsOn,
-   host = host
+   host = host,
+   banner = banner
 )
 
 fun MalAnime.mapToMalAnimeListItem(): MalUserListItem =
@@ -139,15 +140,16 @@ fun MalAnime.mapToMalAnimeDetails(): MalAnimeDetails = MalAnimeDetails(
    numEpisodes = numEpisodes,
    popularity = popularity,
    rating = rating,
-   recommendations = recommendations.map { MalRelatedItemRender(it.mapToMalRelatedAnime()) },
-   relatedAnime = relatedAnime.map { MalRelatedItemRender(it.mapToMalRelatedAnime()) },
+   recommendations = recommendations.map { it.mapToMalRelatedAnime() },
+   relatedAnime = relatedAnime.map { it.mapToMalRelatedAnime() },
    source = source,
    startDate = startDate,
    season = season,
    statistics = statistics,
    status = status,
    studios = studios,
-   host = host
+   host = host,
+   banner = banner
 )
 
 fun MalAnimeNode.mapToMalAnimeDL() = MalAnime(
