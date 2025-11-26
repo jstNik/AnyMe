@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.libs
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import java.util.Properties
 
 plugins {
@@ -44,17 +45,17 @@ android {
          )
       }
    }
-   compileOptions {
-      sourceCompatibility = JavaVersion.VERSION_22
-      targetCompatibility = JavaVersion.VERSION_22
-      // jvmTarget = "23"
+   kotlin{
+      jvmToolchain(21)
    }
+
    buildFeatures {
       compose = true
       buildConfig = true
    }
-
 }
+
+
 
 apollo {
    service("service") {

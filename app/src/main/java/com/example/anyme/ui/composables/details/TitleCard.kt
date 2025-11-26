@@ -46,6 +46,7 @@ import com.example.anyme.ui.composables.BlurredGlideImage
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.theme.AnyMeTheme
+import com.example.anyme.ui.theme.TitleStyle
 import com.example.anyme.utils.DateTypeAdapter
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.OffsetDateTimeAdapter
@@ -100,7 +101,7 @@ fun TitleCard(
          )
       } else {
          Image(
-            painterResource(R.drawable.cowboy_bepop_background),
+            painterResource(R.drawable.placeholder_1920x1080),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -139,8 +140,14 @@ fun TitleCard(
                   horizontalAlignment = Alignment.CenterHorizontally,
                   modifier = Modifier.padding(start = startPad)
                ) {
-                  TitleSection(text = leftStat.first)
-                  TitleSection(text = "${leftStat.second}")
+                  Text(
+                     text = leftStat.first,
+                     style = TitleStyle
+                  )
+                  Text(
+                     text = leftStat.second.toString(),
+                     style = TitleStyle
+                  )
                }
 
 

@@ -2,6 +2,7 @@ package com.example.anyme.ui.renders.mal
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -70,10 +72,6 @@ class MalAnimeDetailsRender(
 
       with(media) {
 
-         var modifiedMedia by rememberSaveable {
-            mutableStateOf(copy())
-         }
-
          Column(
             horizontalAlignment = Alignment.End,
             modifier = Modifier
@@ -95,37 +93,68 @@ class MalAnimeDetailsRender(
                debug = Debug
             ) {
 
-               Column {
+               Column(
+                  modifier = Modifier.animateContentSize()
+               ) {
+
+                  var modifiedMedia by rememberSaveable {
+                     mutableStateOf(myList.copy())
+                  }
+
                   Row(verticalAlignment = Alignment.CenterVertically) {
-                     OutlinedButton(
-                        onClick = { },
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                     ) {
-                        val text = if (myList.status != MyList.Status.Unknown)
-                           myList.status.toText() else "Add to list"
 
-                        Text(
-                           text = text,
-                           style = TitleStyle
-                        )
+                     if(myList.status == MyList.Status.Unknown)
+                        Button(
+                           onClick = {
+                              modifiedMedia = modifiedMedia.copy(
+                                 status = MyList.Status.PlanToWatch
+                              )
+                           }
+                        ) {
+                           Text(
+                              text = "Add to list",
+                              style = TitleStyle
+                           )
+                        }
+                     else {
+                        val listStatus = MyList.Status.entries.filter { it != MyList.Status.Unknown }
 
+                        NumberPicker(
+                           initialValue = myList.status.toText(),
+                           range = listStatus.map{ it.toText() },
+                           textStyle = TitleStyle,
+                           wrapUpChoices = true
+                        ) {
+                           modifiedMedia = modifiedMedia.copy(
+                              status = listStatus[it]
+                           )
+                        }
                      }
+//                     OutlinedButton(
+//                        onClick = { },
+//                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+//                     ) {
+//                        val text = if (myList.status != MyList.Status.Unknown)
+//                           myList.status.toText() else "Add to list"
+//
+//                        Text(
+//                           text = text,
+//                           style = TitleStyle
+//                        )
+//
+//                     }
 
                      Spacer(modifier = Modifier.weight(1F))
 
-                     val epList = (0..media.numEpisodes).toList()
+                     val epList = (0..numEpisodes).toList()
                      NumberPicker(
-                        "${media.myList.numEpisodesWatched}",
+                        "${myList.numEpisodesWatched}",
                         epList.map { "$it" },
                         TitleStyle
                      ) {
-                        if (epList[it] != media.myList.numEpisodesWatched) {
-                           modifiedMedia = modifiedMedia.copy(
-                              myList = modifiedMedia.myList.copy(
-                                 numEpisodesWatched = epList[it]
-                              )
-                           )
-                        }
+                        modifiedMedia = modifiedMedia.copy(
+                           numEpisodesWatched = epList[it]
+                        )
                      }
 
                      Text(
@@ -133,23 +162,19 @@ class MalAnimeDetailsRender(
                         style = TitleStyle,
                         modifier = Modifier.padding(horizontal = 4.dp)
                      )
-                     Text(text = "${media.numEpisodes}", style = TitleStyle)
+                     Text(text = "$numEpisodes", style = TitleStyle)
 
                      Spacer(modifier = Modifier.weight(1F))
 
                      val scoreValues = (0..10).toList()
                      NumberPicker(
-                        "${media.myList.score}",
+                        "${myList.score}",
                         scoreValues.map { "$it" },
                         TitleStyle
                      ) {
-                        if (scoreValues[it] != media.myList.score) {
-                           modifiedMedia = modifiedMedia.copy(
-                              myList = modifiedMedia.myList.copy(
-                                 score = scoreValues[it]
-                              )
-                           )
-                        }
+                        modifiedMedia = modifiedMedia.copy(
+                           score = scoreValues[it]
+                        )
                      }
                      Text(
                         text = "/",
@@ -159,22 +184,18 @@ class MalAnimeDetailsRender(
                      Text(text = "10", style = TitleStyle)
                   }
 
-                  if(media != modifiedMedia){
-                     Row(
+                  if(myList != modifiedMedia){
+                     OutlinedButton(
+                        onClick = {
+
+                        },
+                        border = BorderStroke(2.dp, CS.primary),
                         modifier = Modifier.fillMaxWidth()
                      ) {
-                        OutlinedButton(
-                           onClick = {
-
-                           },
-                           border = BorderStroke(2.dp, CS.primary),
-                           modifier = Modifier.fillMaxWidth()
-                        ) {
-                           Text(
-                              text = "Save edits",
-                              style = TitleStyle
-                           )
-                        }
+                        Text(
+                           text = "Save edits",
+                           style = TitleStyle
+                        )
                      }
                   }
                }
