@@ -1,19 +1,20 @@
 package com.example.anyme.data.repositories
 
 import androidx.paging.PagingData
-import com.example.anyme.local.db.MalDatabase
-import com.example.anyme.domain.dl.mal.MyList
-import com.example.anyme.data.repositories.MalRepository.MalRankingTypes
-import com.example.anyme.data.visitors.RepositoryAcceptor
+import com.example.anyme.data.visitors.repositories.RepositoryAcceptor
 import com.example.anyme.domain.dl.ListStatus
 import com.example.anyme.domain.dl.Media
-import com.example.anyme.domain.dl.MediaWrapper
 import com.example.anyme.domain.dl.TypeRanking
+import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.local.db.OrderOption
-import kotlinx.coroutines.CoroutineScope
+import com.example.anyme.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface Repository<T: Media, R: TypeRanking, L: ListStatus, O: OrderOption> {
+
+   enum class RefreshingStatus{
+      InitialRefreshing, Refreshing, NotRefreshing
+   }
 
    suspend fun downloadUserMediaList()
 
@@ -29,6 +30,8 @@ interface Repository<T: Media, R: TypeRanking, L: ListStatus, O: OrderOption> {
 
    fun search(searchQuery: String): Flow<PagingData<RepositoryAcceptor<T, R, L, O>>>
 
-   fun fetchMediaDetails(media: T): Flow<RepositoryAcceptor<T, R, L, O>>
+   fun fetchMediaDetails(media: T, refreshingStatus: RefreshingStatus): Flow<RepositoryAcceptor<T, R, L, O>>
+
+   suspend fun update(media: T)
 
 }

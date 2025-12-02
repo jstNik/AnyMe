@@ -1,17 +1,12 @@
 package com.example.anyme.domain.dl.mal
 
 
-import com.example.anyme.data.repositories.Repository
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.data.visitors.RepositoryAcceptor
-import com.example.anyme.data.visitors.RepositoryVisitor
-import com.example.anyme.data.mappers.LayerMapper
-import com.example.anyme.data.mappers.MalAnimeLayerMapper
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.repositories.RepositoryVisitor
+import com.example.anyme.data.visitors.converters.LayerMapper
 import com.example.anyme.data.repositories.MalRepository
-import com.example.anyme.data.repositories.RepositoryBundle
-import com.example.anyme.data.visitors.MalAnimeRepositoryAcceptor
-import com.example.anyme.domain.dl.Media
+import com.example.anyme.data.repositories.Repository
+import com.example.anyme.data.visitors.repositories.MalAnimeRepositoryAcceptor
 import com.example.anyme.local.db.MalOrderOption
 import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
@@ -19,7 +14,6 @@ import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.time.Date
 import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.coroutineScope
 import java.lang.IllegalArgumentException
 
 data class MalAnime(
@@ -95,7 +89,7 @@ data class MalAnime(
    override val host: Host = Host.Mal,
    var banner: String = ""
 
-   ) : MalAnimeRepositoryAcceptor, Media {
+   ) : MalAnimeRepositoryAcceptor {
 
    enum class EpisodesType {
       MangaCanon {
@@ -216,10 +210,10 @@ data class MalAnime(
       else this
    }
 
-   override suspend  fun <S> acceptRepository(
+   override fun <S> acceptRepository(
       repositoryVisitor: RepositoryVisitor,
-      bundle: suspend (RepositoryBundle<MalAnime, MalRepository.MalRankingTypes, MyList.Status, MalOrderOption>) -> S
-   ): S = repositoryVisitor.visit(this@MalAnime, bundle)
+      bundle: (Repository<MalAnime, MalRepository.MalRankingTypes, MyList.Status, MalOrderOption>, MalAnime) -> S
+   ): S = repositoryVisitor.visit(this, bundle)
 
 
    override fun <T> acceptConverter(

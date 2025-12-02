@@ -7,8 +7,9 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.data.repositories.SettingsRepository
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.data.visitors.RepositoryVisitor
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
+import com.example.anyme.data.visitors.repositories.RepositoryVisitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,7 @@ open class ExploreViewModel @Inject constructor(
    private val malRepository: MalRepository,
    private val repositoryVisitor: RepositoryVisitor,
    private val converterVisitor: ConverterVisitor,
+   private val renderVisitor: ListItemRenderVisitor
 //   private val malRepository: Repository
 ) : ViewModel() {
 
@@ -31,7 +33,7 @@ open class ExploreViewModel @Inject constructor(
       type to malRepository.fetchRankingLists(type).map {
          it.map { data ->
             data.acceptConverter(converterVisitor) { mapper ->
-               mapper.mapDomainToRankingListItem()
+               mapper.mapDomainToRankingListItem().acceptRender(renderVisitor)
             }
          }
       }.stateIn(

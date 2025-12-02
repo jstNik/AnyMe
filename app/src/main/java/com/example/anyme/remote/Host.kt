@@ -42,10 +42,13 @@ enum class Host(val apiKey: String) {
 
    companion object{
 
-      fun getEnum(string: String) = when (string) {
-         Mal.toString() -> Mal
-         TheMovieDatabase.toString() -> TheMovieDatabase
-         else -> Unknown
+      fun getEnum(string: String): Host {
+         val a = when (string) {
+            Mal.toString() -> Mal
+            TheMovieDatabase.toString() -> TheMovieDatabase
+            else -> Unknown
+         }
+         return a
       }
 
    }

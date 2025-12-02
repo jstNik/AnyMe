@@ -6,6 +6,7 @@ import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
 import com.example.anyme.data.repositories.Repository
 import com.example.anyme.data.repositories.SettingsRepository
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
 import com.example.anyme.utils.Resource
 import com.example.anyme.utils.time.toLocalDataTime
@@ -27,12 +28,13 @@ import kotlin.time.Duration.Companion.milliseconds
 @HiltViewModel
 class SeasonalViewModel @Inject constructor(
    private val settingsRepo: SettingsRepository,
-   private val malRepository: MalRepository
+   private val malRepository: MalRepository,
+   private val renderVisitor: ListItemRenderVisitor
 ) : ViewModel() {
 
    val seasonalAnimes = malRepository.fetchSeasonalMedia().map { list ->
       val transform = list.map{
-         MalSeasonalAnimeRender(it.mapToMalSeasonalListItem())
+         it.mapToMalSeasonalListItem().acceptRender(renderVisitor)
       }
       Resource.success(transform)
    }.onStart {

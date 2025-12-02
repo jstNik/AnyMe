@@ -1,5 +1,6 @@
 package com.example.anyme.utils.time
 
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
@@ -130,7 +131,12 @@ class OffsetWeekTime private constructor(
          return try{
             val weekDay = parcel?.readString()!!
             val time = parcel.readString()!!
-            val offset = parcel.readParcelable(Offset::class.java.classLoader, Offset::class.java)!!
+            val offset = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+               parcel.readParcelable(Offset::class.java.classLoader, Offset::class.java)!!
+            } else {
+               @Suppress("DEPRECATION")
+               parcel.readParcelable(Offset::class.java.classLoader)!!
+            }
             create(weekDay, time, offset)
          } catch (e: Exception){
             Log.e("$e", "${e.message}", e)

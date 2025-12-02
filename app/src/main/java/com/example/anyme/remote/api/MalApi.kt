@@ -1,9 +1,13 @@
 package com.example.anyme.remote.api
 
 import com.example.anyme.domain.dl.mal.MalAnime
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.remote.mal.MalAnimeListGetResponse
 import retrofit2.Response
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -61,6 +65,21 @@ interface MalApi {
       @Path("anime_id") id: Int,
       @Query("fields") fields: String = DETAILS_FIELDS.joinToString(",") { getFieldName(it.name) }
    ): Response<MalAnime>
+
+   @FormUrlEncoded
+   @PUT("anime/{anime_id}/my_list_status")
+   suspend fun update(
+      @Path("anime_id") id: Int,
+      @Field("status") myListStatus: String,
+      @Field("is_rewatching") isRewatching: Boolean,
+      @Field("score") score: Int,
+      @Field("num_watched_episodes") numEpsWatched: Int,
+      @Field("priority") priority: Int?,
+      @Field("num_times_rewatched") numTimesRewatched: Int?,
+      @Field("rewatch_value") rewatchValue: Int?,
+      @Field("tags") tags: String?,
+      @Field("comments") comments: String?
+   ):Response<MyList>
 
    companion object {
       const val CALLBACK_URL = "animetracker://auth.io" // TODO Change redirect url

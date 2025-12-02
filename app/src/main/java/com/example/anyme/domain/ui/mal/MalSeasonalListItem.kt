@@ -1,11 +1,13 @@
 package com.example.anyme.domain.ui.mal
 
 import androidx.compose.runtime.Immutable
-import com.example.anyme.data.mappers.LayerMapper
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.ConverterVisitor
+import com.example.anyme.data.visitors.converters.LayerMapper
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.renders.CallbacksBundle
+import com.example.anyme.data.visitors.renders.ListItemRenderAcceptor
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.MainPicture
-import com.example.anyme.domain.dl.Media
+import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.getDateOfNext
@@ -25,7 +27,7 @@ data class MalSeasonalListItem(
    val htmlNextEp: Int = 0,
    val htmlReleaseDate: OffsetDateTime? = null,
    override val host: Host = Host.Unknown
-): Media, ConverterAcceptor {
+): MediaUi, ListItemRenderAcceptor {
 
    fun getDateTimeNextEp(): OffsetDateTime? {
 
@@ -61,4 +63,10 @@ data class MalSeasonalListItem(
       converterVisitor: ConverterVisitor,
       map: (LayerMapper) -> T
    ): T = converterVisitor.visit(this, map)
+
+   override fun acceptRender(
+      visitor: ListItemRenderVisitor,
+      callbacksBundle: CallbacksBundle
+   ) = visitor.visit(this, callbacksBundle)
+
 }

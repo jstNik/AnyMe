@@ -19,7 +19,21 @@ data class MyList(
    @SerializedName("status")
    var status: Status = Status.Unknown,
    @SerializedName("updated_at")
-   var updatedAt: OffsetDateTime? = null
+   var updatedAt: OffsetDateTime? = null,
+   @SerializedName("start_date")
+   var startDate: OffsetDateTime? = null,
+   @SerializedName("finish_date")
+   var finishDate: OffsetDateTime? = null,
+   @SerializedName("priority")
+   var priority: Int? = null,
+   @SerializedName("num_times_rewatched")
+   var numTimesRewatched: Int? = null,
+   @SerializedName("rewatch_value")
+   var rewatchValue: Int? = null,
+   @SerializedName("tags")
+   var tags: List<String>? = null,
+   @SerializedName("comments")
+   var comments: String? = null
 ): Parcelable {
 
    enum class Status: ListStatus {

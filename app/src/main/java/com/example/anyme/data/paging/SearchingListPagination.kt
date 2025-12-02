@@ -3,14 +3,8 @@ package com.example.anyme.data.paging
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.anyme.data.repositories.MalRepository
-import com.example.anyme.data.visitors.MalAnimeRepositoryAcceptor
-import com.example.anyme.data.visitors.RepositoryAcceptor
-import com.example.anyme.domain.dl.mal.MalAnime
-import com.example.anyme.domain.dl.mal.MyList
-import com.example.anyme.local.db.MalOrderOption
+import com.example.anyme.data.visitors.repositories.MalAnimeRepositoryAcceptor
 import com.example.anyme.remote.api.MalApi
-import com.example.anyme.remote.Host
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

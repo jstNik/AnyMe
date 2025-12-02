@@ -13,7 +13,6 @@ import com.example.anyme.di.AniListClient
 import com.example.anyme.remote.scrapers.HtmlScraper
 import com.example.anyme.remote.api.MalApi
 import com.example.anyme.local.daos.MalDao
-import com.example.anyme.local.db.MalDatabase
 import com.example.anyme.domain.remote.mal.Paging
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
@@ -22,25 +21,24 @@ import com.example.anyme.domain.dl.mal.mapToMalAnimeDB
 import com.example.anyme.domain.local.mal.mapToMalAnimeDL
 import com.example.anyme.data.paging.ExploreListPagination
 import com.example.anyme.data.paging.SearchingListPagination
-import com.example.anyme.data.visitors.MalAnimeRepositoryAcceptor
-import com.example.anyme.data.visitors.RepositoryAcceptor
-import com.example.anyme.domain.dl.ListStatus
-import com.example.anyme.domain.dl.MalAnimeWrapper
-import com.example.anyme.domain.dl.MediaWrapper
+import com.example.anyme.data.visitors.repositories.MalAnimeRepositoryAcceptor
 import com.example.anyme.domain.dl.TypeRanking
+import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.local.db.MalOrderOption
 import com.example.anyme.local.db.OrderDirection
-import com.example.anyme.local.db.OrderOption
+import com.example.anyme.utils.Resource.Status
 import com.example.anyme.utils.getSeason
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.toLocalDataTime
 import com.example.type.MediaType
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
@@ -49,6 +47,9 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import com.example.anyme.data.repositories.Repository.RefreshingStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 
 class MalRepository @Inject constructor(
    private val malApi: MalApi,
@@ -58,9 +59,6 @@ class MalRepository @Inject constructor(
    private val gson: Gson,
    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : Repository<MalAnime, MalRepository.MalRankingTypes, MyList.Status, MalOrderOption> {
-
-   private val merger: MalSourcesMerger = MalSourcesMerger
-
 
    enum class MalRankingTypes : TypeRanking {
       Tv,
@@ -115,10 +113,10 @@ class MalRepository @Inject constructor(
                   it.id to it.mapToMalAnimeDL(gson)
                }.toMutableMap()
 
-               apiMalAnimeList.forEach forEach@ { (id, data) ->
+               apiMalAnimeList.forEach forEach@{ (id, data) ->
                   val apiMalAnime = data.media
                   val dbMalAnime = dbMalAnimeList[id]
-                  val mergedAnime = if(dbMalAnime == null) apiMalAnime
+                  val mergedAnime = if (dbMalAnime == null) apiMalAnime
                   else MalSourcesMerger.merge(apiMalAnime, dbMalAnime, MalApi.USER_LIST_FIELDS)
 
                   val upsertJob = launch {
@@ -126,11 +124,10 @@ class MalRepository @Inject constructor(
                         malDao.insert(apiMalAnime.mapToMalAnimeDB(gson))
                      } else {
                         // Preserve local data
-
-                        if (mergedAnime != dbMalAnime)
-                           // Remove from the lists all animes which appears in apiMalAnime,
-                           // left ones must be deleted from the database
-                           malDao.update(mergedAnime.mapToMalAnimeDB(gson))
+                        if (mergedAnime.myList != dbMalAnime.myList)
+                        // Remove from the lists all animes which appears in apiMalAnime,
+                        // left ones must be deleted from the database
+                           malDao.update(mergedAnime.copy().mapToMalAnimeDB(gson))
                         dbMalAnimeList.remove(id, dbMalAnime)
 
                      }
@@ -142,7 +139,7 @@ class MalRepository @Inject constructor(
                         try {
                            val result = scraper.scrapeEpisodesType(mergedAnime)
                            upsertJob.join()
-                           malDao.update(result.mapToMalAnimeDB(gson))
+                           malDao.update(result.copy().mapToMalAnimeDB(gson))
                         } catch (e: Exception) {
                            Log.e("$e", "${e.message}", e)
                         }
@@ -156,13 +153,12 @@ class MalRepository @Inject constructor(
                         try {
                            val result = scraper.scrapeNextEpInfos(mergedAnime)
                            upsertJob.join()
-                           malDao.update(result.mapToMalAnimeDB(gson))
+                           malDao.update(result.copy().mapToMalAnimeDB(gson))
                         } catch (e: Exception) {
                            Log.e("$e", "${e.message}", e)
                         }
                      }
                   }
-
                }
                // Deleting animes from database which are not in the api anime list
                val animeToDelete = dbMalAnimeList.values.map {
@@ -266,41 +262,42 @@ class MalRepository @Inject constructor(
       }.flow
    }
 
-   @Throws(IllegalArgumentException::class)
-   override fun fetchMediaDetails(media: MalAnime): Flow<MalAnime> {
+   private suspend fun updateMediaDetails(media: MalAnime): MalAnime? = withContext(dispatcher) {
+      malApi.retrieveAnimeDetails(media.id).body()?.let{
+         fetchBanner(it)?.let { banner ->
+            it.banner = banner
+         }
+         it
+      }
+   }
 
-      val isFirst = AtomicBoolean(true)
+   @Throws(IllegalArgumentException::class)
+   override fun fetchMediaDetails(media: MalAnime, refreshingStatus: RefreshingStatus): Flow<MalAnime> {
+
+      val isFirst = MutableStateFlow(refreshingStatus == RefreshingStatus.InitialRefreshing)
+      val isRefreshing = MutableStateFlow(refreshingStatus == RefreshingStatus.Refreshing)
 
       return malDao.getAnimeById(media.id).map {
          it?.mapToMalAnimeDL(gson)
       }.transform { dbResult ->
          val dbHit = dbResult != null
-         if (dbHit) emit(dbResult)
+         if (dbHit && !isRefreshing.value) emit(dbResult)
 
-         if (isFirst.compareAndSet(true, false)) {
+         if (isFirst.getAndUpdate { false } || isRefreshing.getAndUpdate { false }) {
 
-            val apiResponseDeferred = coroutineScope {
-               async { malApi.retrieveAnimeDetails(media.id) }
-            }
-
-            apiResponseDeferred.await().body()?.let { apiAnime ->
+            updateMediaDetails(media)?.let { apiAnime ->
                if (dbHit) {
-                  val syncedAnime = MalSourcesMerger.merge(apiAnime, dbResult, MalApi.DETAILS_FIELDS)
-                  fetchBanner(dbResult)?.let {
-                     syncedAnime.banner = it
-                  }
+                  val syncedAnime =
+                     MalSourcesMerger.merge(apiAnime, dbResult, MalApi.DETAILS_FIELDS)
                   withContext(dispatcher) {
                      malDao.update(syncedAnime.mapToMalAnimeDB(gson))
                   }
+                  emit(syncedAnime)
                } else {
                   emit(apiAnime)
-                  fetchBanner(apiAnime)?.let {
-                     emit(apiAnime.copy(banner = it))
-                  }
                }
                return@transform
             }
-            throw IllegalStateException("Mal anime with id ${media.id} can not be found.")
          }
       }
    }
@@ -314,10 +311,42 @@ class MalRepository @Inject constructor(
          Log.e("$e", "${e.message}", e)
          null
       } else {
-         Log.d("Banner", "Repo: ${response.data?.Media?.bannerImage}")
          response.data?.Media?.bannerImage
       }
    }
+
+   override suspend fun update(media: MalAnime) {
+      withContext(dispatcher) {
+         val updatedAt = OffsetDateTime.Now
+         try {
+            malApi.update(
+               id = media.id,
+               myListStatus = media.myList.status.toString(),
+               isRewatching = media.myList.isRewatching,
+               score = media.myList.score,
+               numEpsWatched = media.myList.numEpisodesWatched,
+               priority = media.myList.priority,
+               numTimesRewatched = media.myList.numTimesRewatched,
+               rewatchValue = media.myList.rewatchValue,
+               tags = media.myList.tags?.joinToString(","),
+               comments = media.myList.comments
+            ).body()!!.let {
+               malDao.update(media.copy(myList = it).mapToMalAnimeDB(gson))
+            }
+         } catch (e: Exception) {
+            Log.e("$e", "${e.message}", e)
+            malDao.update(
+               media.copy(
+                  myList = media.myList.copy(
+                     updatedAt = updatedAt
+                  )
+               ).mapToMalAnimeDB(gson)
+            )
+         }
+      }
+   }
+
+
 }
 
 

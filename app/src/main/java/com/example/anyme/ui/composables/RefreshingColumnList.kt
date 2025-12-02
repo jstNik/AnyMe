@@ -35,12 +35,11 @@ fun <T: ScrollableState> SwipeUpToRefresh(
 ){
    var isRefreshing by remember { mutableStateOf(false) }
    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
-   val isSwipeEnabled by remember {
-      derivedStateOf {
-         !scrollableState.canScrollBackward && !scrollableState.isScrollInProgress
-            || swipeRefreshState.isSwipeInProgress
-      }
+   val isSwipeEnabled by derivedStateOf {
+      !scrollableState.canScrollBackward && !scrollableState.isScrollInProgress
+         || swipeRefreshState.isSwipeInProgress
    }
+
 
    LaunchedEffect(isRefreshing) {
       if (isRefreshing) {

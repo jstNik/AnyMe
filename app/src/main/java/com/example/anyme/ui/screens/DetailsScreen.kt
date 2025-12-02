@@ -6,14 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import com.example.anyme.domain.dl.Media
 import com.example.anyme.utils.Resource
 import com.example.anyme.viewmodels.DetailsViewModel
 
@@ -23,7 +19,7 @@ fun DetailsScreen(
    viewModel: DetailsViewModel = hiltViewModel<DetailsViewModel>()
 ){
 
-   val resource by viewModel.animeDetails.collectAsStateWithLifecycle()
+   val resource by viewModel.mediaDetails.collectAsStateWithLifecycle()
 
    when(resource.status){
       Resource.Status.Success -> {

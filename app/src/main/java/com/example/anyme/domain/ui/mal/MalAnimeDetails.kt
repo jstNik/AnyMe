@@ -2,10 +2,13 @@ package com.example.anyme.domain.ui.mal
 
 import android.os.Parcelable
 import androidx.compose.runtime.Immutable
-import com.example.anyme.data.mappers.LayerMapper
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.domain.dl.Media
+import com.example.anyme.data.visitors.converters.LayerMapper
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.renders.CallbacksBundle
+import com.example.anyme.data.visitors.renders.DetailsRenderAcceptor
+import com.example.anyme.data.visitors.renders.DetailsRenderVisitor
+import com.example.anyme.data.visitors.renders.ListItemRenderAcceptor
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.AlternativeTitles
 import com.example.anyme.domain.dl.mal.Genre
 import com.example.anyme.domain.dl.mal.MainPicture
@@ -15,8 +18,8 @@ import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.Season
 import com.example.anyme.domain.dl.mal.Statistics
 import com.example.anyme.domain.dl.mal.Studio
+import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
-import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.utils.time.Date
 import com.example.anyme.utils.time.OffsetWeekTime
 import kotlinx.parcelize.Parcelize
@@ -52,7 +55,7 @@ data class MalAnimeDetails(
    val studios: List<Studio> = listOf(),
    override val host: Host = Host.Mal,
    val banner: String = ""
-) : Media, ConverterAcceptor, Parcelable {
+) : MediaUi, DetailsRenderAcceptor, Parcelable {
 
    @Serializable
    @Parcelize
@@ -60,19 +63,30 @@ data class MalAnimeDetails(
       override val id: Int = 0,
       override val title: String = "",
       override val mainPicture: MainPicture = MainPicture(),
-      val relationTypeFormatted: String? = null,
-      override val host: Host = Host.Mal
-   ): Media, ConverterAcceptor, Parcelable {
+      override val host: Host = Host.Mal,
+      val relationTypeFormatted: String? = null
+   ): MediaUi, ListItemRenderAcceptor, Parcelable {
 
       override fun <T> acceptConverter(
          converterVisitor: ConverterVisitor,
          map: (LayerMapper) -> T
-      ): T = converterVisitor.visit(this, map)
+      ) = converterVisitor.visit(this, map)
+
+      override fun acceptRender(
+         visitor: ListItemRenderVisitor,
+         callbacksBundle: CallbacksBundle
+      ) = visitor.visit(this, callbacksBundle)
 
    }
+
+   override fun acceptRender(
+      visitor: DetailsRenderVisitor,
+      callbacksBundle: CallbacksBundle
+   ) = visitor.visit(this, callbacksBundle)
+
 
    override fun <T> acceptConverter(
       converterVisitor: ConverterVisitor,
       map: (LayerMapper) -> T
-   ): T = converterVisitor.visit(this, map)
+   ) = converterVisitor.visit(this, map)
 }

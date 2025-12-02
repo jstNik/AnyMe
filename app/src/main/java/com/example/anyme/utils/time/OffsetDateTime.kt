@@ -7,7 +7,9 @@ import kotlinx.datetime.toInstant
 import java.io.Serializable
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
+import java.util.Calendar
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -60,6 +62,11 @@ class OffsetDateTime private constructor(
 
       private val offsetRegex: Regex = Regex("[+-][0-9]{2}:[0-9]{2}(:[0-9]{2}\\.[0-9]*)?$")
 //      private val dateTimeRegex: Regex = Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}")
+
+      val Now get()  = create (
+         Calendar.getInstance().timeInMillis.toLocalDataTime(TimeZone.currentSystemDefault()),
+         TimeZone.currentSystemDefault()
+      )
 
       fun create(duration: Duration, timeZone: TimeZone): OffsetDateTime? {
          return create(Instant.fromEpochSeconds(duration.inWholeSeconds), timeZone)

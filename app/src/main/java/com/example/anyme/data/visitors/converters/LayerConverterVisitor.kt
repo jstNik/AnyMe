@@ -1,6 +1,5 @@
-package com.example.anyme.data.visitors
+package com.example.anyme.data.visitors.converters
 
-import com.example.anyme.data.mappers.MalAnimeLayerMapper
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.Recommendation
 import com.example.anyme.domain.dl.mal.RelatedAnime

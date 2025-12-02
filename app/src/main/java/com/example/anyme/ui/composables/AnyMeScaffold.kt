@@ -23,6 +23,9 @@ import com.example.anyme.ui.screens.UserListScreen
 import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.ui.theme.Pages
+import com.example.anyme.viewmodels.DetailsViewModel
+import com.example.anyme.viewmodels.DetailsViewModel.Companion.HOST_KEY
+import com.example.anyme.viewmodels.DetailsViewModel.Companion.MEDIA_KEY
 
 @Composable
 fun AnyMeScaffold(
@@ -63,10 +66,10 @@ fun AnyMeScaffold(
             }
          }
          composable(
-            route = "$Details/{host}/{media_id}",
+            route = "$Details/{${HOST_KEY}}/{${MEDIA_KEY}}",
             arguments = listOf(
-               navArgument("host") { type = NavType.StringType },
-               navArgument("media_id") { type = NavType.IntType }
+               navArgument(HOST_KEY) { type = NavType.StringType },
+               navArgument(MEDIA_KEY) { type = NavType.IntType }
             )
          ) { backStackEntry ->
             DetailsScreen(paddingValues, hiltViewModel(backStackEntry))

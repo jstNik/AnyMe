@@ -1,11 +1,9 @@
 package com.example.anyme.domain.dl.mal
 
 
-import com.example.anyme.data.mappers.LayerMapper
+import com.example.anyme.data.visitors.converters.LayerMapper
 import com.example.anyme.data.repositories.MalRepository
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.domain.dl.Media
+import com.example.anyme.data.visitors.converters.ConverterVisitor
 import com.example.anyme.domain.dl.MediaWrapper
 import com.example.anyme.local.db.MalOrderOption
 import com.google.gson.annotations.SerializedName

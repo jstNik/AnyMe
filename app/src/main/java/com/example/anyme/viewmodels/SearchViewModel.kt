@@ -7,19 +7,16 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.data.repositories.SettingsRepository
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.utils.Resource
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -27,7 +24,8 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
    private val settingsRepo: SettingsRepository,
    private val malRepository: MalRepository,
-   private val converterVisitor: ConverterVisitor
+   private val converterVisitor: ConverterVisitor,
+   private val renderVisitor: ListItemRenderVisitor
 ) : ViewModel() {
 
 
@@ -44,7 +42,9 @@ class SearchViewModel @Inject constructor(
       malRepository.search(it)
    }.map { pagingData ->
       pagingData.map { data ->
-         data.acceptConverter(converterVisitor) { it.mapDomainToGridItem() }
+         data.acceptConverter(converterVisitor) {
+            it.mapDomainToGridItem().acceptRender(renderVisitor)
+         }
       }
    }.stateIn(
       scope = viewModelScope,

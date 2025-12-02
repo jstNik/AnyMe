@@ -22,10 +22,14 @@ import com.example.anyme.remote.interceptors.MAL_AUTH_STATE_NAME
 import com.example.anyme.remote.interceptors.SP_FILE_NAME
 import com.example.anyme.remote.interceptors.ValidationInterceptor
 import com.example.anyme.data.repositories.SettingsRepository
-import com.example.anyme.data.visitors.ConverterVisitor
-import com.example.anyme.data.visitors.DetailsVisitor
-import com.example.anyme.data.visitors.LayerConverterVisitor
-import com.example.anyme.data.visitors.RepositoryVisitor
+import com.example.anyme.data.visitors.converters.ConverterVisitor
+import com.example.anyme.data.visitors.repositories.MediaRepositoryVisitor
+import com.example.anyme.data.visitors.converters.LayerConverterVisitor
+import com.example.anyme.data.visitors.renders.DetailsRenderVisitor
+import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
+import com.example.anyme.data.visitors.renders.MediaDetailsRenderVisitor
+import com.example.anyme.data.visitors.renders.MediaListItemRenderVisitor
+import com.example.anyme.data.visitors.repositories.RepositoryVisitor
 import com.example.anyme.local.db.MalOrderOption
 import com.example.anyme.utils.AiringStatusAdapter
 import com.example.anyme.utils.EpisodesTypeAdapter
@@ -117,9 +121,9 @@ object MalModule {
          .client(
             OkHttpClient
                .Builder()
-               .addInterceptor(malInterceptor)
-               .addInterceptor(bufferInterceptor)
                .addInterceptor(validationInterceptor)
+               .addInterceptor(bufferInterceptor)
+               .addInterceptor(malInterceptor)
                .build()
          ).baseUrl(MalApi.BASE_URL)
          .addConverterFactory(GsonConverterFactory.create(gson))
@@ -165,10 +169,20 @@ object MalModule {
    @Provides
    @Singleton
    fun providesRepositoryVisitor(malRepository: MalRepository): RepositoryVisitor =
-      DetailsVisitor(malRepository)
+      MediaRepositoryVisitor(malRepository)
 
    @Provides
    @Singleton
    fun providesConverterVisitor(): ConverterVisitor = LayerConverterVisitor()
+
+   @Provides
+   @Singleton
+   fun providesListItemRenderVisitor(): ListItemRenderVisitor = MediaListItemRenderVisitor()
+
+   @Provides
+   @Singleton
+   fun provideDetailsRenderVisitor(
+      listItemRenderVisitor: ListItemRenderVisitor
+   ): DetailsRenderVisitor = MediaDetailsRenderVisitor(listItemRenderVisitor)
 
 }

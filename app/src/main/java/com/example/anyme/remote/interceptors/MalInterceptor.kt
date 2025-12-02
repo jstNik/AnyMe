@@ -1,5 +1,6 @@
 package com.example.anyme.remote.interceptors
 
+import android.util.Log
 import com.example.anyme.remote.token_managers.MalTokenManager
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -9,15 +10,15 @@ class MalInterceptor(
     private val tokenManager: MalTokenManager
 ): Interceptor {
 
-    override fun intercept(chain: Interceptor.Chain): Response {
-        var accessToken = tokenManager.getAuthToken()
-        var response = chain.proceed(buildRequest(chain, accessToken))
-        if(response.code == 401) {
-            accessToken = tokenManager.getRefreshedAuthToken()
-            response = chain.proceed(buildRequest(chain, accessToken))
-        }
-        return response
-    }
+   override fun intercept(chain: Interceptor.Chain): Response {
+      var accessToken = tokenManager.getAuthToken()
+      var response = chain.proceed(buildRequest(chain, accessToken))
+      if (response.code == 401) { // FIXME Probably this code will not ever reached because of @ValidationInterceptor.kt
+         accessToken = tokenManager.getRefreshedAuthToken()
+         response = chain.proceed(buildRequest(chain, accessToken))
+      }
+      return response
+   }
 
     private fun buildRequest(chain: Interceptor.Chain, accessToken: String?): Request =
         chain.request()

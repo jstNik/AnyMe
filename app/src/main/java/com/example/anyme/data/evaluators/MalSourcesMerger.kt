@@ -23,8 +23,8 @@ object MalSourcesMerger: SourcesMerger<MalAnime> {
       }
 
       apiMedia.myList.updatedAt?.let {
-         if (dbMedia.myList.updatedAt == null || apiMedia.myList.updatedAt!! > dbMedia.myList.updatedAt!!)
-            return dbMedia.apply { myList = apiMedia.myList }
+         if (dbMedia.myList.updatedAt == null || apiMedia.myList.updatedAt!! >= dbMedia.myList.updatedAt!!)
+            return dbMedia.apply{ myList = apiMedia.myList.copy() }
       }
       return dbMedia
    }

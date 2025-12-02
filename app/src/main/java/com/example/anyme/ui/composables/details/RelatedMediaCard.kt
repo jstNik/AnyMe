@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
-import com.example.anyme.domain.ui.MediaListItem
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.renders.MediaListItemRender

@@ -143,8 +143,7 @@ open class HtmlScraper @Inject constructor(
             val malIdAsString = aMalTag!!.attr("href").filter { it.isDigit() }
 
             val malId = Integer.parseInt(malIdAsString)
-            val malAnime = malSeasonalAnimes[malId]
-            if (malAnime == null) return@forEach
+            malSeasonalAnimes[malId] ?: return@forEach
 
             val releaseDate =
                article.getElementsByTag("time").attr("data-timestamp").toLong().seconds

@@ -1,5 +1,6 @@
 package com.example.anyme.ui.composables.details
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -69,11 +70,13 @@ import kotlin.math.max
 import kotlin.math.sign
 
 @Composable
-fun NumberPicker(
+fun WheelPicker(
    initialValue: String,
    range: List<String>,
    textStyle: TextStyle,
    wrapUpChoices: Boolean = false,
+   enableTextFieldInput: Boolean = true,
+   enableScrolling: Boolean = true,
    onItemSelection: (Int) -> Unit
 ) {
 
@@ -82,10 +85,8 @@ fun NumberPicker(
    val half = Int.MAX_VALUE.shr(1) / range.size * range.size
 
    // TODO Handle special cases like no numEps available and 0 eps watched
-   val initialIndex = rememberSaveable {
-      if(wrapUpChoices) {
-         half + range.indexOf(initialValue)
-      }
+   val initialIndex = rememberSaveable(initialValue) {
+      if(wrapUpChoices) half + range.indexOf(initialValue)
       else range.indexOf(initialValue)
    }
    val density = LocalDensity.current
@@ -106,8 +107,8 @@ fun NumberPicker(
       derivedStateOf { lazyListState.layoutInfo }
    }
 
-   var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
-   var centralIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
+   var selectedIndex by rememberSaveable(initialIndex) { mutableIntStateOf(initialIndex) }
+   var centralIndex by rememberSaveable(initialIndex) { mutableIntStateOf(initialIndex) }
    val padding by remember {
       derivedStateOf {
          val viewPortSize = with(density) { layoutInfo.viewportSize.height.toDp() }
@@ -117,21 +118,27 @@ fun NumberPicker(
    }
 
    val onVerticalDrag: (PointerInputChange, Float) -> Unit = { _, amount ->
-      coroutineScope.launch {
-         lazyListState.scrollBy(-amount)
+      if(enableScrolling) {
+         coroutineScope.launch {
+            lazyListState.scrollBy(-amount)
+         }
       }
    }
 
    val onDragEnd: () -> Unit = {
-      coroutineScope.launch {
-         selectedIndex = centralIndex
-         lazyListState.animateScrollToItem(centralIndex)
-         onItemSelection(centralIndex)
+      if(enableScrolling) {
+         coroutineScope.launch {
+            selectedIndex = centralIndex
+            Log.d("WheelPicker", "on drag end index: $centralIndex")
+            lazyListState.animateScrollToItem(centralIndex)
+            onItemSelection(centralIndex.mod(range.size))
+         }
       }
    }
 
-   LaunchedEffect(layoutInfo.viewportSize) {
-      lazyListState.scrollToItem(initialIndex)
+   LaunchedEffect(layoutInfo.viewportSize, initialIndex) {
+      Log.d("WheelPicker", "selected index: $initialIndex")
+      lazyListState.animateScrollToItem(initialIndex)
    }
 
    LaunchedEffect(lazyListState) {
@@ -142,6 +149,7 @@ fun NumberPicker(
             val offset = it.offset.toFloat()
             abs(offset + sign(offset) * it.size / 2F)
          }?.let { centerItem ->
+            Log.d("WheelPicker", "central index: ${centerItem.index}")
             centralIndex = centerItem.index
          }
       }
@@ -180,14 +188,14 @@ fun NumberPicker(
             items(
                count = if (wrapUpChoices) Int.MAX_VALUE else range.size,
                key = { it },
-            ) { idx ->
+            ) { rawIdx ->
 
-               val wrapIdx = idx.mod(range.size)
+               val idx = rawIdx.mod(range.size)
 
-               val value = range[wrapIdx]
+               val value = range[idx]
 
-               val alphaToScale = layoutInfo.visibleItemsInfo.find {
-                  it.index.mod(range.size) == wrapIdx
+               val (alpha, scale) = layoutInfo.visibleItemsInfo.find {
+                  it.index.mod(range.size) == idx
                }?.let { item ->
                   val distance = abs(item.offset.toFloat())
                   if(layoutInfo.viewportSize.height > 0) {
@@ -204,25 +212,20 @@ fun NumberPicker(
                   style = textStyle,
                   modifier = Modifier
                      .onGloballyPositioned {
-                        if (selectedIndex.mod(range.size) == wrapIdx)
+                        if (selectedIndex.mod(range.size) == idx)
                            textHeight = with(density) { it.size.height.toDp() }
                      }
                      .alpha(
-                        if (selectedIndex.mod(range.size) != wrapIdx || alphaBasicFieldText == 0F)
-                           alphaToScale.first else 0F
+                        if (selectedIndex.mod(range.size) != idx || alphaBasicFieldText == 0F)
+                           alpha else 0F
                      )
-                     .scale(alphaToScale.second)
+                     .scale(scale)
                )
             }
          }
 
          var basicFieldTextValue by remember(selectedIndex) {
-            mutableStateOf(
-               range.getOrNull(
-                  if (wrapUpChoices) selectedIndex.mod(range.size)
-                  else selectedIndex
-               ) ?: ""
-            )
+            mutableStateOf(range.getOrNull(selectedIndex.mod(range.size)) ?: "")
          }
 
          BasicTextField(
@@ -230,6 +233,7 @@ fun NumberPicker(
             onValueChange = {
                basicFieldTextValue = it
             },
+            enabled = enableTextFieldInput,
             textStyle = textStyle,
             keyboardOptions = KeyboardOptions(
                keyboardType = KeyboardType.Number,
@@ -238,24 +242,26 @@ fun NumberPicker(
             ),
             keyboardActions = KeyboardActions(
                onDone = {
-                  val valueIdx = range.indexOf(basicFieldTextValue)
                   var scrollJob: Job? = null
-                  val newIdx = if (!wrapUpChoices && valueIdx in 0..<range.size) {
-                     selectedIndex = valueIdx
-                     valueIdx
-                  } else if (wrapUpChoices) {
-                     val offset = selectedIndex.mod(range.size)
-                     selectedIndex = half + valueIdx
-                     scrollJob = coroutineScope.launch {
-                        lazyListState.scrollToItem(half + offset)
-                     }
-                     valueIdx
-                  } else {
-                     basicFieldTextValue = range[selectedIndex]
-                     null
-                  }
 
-                  newIdx?.let {
+                  with(range.indexOf(basicFieldTextValue)) {
+                     val isElementFound = this in 0..<range.size
+
+                     if (!wrapUpChoices && isElementFound) {
+                        selectedIndex = this
+                        this
+                     } else if (wrapUpChoices && isElementFound) {
+                        val offset = selectedIndex.mod(range.size)
+                        selectedIndex = half + this
+                        scrollJob = coroutineScope.launch {
+                           lazyListState.scrollToItem(half + offset)
+                        }
+                        this
+                     } else {
+                        basicFieldTextValue = range[selectedIndex.mod(range.size)]
+                        null
+                     }
+                  }?.let {
                      coroutineScope.launch {
                         scrollJob?.join()
                         lazyListState.scrollToItem(selectedIndex)
@@ -304,7 +310,7 @@ fun NumberPicker(
                      val newIndex =
                         if (selectedIndex in 1..<range.size) {
                            --selectedIndex
-                        } else if((wrapUpChoices && selectedIndex in 1..Int.MAX_VALUE)) {
+                        } else if ((wrapUpChoices && selectedIndex in 1..Int.MAX_VALUE)) {
                            (--selectedIndex).mod(range.size)
                         } else if (wrapUpChoices) {
                            val offset = (selectedIndex - 1).mod(range.size)
@@ -380,7 +386,7 @@ fun NumberPicker(
 
 @Preview
 @Composable
-fun PreviewNumberPicker() {
+fun PreviewWheelPicker() {
    AnyMeTheme {
 
       Column(
@@ -388,7 +394,7 @@ fun PreviewNumberPicker() {
          verticalArrangement = Arrangement.Center,
          modifier = Modifier.fillMaxSize()
       ) {
-         NumberPicker(
+         WheelPicker(
             "8",
             (0..26).toList().map{ "$it" },
             TitleStyle,

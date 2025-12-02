@@ -1,8 +1,8 @@
 package com.example.anyme.domain.dl
 
 import com.example.anyme.data.repositories.MalRepository
-import com.example.anyme.data.visitors.ConverterAcceptor
-import com.example.anyme.data.visitors.RepositoryAcceptor
+import com.example.anyme.data.visitors.converters.ConverterAcceptor
+import com.example.anyme.data.visitors.repositories.RepositoryAcceptor
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.local.db.MalOrderOption

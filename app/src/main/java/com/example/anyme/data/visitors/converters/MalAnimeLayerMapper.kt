@@ -1,6 +1,5 @@
-package com.example.anyme.data.mappers
+package com.example.anyme.data.visitors.converters
 
-import com.example.anyme.data.visitors.ConverterAcceptor
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.Recommendation
 import com.example.anyme.domain.dl.mal.RelatedAnime
@@ -11,6 +10,7 @@ import com.example.anyme.domain.dl.mal.mapToMalRelatedAnime
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
 import com.example.anyme.domain.remote.mal.Data
 import com.example.anyme.domain.remote.mal.mapToMalRankingListItem
+import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalListGridItem
 import com.example.anyme.domain.ui.mal.MalRankingListItem
@@ -19,14 +19,6 @@ import com.example.anyme.domain.ui.mal.MalUserListItem
 import com.example.anyme.domain.ui.mal.mapToMalAnime
 import com.example.anyme.domain.ui.mal.mapToRecommendations
 import com.example.anyme.domain.ui.mal.mapToRelatedAnime
-import com.example.anyme.ui.renders.MediaDetailsRender
-import com.example.anyme.ui.renders.MediaListItemRender
-import com.example.anyme.ui.renders.mal.MalAnimeDetailsRender
-import com.example.anyme.ui.renders.mal.MalAnimeSearchFrameRender
-import com.example.anyme.ui.renders.mal.MalRankingFrameRender
-import com.example.anyme.ui.renders.mal.MalRelatedItemRender
-import com.example.anyme.ui.renders.mal.MalSeasonalAnimeRender
-import com.example.anyme.ui.renders.mal.MalUserListAnimeRender
 
 class MalAnimeLayerMapper(
    private val malAnime: MalAnime? = null,
@@ -42,28 +34,20 @@ class MalAnimeLayerMapper(
    private val malRelatedAnime: RelatedAnime? = null
 ): LayerMapper {
 
-   override fun mapDomainToDetails(): MediaDetailsRender {
+   override fun mapDomainToDetails() =
+      malAnime!!.mapToMalAnimeDetails()
 
-      val malAnimeDetails = malAnime!!.mapToMalAnimeDetails()
+   override fun mapDomainToListItem() =
+      malAnime!!.mapToMalAnimeListItem()
 
-      return MalAnimeDetailsRender(
-         malAnimeDetails,
-         malAnimeDetails.relatedAnime.map { MalRelatedItemRender(it) },
-         malAnimeDetails.recommendations.map { MalRelatedItemRender(it) }
-      )
-   }
+   override fun mapDomainToSeasonalItem() =
+      malAnime!!.mapToMalSeasonalListItem()
 
-   override fun mapDomainToListItem(): MediaListItemRender =
-      MalUserListAnimeRender(malAnime!!.mapToMalAnimeListItem())
+   override fun mapDomainToGridItem() =
+      malAnime!!.mapToMalListGridItem()
 
-   override fun mapDomainToSeasonalItem(): MediaListItemRender =
-      MalSeasonalAnimeRender(malAnime!!.mapToMalSeasonalListItem())
-
-   override fun mapDomainToGridItem(): MediaListItemRender =
-      MalAnimeSearchFrameRender(malAnime!!.mapToMalListGridItem())
-
-   override fun mapDomainToRankingListItem(): MediaListItemRender =
-      MalRankingFrameRender(malAnimeWrapper!!.mapToMalRankingListItem())
+   override fun mapDomainToRankingListItem() =
+      malAnimeWrapper!!.mapToMalRankingListItem()
 
    override fun mapDetailsToDomain(): MalAnime =
       malAnimeDetails!!.mapToMalAnime()
