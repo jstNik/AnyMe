@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -39,11 +42,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -58,6 +63,7 @@ import com.example.anyme.ui.composables.details.GeneralInfoCard
 import com.example.anyme.ui.composables.details.WheelPicker
 import com.example.anyme.ui.composables.details.RelatedMediaCard
 import com.example.anyme.ui.composables.details.TitleCard
+import com.example.anyme.ui.composables.details.WheelPickerBehavior
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaDetailsRender
@@ -94,18 +100,28 @@ class MalAnimeDetailsRender(
          val alpha by derivedStateOf {
             updatingStatus.status != Resource.Status.Loading
          }
+         val pictureWidth = 120.dp
+         val pictureHeight = 170.dp
+         val yPictureOffset = 90.dp
+         val titleStyle = TitleStyle
+         val textAutoSize = remember {
+            TextAutoSize.StepBased(
+               10.sp,
+               titleStyle.fontSize
+            )
+         }
 
          val density = LocalDensity.current
          var textHeight by remember{
             mutableStateOf(0.dp)
          }
 
-         var edits = rememberSaveable {
-            myList.copy()
+         var edits by rememberSaveable {
+             mutableStateOf(myList.copy())
          }
 
-         var userEdited by rememberSaveable(updatingStatus.status) {
-            mutableStateOf(updatingStatus.status != Resource.Status.Success)
+         var userEdited = rememberSaveable(updatingStatus.status) {
+            updatingStatus.status != Resource.Status.Success
          }
 
          LaunchedEffect(myList){
@@ -113,7 +129,6 @@ class MalAnimeDetailsRender(
                edits = myList.copy()
          }
 
-         val isRefreshing = callbacks.isRefreshing
          val pullToRefreshState = rememberPullToRefreshState()
          val isPullToRefreshedEnabled by derivedStateOf {
             pullToRefreshState.distanceFraction > 0F ||
@@ -122,7 +137,7 @@ class MalAnimeDetailsRender(
 
          Box(
             modifier = Modifier.pullToRefresh(
-               isRefreshing = isRefreshing,
+               isRefreshing = callbacks.isRefreshing,
                state = pullToRefreshState,
                enabled = isPullToRefreshedEnabled,
                onRefresh = {
@@ -144,11 +159,18 @@ class MalAnimeDetailsRender(
                   leftStat = "Score" to mean,
                   rightStat = "Rank" to rank,
                   mainPicture = mainPicture.large,
+                  pictureWidth = pictureWidth,
+                  pictureHeight = pictureHeight,
+                  yPictureOffset = yPictureOffset,
                   backgroundPicture = banner,
                   alternativeTitle = alternativeTitles.en,
                   colors = CardDefaults.cardColors(containerColor = cs.surfaceContainer),
                   contentPadding = PaddingValues(contentPadding),
                   modifier = Modifier.padding(horizontal = externalPadding),
+                  titleTextAutoSize = textAutoSize,
+                  alternativeTitleTextAutoSize = TextAutoSize.StepBased(
+                     8.sp, TitleStyle.fontSize * 0.9
+                     ),
                   debug = Debug
                ) {
 
@@ -156,80 +178,131 @@ class MalAnimeDetailsRender(
                      modifier = Modifier.animateContentSize()
                   ) {
 
-                     Row(verticalAlignment = Alignment.CenterVertically) {
+                     Row(
+                        modifier = Modifier.fillMaxWidth()
+                     ) {
+                        Row(
+                           verticalAlignment = Alignment.CenterVertically,
+                           horizontalArrangement = Arrangement.Center,
+                           modifier = Modifier.width(pictureWidth)
+                        ) {
+                           if (myList.status == MyList.Status.Unknown)
+                              Button(
+                                 onClick = {
+                                    edits = edits.copy(
+                                       status = MyList.Status.PlanToWatch
+                                    )
+                                    userEdited = myList != edits
+                                 }
+                              ) {
+                                 Text(
+                                    text = "Add to list",
+                                    style = TitleStyle.copy(color = cs.onPrimary)
+                                 )
+                              }
+                           else {
+                              val listStatus =
+                                 MyList.Status.entries.filter { it != MyList.Status.Unknown }
 
-                        if (myList.status == MyList.Status.Unknown)
-                           Button(
-                              onClick = {
+                              WheelPicker(
+                                 initialIndex = listStatus.indexOf(edits.status),
+                                 textAutoSize = textAutoSize,
+                                 behavior = object : WheelPickerBehavior {
+                                    override val size = listStatus.size
+                                    override fun getText(idx: Int) =
+                                       listStatus.getOrNull(idx)?.toText()
+
+                                    override fun getIndexOf(string: String) = -1
+                                 },
+                                 textStyle = TitleStyle,
+                                 wrapUpChoices = true,
+                                 enableTextFieldInput = false
+                              ) {
                                  edits = edits.copy(
-                                    status = MyList.Status.PlanToWatch
+                                    status = listStatus[it]
                                  )
                                  userEdited = myList != edits
                               }
-                           ) {
-                              Text(
-                                 text = "Add to list",
-                                 style = TitleStyle
-                              )
                            }
-                        else {
-                           val listStatus =
-                              MyList.Status.entries.filter { it != MyList.Status.Unknown }
+                        }
 
+                        Spacer(modifier = Modifier.weight(1F))
+
+                        Row(
+                           verticalAlignment = Alignment.CenterVertically,
+                           horizontalArrangement = Arrangement.Center
+                        ) {
                            WheelPicker(
-                              initialValue = edits.status.toText(),
-                              range = listStatus.map { it.toText() },
-                              textStyle = TitleStyle,
-                              wrapUpChoices = true,
-                              enableTextFieldInput = false
+                              edits.numEpisodesWatched,
+                              textAutoSize = textAutoSize,
+                              behavior = object : WheelPickerBehavior {
+                                 override val size =
+                                    if (numEpisodes != 0) numEpisodes + 1 else Int.MAX_VALUE
+
+                                 override fun getText(idx: Int) =
+                                    if (idx in 0..<size) "$idx" else null
+
+                                 override fun getIndexOf(string: String) = try {
+                                    val value = string.toInt()
+                                    if (value in 0..<size) value else -1
+                                 } catch (_: NumberFormatException) {
+                                    -1
+                                 }
+                              },
+                              textStyle = TitleStyle
                            ) {
+                              assert(it in 0..(if (numEpisodes != 0) numEpisodes else Int.MAX_VALUE))
                               edits = edits.copy(
-                                 status = listStatus[it]
+                                 numEpisodesWatched = it
                               )
                               userEdited = myList != edits
                            }
-                        }
 
-                        Spacer(modifier = Modifier.weight(1F))
-
-                        val epList = (0..numEpisodes).toList()
-                        WheelPicker(
-                           "${edits.numEpisodesWatched}",
-                           epList.map { "$it" },
-                           TitleStyle
-                        ) {
-                           edits = edits.copy(
-                              numEpisodesWatched = epList[it]
+                           Text(
+                              text = "/",
+                              style = TitleStyle,
+                              modifier = Modifier.padding(horizontal = 4.dp)
                            )
-                           userEdited = myList != edits
+                           Text(text = "$numEpisodes", style = TitleStyle)
                         }
 
-                        Text(
-                           text = "/",
-                           style = TitleStyle,
-                           modifier = Modifier.padding(horizontal = 4.dp)
-                        )
-                        Text(text = "$numEpisodes", style = TitleStyle)
+                        Spacer(modifier = Modifier.weight(2F))
 
-                        Spacer(modifier = Modifier.weight(1F))
-
-                        val scoreValues = (0..10).toList()
-                        WheelPicker(
-                           "${edits.score}",
-                           scoreValues.map { "$it" },
-                           TitleStyle
+                        Row(
+                           verticalAlignment = Alignment.CenterVertically,
+                           horizontalArrangement = Arrangement.Center
                         ) {
-                           edits = edits.copy(
-                              score = scoreValues[it]
+                           WheelPicker(
+                              initialIndex = edits.score,
+                              textAutoSize = textAutoSize,
+                              behavior = object : WheelPickerBehavior {
+                                 override val size = 11
+                                 override fun getText(idx: Int) =
+                                    if (idx in 0..<size) "$idx" else null
+
+                                 override fun getIndexOf(string: String) = try {
+                                    val value = string.toInt()
+                                    if (value in 0..<size) value else -1
+                                 } catch (_: NumberFormatException) {
+                                    -1
+                                 }
+                              },
+                              textStyle = TitleStyle
+                           ) {
+                              assert(it in 0..10)
+                              edits = edits.copy(
+                                 score = it
+                              )
+                              userEdited = myList != edits
+                           }
+                           Text(
+                              text = "/",
+                              style = TitleStyle,
+                              modifier = Modifier.padding(horizontal = 4.dp)
                            )
-                           userEdited = myList != edits
+                           Text(text = "10", style = TitleStyle)
                         }
-                        Text(
-                           text = "/",
-                           style = TitleStyle,
-                           modifier = Modifier.padding(horizontal = 4.dp)
-                        )
-                        Text(text = "10", style = TitleStyle)
+                        Spacer(modifier = Modifier.weight(1F))
                      }
 
                      if (myList != edits && userEdited) {
@@ -237,7 +310,7 @@ class MalAnimeDetailsRender(
                         OutlinedButton(
                            enabled = updatingStatus.status != Resource.Status.Loading,
                            onClick = {
-                              callbacks.onSave(media)
+                              callbacks.onSave(media.copy(myList = edits.copy()))
                            },
                            border = BorderStroke(2.dp, CS.primary)
                         ) {
@@ -346,7 +419,7 @@ class MalAnimeDetailsRender(
 
             Indicator(
                state = pullToRefreshState,
-               isRefreshing = isRefreshing,
+               isRefreshing = callbacks.isRefreshing,
                modifier = Modifier.align(Alignment.TopCenter)
             )
 
@@ -362,15 +435,24 @@ class MalAnimeDetailsRender(
 @Composable
 fun PreviewMalAnimeDetailsRender() {
 
-   val media = getMediaPreview().mapToMalAnimeDetails()
-
    AnyMeTheme {
-      MalAnimeDetailsRender(
-         media,
-         media.relatedAnime.map { MalRelatedItemRender(it) },
-         media.recommendations.map { MalRelatedItemRender(it) },
-         CallbacksBundle()
-      ).Compose()
+
+      val media = getMediaPreview().mapToMalAnimeDetails()
+
+      var render by remember {
+         mutableStateOf(
+            MalAnimeDetailsRender(
+               media,
+               media.relatedAnime.map { MalRelatedItemRender(it) },
+               media.recommendations.map { MalRelatedItemRender(it) },
+               CallbacksBundle(
+
+               )
+            )
+         )
+      }
+
+      render.Compose()
    }
 
 }

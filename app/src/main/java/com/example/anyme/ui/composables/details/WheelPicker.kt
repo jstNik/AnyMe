@@ -3,6 +3,7 @@ package com.example.anyme.ui.composables.details
 import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -22,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -39,7 +42,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,46 +71,58 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
 
+interface WheelPickerBehavior{
+
+   val size: Int
+   fun getText(idx: Int): String?
+   fun getIndexOf(string: String): Int
+}
+
 @Composable
 fun WheelPicker(
-   initialValue: String,
-   range: List<String>,
+   initialIndex: Int,
+   behavior: WheelPickerBehavior,
    textStyle: TextStyle,
+   textAutoSize: TextAutoSize? = null,
    wrapUpChoices: Boolean = false,
    enableTextFieldInput: Boolean = true,
    enableScrolling: Boolean = true,
    onItemSelection: (Int) -> Unit
 ) {
 
-   if(wrapUpChoices && range.isEmpty()) error("If the range is empty the picker can't wrap up")
+   if (wrapUpChoices && behavior.size == Int.MAX_VALUE) error("If the range is infinite the picker can't wrap up")
 
-   val half = Int.MAX_VALUE.shr(1) / range.size * range.size
+   val half = if(wrapUpChoices) Int.MAX_VALUE.shr(1) / behavior.size * behavior.size else 0
 
    // TODO Handle special cases like no numEps available and 0 eps watched
-   val initialIndex = rememberSaveable(initialValue) {
-      if(wrapUpChoices) half + range.indexOf(initialValue)
-      else range.indexOf(initialValue)
+   val initialIdx = rememberSaveable(initialIndex) {
+      if (wrapUpChoices) half + initialIndex
+      else initialIndex
    }
    val density = LocalDensity.current
    val focusManager = LocalFocusManager.current
    val keyboardController = LocalSoftwareKeyboardController.current
    val focusRequester = remember { FocusRequester() }
 
-   val arrowSize =  24.dp
+   val arrowSize = 24.dp
    var textHeight by remember { mutableStateOf(0.dp) }
    var boxWidth by remember { mutableStateOf(0.dp) }
    var alphaBasicFieldText by remember { mutableFloatStateOf(0F) }
    val arrowsPadding = 8.dp
 
    val coroutineScope = rememberCoroutineScope()
-   val lazyListState = rememberLazyListState(initialIndex)
+   val lazyListState = rememberLazyListState(initialIdx)
    val snapBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
    val layoutInfo by remember {
       derivedStateOf { lazyListState.layoutInfo }
    }
 
-   var selectedIndex by rememberSaveable(initialIndex) { mutableIntStateOf(initialIndex) }
-   var centralIndex by rememberSaveable(initialIndex) { mutableIntStateOf(initialIndex) }
+   var currentIndex by rememberSaveable(initialIdx) { mutableIntStateOf(initialIdx) }
+   val selectedIndex by remember {
+      derivedStateOf {
+         if (wrapUpChoices) currentIndex.mod(behavior.size) else currentIndex
+      }
+   }
    val padding by remember {
       derivedStateOf {
          val viewPortSize = with(density) { layoutInfo.viewportSize.height.toDp() }
@@ -116,9 +130,15 @@ fun WheelPicker(
          max(0.dp.value, res.value).dp
       }
    }
+   var basicFieldTextValue by remember(currentIndex) {
+      mutableStateOf("")
+   }
+   var labelText by remember(currentIndex){
+      mutableStateOf(behavior.getText(selectedIndex) ?: "")
+   }
 
    val onVerticalDrag: (PointerInputChange, Float) -> Unit = { _, amount ->
-      if(enableScrolling) {
+      if (enableScrolling && alphaBasicFieldText == 0F) {
          coroutineScope.launch {
             lazyListState.scrollBy(-amount)
          }
@@ -126,113 +146,102 @@ fun WheelPicker(
    }
 
    val onDragEnd: () -> Unit = {
-      if(enableScrolling) {
+      if (enableScrolling && alphaBasicFieldText == 0F) {
          coroutineScope.launch {
-            selectedIndex = centralIndex
-            Log.d("WheelPicker", "on drag end index: $centralIndex")
-            lazyListState.animateScrollToItem(centralIndex)
-            onItemSelection(centralIndex.mod(range.size))
-         }
-      }
-   }
-
-   LaunchedEffect(layoutInfo.viewportSize, initialIndex) {
-      Log.d("WheelPicker", "selected index: $initialIndex")
-      lazyListState.animateScrollToItem(initialIndex)
-   }
-
-   LaunchedEffect(lazyListState) {
-      snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
-         val visibleItems = layoutInfo.visibleItemsInfo
-         if (visibleItems.isEmpty()) return@collect
-         layoutInfo.visibleItemsInfo.minByOrNull {
-            val offset = it.offset.toFloat()
-            abs(offset + sign(offset) * it.size / 2F)
-         }?.let { centerItem ->
-            Log.d("WheelPicker", "central index: ${centerItem.index}")
-            centralIndex = centerItem.index
-         }
-      }
-   }
-
-   if(boxWidth == 0.dp)
-      Box(
-         modifier = Modifier.alpha(0F)
-      ){
-         TitleSection(
-            range.maxBy { it.length },
-            modifier = Modifier.onGloballyPositioned{
-               boxWidth = with(density) { it.size.width.toDp() }
+            lazyListState.layoutInfo.visibleItemsInfo.minByOrNull {
+               val offset = it.offset.toFloat()
+               abs(offset + sign(offset) * it.size / 2F)
+            }?.let {
+               currentIndex = it.index
+               lazyListState.animateScrollToItem(currentIndex)
+               if(wrapUpChoices)
+                  lazyListState.scrollToItem(half + selectedIndex)
+               onItemSelection(selectedIndex)
             }
-         )
-      }
+         }
 
-      Box(
-         contentAlignment = Alignment.Center,
+      }
+   }
+
+   LaunchedEffect(layoutInfo.viewportSize.height, initialIdx) {
+      coroutineScope.launch {
+         lazyListState.scrollToItem(initialIdx)
+      }
+   }
+
+   Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier
+         .height(arrowSize * 2 + arrowsPadding)
+   ) {
+
+      LazyColumn(
+         state = lazyListState,
+         flingBehavior = snapBehavior,
+         horizontalAlignment = Alignment.CenterHorizontally,
+         verticalArrangement = Arrangement.spacedBy((-8).dp),
+         userScrollEnabled = false,
+         contentPadding = PaddingValues(vertical = padding),
          modifier = Modifier
             .height(arrowSize * 2 + arrowsPadding)
+            .align(Alignment.Center)
+            .focusRequester(focusRequester)
+            .focusable()
       ) {
+         items(
+            count = if (wrapUpChoices || behavior.size == Int.MAX_VALUE) Int.MAX_VALUE else behavior.size,
+            key = { it },
+         ) { rawIdx ->
 
-         LazyColumn(
-            state = lazyListState,
-            flingBehavior = snapBehavior,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy((-8).dp),
-            userScrollEnabled = false,
-            contentPadding = PaddingValues(vertical = padding),
-            modifier = Modifier
-               .height(arrowSize * 2 + arrowsPadding)
-               .width(boxWidth)
-               .align(Alignment.Center)
-         ) {
-            items(
-               count = if (wrapUpChoices) Int.MAX_VALUE else range.size,
-               key = { it },
-            ) { rawIdx ->
+            val idx = rawIdx.mod(behavior.size)
 
-               val idx = rawIdx.mod(range.size)
+            val value = behavior.getText(idx)!!
 
-               val value = range[idx]
+            val (alpha, scale) = layoutInfo.visibleItemsInfo.find {
+               it.index.mod(behavior.size) == idx
+            }?.let { item ->
+               val distance = abs(item.offset.toFloat())
+               if (layoutInfo.viewportSize.height > 0) {
+                  val fraction = (distance * 2F / layoutInfo.viewportSize.height)
+                  val alphaFraction = (fraction * 2F).coerceIn(0F, 1F)
+                  val scaleFraction = (fraction * 1.25F).coerceIn(0F, 1F)
+                  lerp(1F, 0F, alphaFraction) to
+                          lerp(1F, 0F, scaleFraction)
+               } else null
+            } ?: (0F to 0F)
 
-               val (alpha, scale) = layoutInfo.visibleItemsInfo.find {
-                  it.index.mod(range.size) == idx
-               }?.let { item ->
-                  val distance = abs(item.offset.toFloat())
-                  if(layoutInfo.viewportSize.height > 0) {
-                     val fraction = (distance * 2F / layoutInfo.viewportSize.height)
-                     val alphaFraction = (fraction * 2F).coerceIn(0F, 1F)
-                     val scaleFraction = (fraction * 1.25F).coerceIn(0F, 1F)
-                     lerp(1F, 0F, alphaFraction) to
-                             lerp(1F, 0F, scaleFraction)
-                  } else null
-               } ?: (0F to 0F)
-
-               Text(
-                  text = value,
-                  style = textStyle,
-                  modifier = Modifier
-                     .onGloballyPositioned {
-                        if (selectedIndex.mod(range.size) == idx)
-                           textHeight = with(density) { it.size.height.toDp() }
+            Text(
+               text = value,
+               style = textStyle,
+               maxLines = 1,
+               autoSize = textAutoSize,
+               modifier = Modifier
+                  .onGloballyPositioned {
+                     if (currentIndex.mod(behavior.size) == idx) {
+                        textHeight = with(density) { it.size.height.toDp() }
+                        boxWidth = with(density) { it.size.width.toDp() }
                      }
-                     .alpha(
-                        if (selectedIndex.mod(range.size) != idx || alphaBasicFieldText == 0F)
-                           alpha else 0F
-                     )
-                     .scale(scale)
-               )
-            }
+                  }
+                  .alpha(
+                     if (currentIndex.mod(behavior.size) != idx || alphaBasicFieldText == 0F)
+                        alpha else 0F
+                  )
+                  .scale(scale)
+            )
          }
+      }
 
-         var basicFieldTextValue by remember(selectedIndex) {
-            mutableStateOf(range.getOrNull(selectedIndex.mod(range.size)) ?: "")
-         }
+      if(textHeight != 0.dp && boxWidth != 0.dp) {
 
          BasicTextField(
             value = basicFieldTextValue,
             onValueChange = {
                basicFieldTextValue = it
             },
+//            onTextLayout = { textLayout ->
+//               boxWidth = with(density) { textLayout.size.width.toDp() }
+//            },
+            maxLines = 1,
             enabled = enableTextFieldInput,
             textStyle = textStyle,
             keyboardOptions = KeyboardOptions(
@@ -242,46 +251,47 @@ fun WheelPicker(
             ),
             keyboardActions = KeyboardActions(
                onDone = {
-                  var scrollJob: Job? = null
 
-                  with(range.indexOf(basicFieldTextValue)) {
-                     val isElementFound = this in 0..<range.size
+                  with(behavior.getIndexOf(basicFieldTextValue)) {
+                     val isElementFound = this in 0..<behavior.size
 
-                     if (!wrapUpChoices && isElementFound) {
-                        selectedIndex = this
-                        this
-                     } else if (wrapUpChoices && isElementFound) {
-                        val offset = selectedIndex.mod(range.size)
-                        selectedIndex = half + this
-                        scrollJob = coroutineScope.launch {
-                           lazyListState.scrollToItem(half + offset)
-                        }
-                        this
+                     if (isElementFound) {
+                        currentIndex = if (wrapUpChoices) half + this else this
+                        currentIndex
                      } else {
-                        basicFieldTextValue = range[selectedIndex.mod(range.size)]
+                        basicFieldTextValue = behavior.getText(selectedIndex)!!
                         null
                      }
                   }?.let {
                      coroutineScope.launch {
-                        scrollJob?.join()
-                        lazyListState.scrollToItem(selectedIndex)
+                        lazyListState.scrollToItem(currentIndex)
                      }
-                     onItemSelection(it)
+                     focusManager.clearFocus()
+                     focusRequester.requestFocus()
+                     onItemSelection(selectedIndex)
                   }
-                  focusManager.clearFocus()
                }
             ),
             decorationBox = {
-               it()
+               if(basicFieldTextValue.isEmpty())
+                  Box(
+                     contentAlignment = Alignment.Center
+                  ) {
+                     Text(
+                        text = labelText,
+                        style = TitleStyle,
+                        modifier = Modifier.alpha(0.5F)
+                     )
+                  }
+               else it()
             },
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             modifier = Modifier
                .align(Alignment.Center)
-               .focusRequester(focusRequester)
                .animateContentSize()
                .padding(horizontal = 2.dp)
                .height(textHeight)
-               .width(boxWidth)
+//               .width(boxWidth)
                .alpha(alphaBasicFieldText)
                .onFocusChanged {
                   alphaBasicFieldText = if (!it.isFocused) {
@@ -296,92 +306,88 @@ fun WheelPicker(
                   )
                }
          )
-
-         Column {
-            Icon(
-               Icons.Outlined.KeyboardArrowUp,
-               null,
-               tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5F),
-               modifier = Modifier
-                  .size(arrowSize)
-                  .clip(CircleShape)
-                  .clickable {
-                     var scrollJob: Job? = null
-                     val newIndex =
-                        if (selectedIndex in 1..<range.size) {
-                           --selectedIndex
-                        } else if ((wrapUpChoices && selectedIndex in 1..Int.MAX_VALUE)) {
-                           (--selectedIndex).mod(range.size)
-                        } else if (wrapUpChoices) {
-                           val offset = (selectedIndex - 1).mod(range.size)
-                           selectedIndex = half + offset
-                           scrollJob = coroutineScope.launch {
-                              lazyListState.scrollToItem(selectedIndex + 1)
-                           }
-                           offset
-                        } else null
-
-                     newIndex?.let {
-                        coroutineScope.launch {
-                           scrollJob?.join()
-                           lazyListState.animateScrollToItem(selectedIndex)
-                        }
-                        onItemSelection(it)
-                     }
-                  }
-                  .pointerInput(Unit) {
-                     detectVerticalDragGestures(
-                        onVerticalDrag = onVerticalDrag,
-                        onDragEnd = onDragEnd
-                     )
-                  }
-            )
-
-            Spacer(Modifier.height(arrowsPadding))
-
-            Icon(
-               Icons.Outlined.KeyboardArrowDown,
-               null,
-               tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5F),
-               modifier = Modifier
-                  .size(arrowSize)
-                  .clip(CircleShape)
-                  .clickable {
-                     var scrollJob: Job? = null
-                     val newIndex =
-                        if (selectedIndex in 0..<(range.size - 1)) {
-                           ++selectedIndex
-                        } else if ((wrapUpChoices && selectedIndex in 0..<(Int.MAX_VALUE - 1))) {
-                           (++selectedIndex).mod(range.size)
-                        } else if (wrapUpChoices) {
-                           val offset = (selectedIndex + 1).mod(range.size)
-                           selectedIndex = half + offset
-                           scrollJob = coroutineScope.launch {
-                              lazyListState.scrollToItem(selectedIndex - 1)
-                           }
-                           offset
-                        } else null
-
-                     newIndex?.let {
-                        coroutineScope.launch {
-                           scrollJob?.join()
-                           lazyListState.animateScrollToItem(selectedIndex)
-                        }
-                        onItemSelection(it)
-                     }
-                  }
-                  .pointerInput(Unit) {
-                     detectVerticalDragGestures(
-                        onVerticalDrag = onVerticalDrag,
-                        onDragEnd = onDragEnd
-                     )
-                  }
-            )
-
-         }
       }
-//   }
 
+      Column {
+         Icon(
+            Icons.Outlined.KeyboardArrowUp,
+            null,
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5F),
+            modifier = Modifier
+               .size(arrowSize)
+               .clip(CircleShape)
+               .clickable {
+                  val newIndex =
+                     if (currentIndex in 1..<behavior.size) {
+                        --currentIndex
+                     } else if ((wrapUpChoices && currentIndex in 1..Int.MAX_VALUE)) {
+                        (--currentIndex).mod(behavior.size)
+                     } else if (wrapUpChoices) {
+                        val offset = (currentIndex - 1).mod(behavior.size)
+                        currentIndex = half + offset
+                        offset
+                     } else null
+
+                  newIndex?.let {
+                     coroutineScope.launch {
+                        if(wrapUpChoices)
+                           lazyListState.scrollToItem(currentIndex + 1)
+                        lazyListState.animateScrollToItem(currentIndex)
+                     }
+                     onItemSelection(selectedIndex)
+                  }
+                  focusManager.clearFocus()
+                  focusRequester.requestFocus()
+               }
+               .pointerInput(Unit) {
+                  detectVerticalDragGestures(
+                     onVerticalDrag = onVerticalDrag,
+                     onDragEnd = onDragEnd
+                  )
+               }
+
+         )
+
+         Spacer(Modifier.height(arrowsPadding))
+
+         Icon(
+            Icons.Outlined.KeyboardArrowDown,
+            null,
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5F),
+            modifier = Modifier
+               .size(arrowSize)
+               .clip(CircleShape)
+               .clickable {
+                  val newIdx = if (currentIndex in 0..<(behavior.size - 1)) {
+                     ++currentIndex
+                  } else if (wrapUpChoices) {
+                     val offset = (currentIndex + 1).mod(behavior.size)
+                     currentIndex = half + offset
+                     offset
+                  } else {
+                     null
+                  }
+                  newIdx?.let {
+                     coroutineScope.launch {
+                        if (wrapUpChoices)
+                           lazyListState.scrollToItem(currentIndex - 1)
+                        lazyListState.animateScrollToItem(currentIndex)
+                     }
+                     onItemSelection(selectedIndex)
+                  }
+                  focusManager.clearFocus()
+                  focusRequester.requestFocus()
+               }
+               .pointerInput(Unit) {
+                  detectVerticalDragGestures(
+                     onVerticalDrag = onVerticalDrag,
+                     onDragEnd = onDragEnd
+                  )
+               }
+         )
+
+      }
+   }
 }
 
 @Preview
@@ -395,10 +401,22 @@ fun PreviewWheelPicker() {
          modifier = Modifier.fillMaxSize()
       ) {
          WheelPicker(
-            "8",
-            (0..26).toList().map{ "$it" },
+            8,
+            object: WheelPickerBehavior{
+               override val size: Int = Int.MAX_VALUE
+
+               override fun getText(idx: Int): String? =
+                  if(idx in 0..<size) "$idx" else null
+
+               override fun getIndexOf(string: String): Int = try {
+                     val value = string.toInt()
+                  if(value in 0..<size) value else -1
+                  } catch (_: NumberFormatException) {
+                     -1
+                  }
+            },
             TitleStyle,
-            wrapUpChoices = true
+            wrapUpChoices = false
          ) {
 //            Log.d("Number Picker", "Item selected of index $it")
          }

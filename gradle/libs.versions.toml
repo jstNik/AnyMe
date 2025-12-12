@@ -1,6 +1,6 @@
 [versions]
 accompanistSwiperefresh = "0.36.0"
-agp = "8.13.1"
+agp = "8.13.2"
 appauth = "0.11.1"
 appcompat = "1.7.1"
 compose = "1.0.0-beta01"

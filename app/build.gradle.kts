@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.libs
-import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import java.util.Properties
 
 plugins {
@@ -45,8 +43,15 @@ android {
          )
       }
    }
+
+    compileOptions{
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
    kotlin{
-      jvmToolchain(21)
+      jvmToolchain(17)
    }
 
    buildFeatures {
