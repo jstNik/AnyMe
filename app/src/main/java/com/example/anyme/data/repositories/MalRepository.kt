@@ -30,6 +30,7 @@ import com.example.anyme.utils.Resource.Status
 import com.example.anyme.utils.getSeason
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.toLocalDataTime
+import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import com.example.type.MediaType
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,7 +48,6 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
-import com.example.anyme.data.repositories.Repository.RefreshingStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 
@@ -226,11 +226,10 @@ class MalRepository @Inject constructor(
             { it.media.id },
             { it.media }
          )
+         emit(animeMap.values.toList())
          offset = nextOffset(dataResponse.paging)
 
       } while (offset > 0)
-
-      emit(animeMap.values.toList())
 
       scraper.scrapeSeasonal(animeMap).forEach { (key, value) ->
          animeMap[key]?.let {

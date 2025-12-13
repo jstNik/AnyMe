@@ -5,9 +5,13 @@ import com.example.anyme.utils.MutexConcurrentHashMap
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import java.util.Calendar
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class BufferInterceptor(
-   private val queue: MutexConcurrentHashMap = MutexConcurrentHashMap()
+   private val queue: MutexConcurrentHashMap = MutexConcurrentHashMap(),
+   private val cooldown: Duration = 500.milliseconds
 ): Interceptor {
 
    override fun intercept(chain: Interceptor.Chain): Response {
@@ -21,15 +25,19 @@ class BufferInterceptor(
          Log.e("$e", "${e.message}", e)
          return Response.Builder()
             .message("Request cancelled because of an Interrupted Exception")
+            .code(401)
             .body("$e".toResponseBody(null))
             .build()
       }
       finally {
-         Thread {
-            try {
-               Thread.sleep(500)
-            } finally { mutex.release() }
-         }.start()
+         try {
+            Thread.sleep(
+               if(domain.contains("livechart"))
+               cooldown.inWholeMilliseconds * 1.5.toLong() else cooldown.inWholeMilliseconds
+            )
+         } finally {
+            mutex.release()
+         }
       }
    }
 }

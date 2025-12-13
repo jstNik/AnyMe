@@ -7,7 +7,7 @@ class MutexConcurrentHashMap(
 ): ConcurrentHashMap<String, Semaphore>() {
 
    override fun get(key: String): Semaphore {
-      var mutex =  super.get(key)
+      var mutex = super.get(key)
       if(mutex == null){
          mutex = Semaphore(1)
          this[key] = mutex

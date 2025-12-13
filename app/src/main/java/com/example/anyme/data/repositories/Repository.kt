@@ -8,13 +8,10 @@ import com.example.anyme.domain.dl.TypeRanking
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.local.db.OrderOption
 import com.example.anyme.utils.Resource
+import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import kotlinx.coroutines.flow.Flow
 
 interface Repository<T: Media, R: TypeRanking, L: ListStatus, O: OrderOption> {
-
-   enum class RefreshingStatus{
-      InitialRefreshing, Refreshing, NotRefreshing
-   }
 
    suspend fun downloadUserMediaList()
 

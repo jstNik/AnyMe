@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.anyme.data.repositories.Repository.RefreshingStatus
+import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import com.example.anyme.remote.Host
 import com.example.anyme.data.repositories.SettingsRepository
 import com.example.anyme.data.visitors.converters.ConverterVisitor

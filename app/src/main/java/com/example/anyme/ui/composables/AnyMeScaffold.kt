@@ -13,17 +13,15 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.anyme.ui.screens.DetailsScreen
 import com.example.anyme.ui.screens.ExploreScreen
 import com.example.anyme.ui.screens.SearchScreen
 import com.example.anyme.ui.screens.SeasonalScreen
 import com.example.anyme.ui.screens.UserListScreen
-import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.ui.theme.Pages
-import com.example.anyme.viewmodels.DetailsViewModel
+import com.example.anyme.ui.theme.Pages.Companion.DETAILS
 import com.example.anyme.viewmodels.DetailsViewModel.Companion.HOST_KEY
 import com.example.anyme.viewmodels.DetailsViewModel.Companion.MEDIA_KEY
 
@@ -66,7 +64,7 @@ fun AnyMeScaffold(
             }
          }
          composable(
-            route = "$Details/{${HOST_KEY}}/{${MEDIA_KEY}}",
+            route = "${DETAILS}/{${HOST_KEY}}/{${MEDIA_KEY}}",
             arguments = listOf(
                navArgument(HOST_KEY) { type = NavType.StringType },
                navArgument(MEDIA_KEY) { type = NavType.IntType }

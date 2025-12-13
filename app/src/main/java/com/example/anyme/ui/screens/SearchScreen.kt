@@ -12,22 +12,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.SwipeUpToRefresh
-import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
-import com.example.anyme.utils.Resource
+import com.example.anyme.ui.theme.Pages.Companion.DETAILS
 import com.example.anyme.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -61,12 +56,13 @@ fun SearchScreen(
 
          SwipeUpToRefresh(
             scrollableState = state,
+            isRefreshing = false,
             onRefresh = { },
-         ) { scrollableState ->
+         ) { ->
 
             LazyVerticalGrid(
                columns = GridCells.FixedSize(150.dp),
-               state = scrollableState,
+               state = state,
                horizontalArrangement = Arrangement.SpaceEvenly,
                modifier = Modifier
                   .fillMaxSize()
@@ -82,7 +78,7 @@ fun SearchScreen(
                ) { idx ->
                   lazyItems[idx]?.let { render ->
                      render.Compose {
-                        navigator.navigate("$Details/${render.media.host}/${render.media.id}")
+                        navigator.navigate("$DETAILS/${render.media.host}/${render.media.id}")
                      }
                   }
                }

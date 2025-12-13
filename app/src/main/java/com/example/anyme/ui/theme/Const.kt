@@ -11,8 +11,8 @@ import androidx.compose.material.icons.outlined.Search
 
 const val Debug = false
 
-val CS @Composable get() = MaterialTheme.colorScheme
-val Typo @Composable get() = MaterialTheme.typography
+val cs @Composable get() = MaterialTheme.colorScheme
+val typo @Composable get() = MaterialTheme.typography
 enum class Pages(
    val route: String,
    val label: String,
@@ -22,10 +22,22 @@ enum class Pages(
    List("list", "List", Icons.AutoMirrored.Outlined.FormatListBulleted, "My list"),
    Explore("explore", "Explore", Icons.Outlined.Explore, "Explore"),
    Search("search", "Search", Icons.Outlined.Search, "Search"),
-   Calendar("calendar", "Calendar", Icons.Outlined.CalendarMonth, "Calendar"),;
+   Calendar("calendar", "Calendar", Icons.Outlined.CalendarMonth, "Calendar");
    //   Profile("Profile", Icons.Outlined.Person, "Profile")
+
+   companion object {
+      val DETAILS = "details"
+   }
 
 }
 
-const val Details = "details"
+val realGenres = sortedSetOf(1, 2, 5, 46, 28, 4, 8, 10, 26, 47, 14, 7, 22, 24, 36, 30, 37, 41)
+val explicitGenres = sortedSetOf(9, 49, 12)
+val demographics = sortedSetOf(43, 15, 42, 25, 27)
+val themes = sortedSetOf(
+   50, 51, 52, 53, 54, 81, 55, 39, 56, 57, 58, 35, 59, 13, 60, 61, 62, 63, 64, 74, 65, 66, 17, 18,
+   67, 38, 19, 6, 68, 69, 20, 70, 71, 40, 3, 72, 73, 21, 23, 75, 29, 11, 31, 76, 77, 78, 82, 32, 79,
+   83, 80, 48
+)
+
 

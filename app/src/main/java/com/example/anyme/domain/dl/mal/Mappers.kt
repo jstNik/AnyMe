@@ -111,6 +111,10 @@ fun MalAnime.mapToMalSeasonalListItem(): MalSeasonalListItem {
       endDate = endDateTime,
       htmlNextEp = nextEp.number,
       htmlReleaseDate = nextEp.releaseDate,
+      mean = mean,
+      listStatus = myList.status,
+      synopsis = synopsis,
+      genres = genres,
       host = host
    )
 }

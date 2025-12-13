@@ -16,15 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.example.anyme.ui.composables.AnimatedTabRow
-import com.example.anyme.ui.composables.AnyMeScaffold
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
-import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
+import com.example.anyme.ui.theme.Pages.Companion.DETAILS
 import com.example.anyme.utils.Resource
 import com.example.anyme.utils.shift
+import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import com.example.anyme.viewmodels.SeasonalViewModel
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
@@ -47,10 +46,10 @@ fun SeasonalScreen(
    ) {
 
       val today by viewModel.today.collectAsStateWithLifecycle()
-      val weekDays by remember(today) {
+      val weekDays by remember {
          derivedStateOf {
             val weekDay = today.dayOfWeek.ordinal
-            DayOfWeek.entries.shift(weekDay).mapIndexed { idx, item ->
+            DayOfWeek.entries.shift(weekDay).mapIndexed { idx, _ ->
                today.date.plus(DatePeriod(days = idx))
             }
          }
@@ -58,8 +57,9 @@ fun SeasonalScreen(
       var chosenDate by remember(today) { mutableStateOf(weekDays[0]) }
       val labels = weekDays.map { it.dayOfWeek.name.lowercase() + " ${it.dayOfMonth}" }
       val lazyListState = rememberLazyListState()
-      val resource by viewModel.seasonalAnimes.collectAsStateWithLifecycle()
+      val resource by viewModel.seasonalMedia.collectAsStateWithLifecycle()
       var currentTime: LocalTime? = null
+      val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
       when(resource.status){
          Resource.Status.Success -> {
@@ -77,12 +77,13 @@ fun SeasonalScreen(
             }
 
             SwipeUpToRefresh(
-               lazyListState,
-               onRefresh = { }
-            ) { scrollableState ->
+               scrollableState = lazyListState,
+               isRefreshing = isRefreshing == RefreshingStatus.Refreshing,
+               onRefresh = { viewModel.refresh() }
+            ) {
 
                LazyColumnList(
-                  lazyColumnState = scrollableState,
+                  lazyColumnState = lazyListState,
                   listSize = { seasonals.size },
                   getElement = { seasonals.getOrNull(it) },
                   key = {
@@ -92,7 +93,7 @@ fun SeasonalScreen(
                      else
                         (-it - 1)
                   },
-                  divisor = { idx, render ->
+                  divisor = { _, render ->
                      val media = render.media
                      media.getDateTimeNextEp()?.let { releaseDate ->
 
@@ -107,14 +108,14 @@ fun SeasonalScreen(
                         }
                      }
                   }
-               ) { idx, render ->
+               ) { _, render ->
 
                   val media = render.media
 
                   media.getDateTimeNextEp()?.let { releaseDate ->
                      if (releaseDate.dateTime.date == chosenDate)
                         render.Compose {
-                           navigator.navigate("$Details/${media.host}/${media.id}")
+                           navigator.navigate("$DETAILS/${media.host}/${media.id}")
                         }
                   }
                }

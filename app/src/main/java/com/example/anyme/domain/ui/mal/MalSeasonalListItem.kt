@@ -6,7 +6,9 @@ import com.example.anyme.data.visitors.converters.ConverterVisitor
 import com.example.anyme.data.visitors.renders.CallbacksBundle
 import com.example.anyme.data.visitors.renders.ListItemRenderAcceptor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
+import com.example.anyme.domain.dl.mal.Genre
 import com.example.anyme.domain.dl.mal.MainPicture
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
@@ -26,6 +28,10 @@ data class MalSeasonalListItem(
    val endDate: OffsetDateTime? = null,
    val htmlNextEp: Int = 0,
    val htmlReleaseDate: OffsetDateTime? = null,
+   val mean: Double = 0.0,
+   val synopsis: String = "",
+   val genres: List<Genre> = emptyList(),
+   val listStatus: MyList.Status = MyList.Status.Unknown,
    override val host: Host = Host.Unknown
 ): MediaUi, ListItemRenderAcceptor {
 

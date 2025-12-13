@@ -109,7 +109,7 @@ interface MalApi {
          MalAnime::relatedAnime.name to "related_anime"
       )
 
-      private fun getFieldName(parameterName: String) =
+      fun getFieldName(parameterName: String) =
          API_FIELD_MAP[parameterName] ?: parameterName
 
       private val BASIC_FIELDS = setOf(
@@ -155,7 +155,10 @@ interface MalApi {
          MalAnime::mean,
          MalAnime::endDate,
          MalAnime::startDate,
-         MalAnime::broadcast
+         MalAnime::broadcast,
+         MalAnime::synopsis,
+         MalAnime::genres,
+         MalAnime::myList
       )
       val DETAILS_FIELDS = BASIC_FIELDS + setOf(
          MalAnime::alternativeTitles,

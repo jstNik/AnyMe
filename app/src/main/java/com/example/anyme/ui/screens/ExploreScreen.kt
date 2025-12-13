@@ -17,8 +17,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.data.repositories.MalRepository.MalRankingTypes
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
-import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
+import com.example.anyme.ui.theme.Pages.Companion.DETAILS
 import com.example.anyme.viewmodels.ExploreViewModel
 
 @Composable
@@ -41,11 +41,12 @@ fun ExploreScreen(
    ) {
 
       SwipeUpToRefresh(
-         lazyColumState
-      ) { scrollableState ->
+         lazyColumState,
+         isRefreshing = false
+      ) {
 
          LazyColumnList(
-            lazyColumnState = scrollableState,
+            lazyColumnState = lazyColumState,
             listSize = { rankingLists.size },
             getElement = { rankingLists.getOrNull(it)?.second },
             key = { it },
@@ -80,7 +81,7 @@ fun ExploreScreen(
 
                      val render = lazyItems[rowIdx]
                      render?.Compose {
-                        val route = "$Details/${render.media.host}/${render.media.id}"
+                        val route = "$DETAILS/${render.media.host}/${render.media.id}"
                         navigator.navigate(route)
                      }
 

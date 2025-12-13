@@ -1,7 +1,6 @@
 package com.example.anyme.ui.renders.mal
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,26 +30,21 @@ import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.anyme.data.visitors.renders.CallbacksBundle
 import com.example.anyme.domain.dl.mal.AlternativeTitles
@@ -59,6 +53,7 @@ import com.example.anyme.domain.dl.mal.MalAnime.AiringStatus
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
+import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.composables.details.GeneralInfoCard
 import com.example.anyme.ui.composables.details.WheelPicker
 import com.example.anyme.ui.composables.details.RelatedMediaCard
@@ -68,14 +63,10 @@ import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaDetailsRender
 import com.example.anyme.ui.theme.AnyMeTheme
-import com.example.anyme.ui.theme.CS
-import com.example.anyme.ui.theme.Details
 import com.example.anyme.ui.theme.LocalNavHostController
+import com.example.anyme.ui.theme.Pages.Companion.DETAILS
 import com.example.anyme.ui.theme.TitleStyle
 import com.example.anyme.utils.Resource
-import com.example.anyme.viewmodels.DetailsViewModel
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.TimeZone
 
 class MalAnimeDetailsRender(
@@ -129,21 +120,12 @@ class MalAnimeDetailsRender(
                edits = myList.copy()
          }
 
-         val pullToRefreshState = rememberPullToRefreshState()
-         val isPullToRefreshedEnabled by derivedStateOf {
-            pullToRefreshState.distanceFraction > 0F ||
-               !scrollState.isScrollInProgress && !scrollState.canScrollBackward
-         }
 
-         Box(
-            modifier = Modifier.pullToRefresh(
-               isRefreshing = callbacks.isRefreshing,
-               state = pullToRefreshState,
-               enabled = isPullToRefreshedEnabled,
-               onRefresh = {
-                  callbacks.onRefresh(media)
-               }
-            )
+
+         SwipeUpToRefresh(
+            scrollableState = scrollState,
+            isRefreshing = callbacks.isRefreshing,
+            onRefresh = { callbacks.onRefresh(media) }
          ) {
 
             Column(
@@ -312,7 +294,7 @@ class MalAnimeDetailsRender(
                            onClick = {
                               callbacks.onSave(media.copy(myList = edits.copy()))
                            },
-                           border = BorderStroke(2.dp, CS.primary)
+                           border = BorderStroke(2.dp, cs.primary)
                         ) {
                            Box(
                               contentAlignment = Alignment.Center,
@@ -410,18 +392,12 @@ class MalAnimeDetailsRender(
                      modifier = Modifier.padding(horizontal = externalPadding)
                   ) { _, it ->
                      it.Compose {
-                        navigator.navigate("$Details/${it.media.host}/${it.media.id}")
+                        navigator.navigate("$DETAILS/${it.media.host}/${it.media.id}")
                      }
                   }
                   Spacer(Modifier.height(externalPadding))
                }
             }
-
-            Indicator(
-               state = pullToRefreshState,
-               isRefreshing = callbacks.isRefreshing,
-               modifier = Modifier.align(Alignment.TopCenter)
-            )
 
          }
       }

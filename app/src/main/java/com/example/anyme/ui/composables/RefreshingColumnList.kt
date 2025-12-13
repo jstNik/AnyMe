@@ -3,6 +3,8 @@ package com.example.anyme.ui.composables
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -11,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -21,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -30,32 +35,38 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun <T: ScrollableState> SwipeUpToRefresh(
    scrollableState: T,
+   isRefreshing: Boolean,
    onRefresh: () -> Unit = { },
-   content: @Composable (T) -> Unit
+   pullToRefreshState: PullToRefreshState = rememberPullToRefreshState(),
+   enabled: Boolean = true,
+   indicator: @Composable BoxScope.() -> Unit = {
+      Indicator(
+         state = pullToRefreshState,
+         isRefreshing = isRefreshing,
+         modifier = Modifier.align(Alignment.TopCenter)
+      )
+   },
+   content: @Composable () -> Unit
 ){
-   var isRefreshing by remember { mutableStateOf(false) }
-   val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
-   val isSwipeEnabled by derivedStateOf {
-      !scrollableState.canScrollBackward && !scrollableState.isScrollInProgress
-         || swipeRefreshState.isSwipeInProgress
+
+   val isPullToRefreshedEnabled by derivedStateOf {
+      val res = pullToRefreshState.distanceFraction > 0F ||
+              !scrollableState.isScrollInProgress && !scrollableState.canScrollBackward
+      Log.d("Refreshing", "$res")
+      res
    }
 
-
-   LaunchedEffect(isRefreshing) {
-      if (isRefreshing) {
-         onRefresh.invoke()
-         isRefreshing = false
-      }
+   Box(
+      modifier = Modifier.pullToRefresh(
+         isRefreshing = isRefreshing,
+         state = pullToRefreshState,
+         enabled = enabled && isPullToRefreshedEnabled,
+         onRefresh = onRefresh
+      )
+   ){
+      content()
+      indicator()
    }
-
-   SwipeRefresh(
-      state = swipeRefreshState,
-      swipeEnabled = isSwipeEnabled,
-      onRefresh = {
-         isRefreshing = true
-      },
-      content = { content(scrollableState) }
-   )
 }
 
 @Composable

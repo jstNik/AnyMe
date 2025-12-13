@@ -13,25 +13,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.placeholder
-import com.example.anyme.R
 import com.example.anyme.domain.dl.Media
-import com.example.anyme.domain.dl.mal.MainPicture
 import com.example.anyme.domain.dl.mal.mapToMalAnimeListItem
 import com.example.anyme.domain.ui.mal.MalUserListItem
 import com.example.anyme.ui.renders.MediaListItemRender
@@ -48,10 +47,16 @@ fun ListEntry(
    colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
    imageIdealRatio: Double = IMAGE_IDEAL_RATIO,
    roundedCornerSize: Dp = 16.dp,
+   titleAutoSize: TextAutoSize? = null,
+   titleStyle: TextStyle = LocalTextStyle.current,
+   maxLines: Int = 2,
    onClick: () -> Unit = { },
    overImageContent: @Composable BoxScope.() -> Unit = { },
    content: @Composable ColumnScope.() -> Unit
 ) {
+
+   val typo = MaterialTheme.typography
+   val cs = MaterialTheme.colorScheme
 
    Card(
       colors = colors,
@@ -98,11 +103,10 @@ fun ListEntry(
 
             Text(
                media.title,
-               color = MaterialTheme.colorScheme.primary,
-               fontWeight = FontWeight.Bold,
-               maxLines = 2,
-               overflow = TextOverflow.Ellipsis,
-               modifier = Modifier.fillMaxWidth()
+               style = titleStyle,
+               maxLines = maxLines,
+               autoSize = titleAutoSize,
+               overflow = TextOverflow.Ellipsis
             )
             content()
          }

@@ -17,7 +17,7 @@ open class HtmlScraper @Inject constructor(
    private val networkManager: JsoupHtmlCacher
 ) {
 
-   private val seasonalUrl = URL("https://www.livechart.me/schedule")
+   private val seasonalUrl = "https://www.livechart.me/schedule"
 
    suspend fun scrapeEpisodesType(malAnime: MalAnime): MalAnime {
       val url = """
@@ -26,7 +26,7 @@ open class HtmlScraper @Inject constructor(
          &as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=all&as_sitesearch=animefillerlist.com&as_occt=any&as_filetype=&tbs=
       """.replace("\n", "").replace(" ", "")
 
-      val html = networkManager.getHtml(URL(url))
+      val html = networkManager.getHtml(url)
 
       val episodesList = html.select("a").filter { element ->
          element.attr("href").startsWith("https://www.animefillerlist.com") &&
@@ -117,7 +117,7 @@ open class HtmlScraper @Inject constructor(
                "https://www.livechart.me/${malAnime.season.season}-${malAnime.season.year}/all"
       }
 
-      val liveChart = networkManager.getHtml(URL(link)).select("article.anime")
+      val liveChart = networkManager.getHtml(link).select("article.anime")
       val article = liveChart.first { article ->
          article.select(".mal-icon").attr("href")
             .substringAfter("https://myanimelist.net/anime/")
