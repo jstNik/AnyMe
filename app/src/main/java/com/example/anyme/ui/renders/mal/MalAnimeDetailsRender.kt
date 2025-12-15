@@ -58,7 +58,6 @@ import com.example.anyme.ui.composables.details.GeneralInfoCard
 import com.example.anyme.ui.composables.details.WheelPicker
 import com.example.anyme.ui.composables.details.RelatedMediaCard
 import com.example.anyme.ui.composables.details.TitleCard
-import com.example.anyme.ui.composables.details.WheelPickerBehavior
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaDetailsRender
@@ -189,13 +188,9 @@ class MalAnimeDetailsRender(
                               WheelPicker(
                                  initialIndex = listStatus.indexOf(edits.status),
                                  textAutoSize = textAutoSize,
-                                 behavior = object : WheelPickerBehavior {
-                                    override val size = listStatus.size
-                                    override fun getText(idx: Int) =
-                                       listStatus.getOrNull(idx)?.toText()
-
-                                    override fun getIndexOf(string: String) = -1
-                                 },
+                                 size = listStatus.size,
+                                 getText = { listStatus.getOrNull(it)?.toText() },
+                                 getIndexOf = { -1 },
                                  textStyle = TitleStyle,
                                  wrapUpChoices = true,
                                  enableTextFieldInput = false
@@ -214,18 +209,15 @@ class MalAnimeDetailsRender(
                            verticalAlignment = Alignment.CenterVertically,
                            horizontalArrangement = Arrangement.Center
                         ) {
+                           val size = if (numEpisodes != 0) numEpisodes + 1 else Int.MAX_VALUE
                            WheelPicker(
                               edits.numEpisodesWatched,
                               textAutoSize = textAutoSize,
-                              behavior = object : WheelPickerBehavior {
-                                 override val size =
-                                    if (numEpisodes != 0) numEpisodes + 1 else Int.MAX_VALUE
-
-                                 override fun getText(idx: Int) =
-                                    if (idx in 0..<size) "$idx" else null
-
-                                 override fun getIndexOf(string: String) = try {
-                                    val value = string.toInt()
+                              size = size,
+                              getText = { if (it in 0..<size) "$it" else null },
+                              getIndexOf = {
+                                 try {
+                                    val value = it.toInt()
                                     if (value in 0..<size) value else -1
                                  } catch (_: NumberFormatException) {
                                     -1
@@ -254,16 +246,15 @@ class MalAnimeDetailsRender(
                            verticalAlignment = Alignment.CenterVertically,
                            horizontalArrangement = Arrangement.Center
                         ) {
+                           val size = 11
                            WheelPicker(
                               initialIndex = edits.score,
                               textAutoSize = textAutoSize,
-                              behavior = object : WheelPickerBehavior {
-                                 override val size = 11
-                                 override fun getText(idx: Int) =
-                                    if (idx in 0..<size) "$idx" else null
-
-                                 override fun getIndexOf(string: String) = try {
-                                    val value = string.toInt()
+                              size = size,
+                              getText = { if (it in 0..<size) "$it" else null },
+                              getIndexOf = {
+                                 try {
+                                    val value = it.toInt()
                                     if (value in 0..<size) value else -1
                                  } catch (_: NumberFormatException) {
                                     -1

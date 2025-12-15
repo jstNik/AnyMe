@@ -63,6 +63,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.ui.theme.TitleStyle
 import kotlinx.coroutines.Job
@@ -71,17 +72,12 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
 
-interface WheelPickerBehavior{
-
-   val size: Int
-   fun getText(idx: Int): String?
-   fun getIndexOf(string: String): Int
-}
-
 @Composable
 fun WheelPicker(
    initialIndex: Int,
-   behavior: WheelPickerBehavior,
+   size: Int,
+   getText: (Int) -> String?,
+   getIndexOf: (String) -> Int,
    textStyle: TextStyle,
    textAutoSize: TextAutoSize? = null,
    wrapUpChoices: Boolean = false,
@@ -90,9 +86,9 @@ fun WheelPicker(
    onItemSelection: (Int) -> Unit
 ) {
 
-   if (wrapUpChoices && behavior.size == Int.MAX_VALUE) error("If the range is infinite the picker can't wrap up")
+   if (wrapUpChoices && size == Int.MAX_VALUE) error("If the range is infinite the picker can't wrap up")
 
-   val half = if(wrapUpChoices) Int.MAX_VALUE.shr(1) / behavior.size * behavior.size else 0
+   val half = if(wrapUpChoices) Int.MAX_VALUE.shr(1) / size * size else 0
 
    // TODO Handle special cases like no numEps available and 0 eps watched
    val initialIdx = rememberSaveable(initialIndex) {
@@ -108,7 +104,7 @@ fun WheelPicker(
    var textHeight by remember { mutableStateOf(0.dp) }
    var boxWidth by remember { mutableStateOf(0.dp) }
    var alphaBasicFieldText by remember { mutableFloatStateOf(0F) }
-   val arrowsPadding = 8.dp
+   val arrowsPadding = 12.dp
 
    val coroutineScope = rememberCoroutineScope()
    val lazyListState = rememberLazyListState(initialIdx)
@@ -118,11 +114,7 @@ fun WheelPicker(
    }
 
    var currentIndex by rememberSaveable(initialIdx) { mutableIntStateOf(initialIdx) }
-   val selectedIndex by remember {
-      derivedStateOf {
-         if (wrapUpChoices) currentIndex.mod(behavior.size) else currentIndex
-      }
-   }
+
    val padding by remember {
       derivedStateOf {
          val viewPortSize = with(density) { layoutInfo.viewportSize.height.toDp() }
@@ -134,7 +126,7 @@ fun WheelPicker(
       mutableStateOf("")
    }
    var labelText by remember(currentIndex){
-      mutableStateOf(behavior.getText(selectedIndex) ?: "")
+      mutableStateOf(getText(currentIndex.mod(size)) ?: "")
    }
 
    val onVerticalDrag: (PointerInputChange, Float) -> Unit = { _, amount ->
@@ -152,10 +144,13 @@ fun WheelPicker(
                val offset = it.offset.toFloat()
                abs(offset + sign(offset) * it.size / 2F)
             }?.let {
-               currentIndex = it.index
-               lazyListState.animateScrollToItem(currentIndex)
-               if(wrapUpChoices)
-                  lazyListState.scrollToItem(half + selectedIndex)
+               val selectedIndex = (it.index).mod(size)
+               lazyListState.animateScrollToItem(it.index)
+               if(wrapUpChoices) {
+                  val newIdx = half + selectedIndex
+                  lazyListState.scrollToItem(newIdx)
+                  currentIndex = newIdx
+               } else currentIndex = selectedIndex
                onItemSelection(selectedIndex)
             }
          }
@@ -170,9 +165,7 @@ fun WheelPicker(
    }
 
    Box(
-      contentAlignment = Alignment.Center,
-      modifier = Modifier
-         .height(arrowSize * 2 + arrowsPadding)
+      contentAlignment = Alignment.Center
    ) {
 
       LazyColumn(
@@ -189,16 +182,16 @@ fun WheelPicker(
             .focusable()
       ) {
          items(
-            count = if (wrapUpChoices || behavior.size == Int.MAX_VALUE) Int.MAX_VALUE else behavior.size,
+            count = if (wrapUpChoices || size == Int.MAX_VALUE) Int.MAX_VALUE else size,
             key = { it },
          ) { rawIdx ->
 
-            val idx = rawIdx.mod(behavior.size)
+            val idx = rawIdx.mod(size)
 
-            val value = behavior.getText(idx)!!
+            val value = getText(idx)!!
 
             val (alpha, scale) = layoutInfo.visibleItemsInfo.find {
-               it.index.mod(behavior.size) == idx
+               it.index.mod(size) == idx
             }?.let { item ->
                val distance = abs(item.offset.toFloat())
                if (layoutInfo.viewportSize.height > 0) {
@@ -217,13 +210,13 @@ fun WheelPicker(
                autoSize = textAutoSize,
                modifier = Modifier
                   .onGloballyPositioned {
-                     if (currentIndex.mod(behavior.size) == idx) {
+                     if (currentIndex.mod(size) == idx) {
                         textHeight = with(density) { it.size.height.toDp() }
                         boxWidth = with(density) { it.size.width.toDp() }
                      }
                   }
                   .alpha(
-                     if (currentIndex.mod(behavior.size) != idx || alphaBasicFieldText == 0F)
+                     if (currentIndex.mod(size) != idx || alphaBasicFieldText == 0F)
                         alpha else 0F
                   )
                   .scale(scale)
@@ -252,24 +245,25 @@ fun WheelPicker(
             keyboardActions = KeyboardActions(
                onDone = {
 
-                  with(behavior.getIndexOf(basicFieldTextValue)) {
-                     val isElementFound = this in 0..<behavior.size
+                  val listIdx = getIndexOf(basicFieldTextValue)
+                  val isElementFound = listIdx in 0..<size
+                  val newIdx = if (isElementFound) {
+                     if (wrapUpChoices) half + listIdx else listIdx
+                  } else {
+                     basicFieldTextValue = getText(currentIndex.mod(size))!!
+                     null
+                  }
 
-                     if (isElementFound) {
-                        currentIndex = if (wrapUpChoices) half + this else this
-                        currentIndex
-                     } else {
-                        basicFieldTextValue = behavior.getText(selectedIndex)!!
-                        null
-                     }
-                  }?.let {
+                  newIdx?.let {
+                     currentIndex = newIdx
                      coroutineScope.launch {
                         lazyListState.scrollToItem(currentIndex)
                      }
                      focusManager.clearFocus()
                      focusRequester.requestFocus()
-                     onItemSelection(selectedIndex)
+                     onItemSelection(currentIndex.mod(size))
                   }
+
                }
             ),
             decorationBox = {
@@ -291,7 +285,6 @@ fun WheelPicker(
                .animateContentSize()
                .padding(horizontal = 2.dp)
                .height(textHeight)
-//               .width(boxWidth)
                .alpha(alphaBasicFieldText)
                .onFocusChanged {
                   alphaBasicFieldText = if (!it.isFocused) {
@@ -317,24 +310,21 @@ fun WheelPicker(
                .size(arrowSize)
                .clip(CircleShape)
                .clickable {
-                  val newIndex =
-                     if (currentIndex in 1..<behavior.size) {
-                        --currentIndex
-                     } else if ((wrapUpChoices && currentIndex in 1..Int.MAX_VALUE)) {
-                        (--currentIndex).mod(behavior.size)
+                  val selectedIndex =
+                     if (currentIndex in 1..<size) {
+                        currentIndex - 1
                      } else if (wrapUpChoices) {
-                        val offset = (currentIndex - 1).mod(behavior.size)
-                        currentIndex = half + offset
-                        offset
+                        (currentIndex - 1).mod(size)
                      } else null
 
-                  newIndex?.let {
+                  selectedIndex?.let {
                      coroutineScope.launch {
-                        if(wrapUpChoices)
-                           lazyListState.scrollToItem(currentIndex + 1)
-                        lazyListState.animateScrollToItem(currentIndex)
+                        if (wrapUpChoices)
+                           lazyListState.scrollToItem(half + it + 1)
+                        lazyListState.animateScrollToItem(half + it)
                      }
-                     onItemSelection(selectedIndex)
+                     currentIndex = if(wrapUpChoices) half + selectedIndex else selectedIndex
+                     onItemSelection(it)
                   }
                   focusManager.clearFocus()
                   focusRequester.requestFocus()
@@ -358,22 +348,21 @@ fun WheelPicker(
                .size(arrowSize)
                .clip(CircleShape)
                .clickable {
-                  val newIdx = if (currentIndex in 0..<(behavior.size - 1)) {
-                     ++currentIndex
+                  val selectedIndex = if (currentIndex in 0..<(size - 1)) {
+                     currentIndex + 1
                   } else if (wrapUpChoices) {
-                     val offset = (currentIndex + 1).mod(behavior.size)
-                     currentIndex = half + offset
-                     offset
+                     (currentIndex + 1).mod(size)
                   } else {
                      null
                   }
-                  newIdx?.let {
+                  selectedIndex?.let {
                      coroutineScope.launch {
                         if (wrapUpChoices)
-                           lazyListState.scrollToItem(currentIndex - 1)
-                        lazyListState.animateScrollToItem(currentIndex)
+                           lazyListState.scrollToItem(half + it - 1)
+                        lazyListState.animateScrollToItem(half + it)
                      }
-                     onItemSelection(selectedIndex)
+                     currentIndex = if(wrapUpChoices) half + selectedIndex else selectedIndex
+                     onItemSelection(it)
                   }
                   focusManager.clearFocus()
                   focusRequester.requestFocus()
@@ -400,25 +389,19 @@ fun PreviewWheelPicker() {
          verticalArrangement = Arrangement.Center,
          modifier = Modifier.fillMaxSize()
       ) {
+         val listStatus =
+            MyList.Status.entries.filter { it != MyList.Status.Unknown }
+
          WheelPicker(
-            8,
-            object: WheelPickerBehavior{
-               override val size: Int = Int.MAX_VALUE
-
-               override fun getText(idx: Int): String? =
-                  if(idx in 0..<size) "$idx" else null
-
-               override fun getIndexOf(string: String): Int = try {
-                     val value = string.toInt()
-                  if(value in 0..<size) value else -1
-                  } catch (_: NumberFormatException) {
-                     -1
-                  }
-            },
-            TitleStyle,
-            wrapUpChoices = false
+            initialIndex = listStatus.indexOf(MyList.Status.Dropped),
+            size = listStatus.size,
+            getText = { listStatus.getOrNull(it)?.toText() },
+            getIndexOf = { -1 },
+            textStyle = TitleStyle,
+            wrapUpChoices = true,
+            enableTextFieldInput = false
          ) {
-//            Log.d("Number Picker", "Item selected of index $it")
+            Log.d("WheelPicker", "Item selected of index $it: ${listStatus[it]}")
          }
       }
    }

@@ -50,9 +50,12 @@ fun <T: ScrollableState> SwipeUpToRefresh(
 ){
 
    val isPullToRefreshedEnabled by derivedStateOf {
+      val distance = pullToRefreshState.distanceFraction
+      val scrollInProgress = scrollableState.isScrollInProgress
+      val scrollBackwards = scrollableState.canScrollBackward
       val res = pullToRefreshState.distanceFraction > 0F ||
               !scrollableState.isScrollInProgress && !scrollableState.canScrollBackward
-      Log.d("Refreshing", "$res")
+      Log.d("Refreshing", "$res = $distance > 0F || !$scrollInProgress && !$scrollBackwards")
       res
    }
 
