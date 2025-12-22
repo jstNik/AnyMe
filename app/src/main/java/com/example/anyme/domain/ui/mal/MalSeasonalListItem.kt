@@ -13,10 +13,10 @@ import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.getDateOfNext
-import kotlinx.datetime.Instant
+import com.example.anyme.utils.time.OffsetWeekTime
+import com.example.anyme.utils.time.toLocalDataTime
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import java.util.Calendar
 
 @Immutable
@@ -26,6 +26,7 @@ data class MalSeasonalListItem(
    override val mainPicture: MainPicture = MainPicture(),
    val startDate: OffsetDateTime? = null,
    val endDate: OffsetDateTime? = null,
+   val broadcast: OffsetWeekTime? = null,
    val htmlNextEp: Int = 0,
    val htmlReleaseDate: OffsetDateTime? = null,
    val mean: Double = 0.0,
@@ -36,6 +37,8 @@ data class MalSeasonalListItem(
 ): MediaUi, ListItemRenderAcceptor {
 
    fun getDateTimeNextEp(): OffsetDateTime? {
+      if(id == 59027)
+         print("")
 
       if(htmlReleaseDate != null)
          return htmlReleaseDate
@@ -44,7 +47,7 @@ data class MalSeasonalListItem(
       val epoch = Calendar.getInstance().timeInMillis
 
       val today = OffsetDateTime.create(
-         Instant.fromEpochMilliseconds(epoch).toLocalDateTime(TimeZone.currentSystemDefault()),
+         epoch.toLocalDataTime(),
          TimeZone.currentSystemDefault()
       )
 
@@ -55,14 +58,25 @@ data class MalSeasonalListItem(
       if(today <= startDate)
          return startDate
 
-      return today.getDateOfNext(startDate.dateTime.date.dayOfWeek)?.let { nextWeek ->
-         if (endDate == null || nextWeek < endDate)
-            OffsetDateTime.create(
-               LocalDateTime(nextWeek.dateTime.date, startDate.dateTime.time),
-               TimeZone.currentSystemDefault()
-            )
-         else null
+      if (broadcast != null) {
+         val nextWeekDate = today.getDateOfNext(broadcast.weekDay)
+         val nextWeekDateTime = OffsetDateTime.create(
+            LocalDateTime(nextWeekDate, broadcast.time),
+            broadcast.offset
+         )?.toZone(TimeZone.currentSystemDefault())
+
+         return if (nextWeekDateTime != null && (endDate == null || nextWeekDateTime < endDate))
+            nextWeekDateTime else null
       }
+
+      val nextWeekDate = today.getDateOfNext(startDate.dateTime.date.dayOfWeek)
+      val nextWeekDateTime = OffsetDateTime.create(
+         LocalDateTime(nextWeekDate, startDate.dateTime.time),
+         startDate.offset
+      )?.toZone(TimeZone.currentSystemDefault())
+
+      return if (nextWeekDateTime != null && (endDate == null || nextWeekDateTime < endDate))
+         nextWeekDateTime else null
    }
 
    override fun <T> acceptConverter(

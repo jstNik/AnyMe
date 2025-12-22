@@ -231,17 +231,15 @@ class MalRepository @Inject constructor(
 
       } while (offset > 0)
 
-      scraper.scrapeSeasonal(animeMap).forEach { (key, value) ->
+      animeMap.forEach { (key, value) ->
+         val nextEp = scraper.scrapeSeasonal(value)
          animeMap[key]?.let {
             animeMap[key] = it.copy(
-               nextEp = NextEpisode(
-                  value.number,
-                  value.releaseDate
-               )
+               nextEp = nextEp
             )
          }
       }
-
+      Log.d("Seasonal", "Emitting second time")
       emit(animeMap.values.toList())
 
    }

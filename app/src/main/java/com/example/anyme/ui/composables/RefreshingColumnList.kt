@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,14 +50,11 @@ fun <T: ScrollableState> SwipeUpToRefresh(
    content: @Composable () -> Unit
 ){
 
-   val isPullToRefreshedEnabled by derivedStateOf {
-      val distance = pullToRefreshState.distanceFraction
-      val scrollInProgress = scrollableState.isScrollInProgress
-      val scrollBackwards = scrollableState.canScrollBackward
-      val res = pullToRefreshState.distanceFraction > 0F ||
-              !scrollableState.isScrollInProgress && !scrollableState.canScrollBackward
-      Log.d("Refreshing", "$res = $distance > 0F || !$scrollInProgress && !$scrollBackwards")
-      res
+   val isPullToRefreshedEnabled by remember {
+      derivedStateOf {
+         pullToRefreshState.distanceFraction > 0F ||
+                 !scrollableState.isScrollInProgress && !scrollableState.canScrollBackward
+      }
    }
 
    Box(
@@ -86,7 +84,7 @@ fun <T> LazyColumnList(
    contentPadding: PaddingValues = PaddingValues(),
    onSwipeStartToEnd: (listItem: T) -> Unit = { },
    onSwipeEndToStart: (listItem: T) -> Unit = { },
-   divisor: @Composable LazyItemScope.(Int, T) -> Unit = { idx, item -> },
+   divisor: @Composable LazyItemScope.(Int, T) -> Unit = { _, _ -> },
    content: @Composable LazyItemScope.(Int, T) -> Unit,
 ) {
    LazyColumn(

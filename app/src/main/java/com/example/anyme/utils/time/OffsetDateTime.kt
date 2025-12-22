@@ -84,6 +84,12 @@ class OffsetDateTime private constructor(
          }
       }
 
+      fun create(localDateTime: LocalDateTime?, offset: Offset): OffsetDateTime? {
+         return localDateTime?.let {
+            OffsetDateTime(it, offset)
+         }
+      }
+
       fun parse(string: String): OffsetDateTime? {
          try {
             val (time, _offset) = Offset.splitTimeWithOffset(string)

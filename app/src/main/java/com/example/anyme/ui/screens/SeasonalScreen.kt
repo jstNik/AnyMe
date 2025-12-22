@@ -1,20 +1,38 @@
 package com.example.anyme.ui.screens
 
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +41,8 @@ import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
 import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.ui.theme.Pages.Companion.DETAILS
+import com.example.anyme.ui.theme.cs
+import com.example.anyme.ui.theme.typo
 import com.example.anyme.utils.Resource
 import com.example.anyme.utils.shift
 import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
@@ -30,6 +50,7 @@ import com.example.anyme.viewmodels.SeasonalViewModel
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 
 
@@ -40,28 +61,31 @@ fun SeasonalScreen(
 ) {
 
    val navigator = LocalNavHostController.current
+   val today by viewModel.today.collectAsStateWithLifecycle()
+   val weekDays by remember {
+      derivedStateOf {
+         val weekDay = today.dayOfWeek.ordinal
+         DayOfWeek.entries.shift(weekDay).mapIndexed { idx, _ ->
+            today.date.plus(DatePeriod(days = idx))
+         }
+      }
+   }
+   var chosenDate by remember(today) { mutableStateOf(weekDays[0]) }
+   val labels = weekDays.map {
+      it.dayOfWeek.name.lowercase().capitalize(Locale.current) + " ${it.dayOfMonth}"
+   }
+   val lazyListState = rememberLazyListState()
+   val resource by viewModel.seasonalMedia.collectAsStateWithLifecycle()
+   var currentTime: LocalTime? = null
+   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+   val onlyInMyList by viewModel.onlyInMyList.collectAsStateWithLifecycle()
 
    Column(
       modifier = Modifier
          .fillMaxSize()
+         .padding(horizontal = 8.dp)
          .padding(contentPadding)
    ) {
-
-      val today by viewModel.today.collectAsStateWithLifecycle()
-      val weekDays by remember {
-         derivedStateOf {
-            val weekDay = today.dayOfWeek.ordinal
-            DayOfWeek.entries.shift(weekDay).mapIndexed { idx, _ ->
-               today.date.plus(DatePeriod(days = idx))
-            }
-         }
-      }
-      var chosenDate by remember(today) { mutableStateOf(weekDays[0]) }
-      val labels = weekDays.map { it.dayOfWeek.name.lowercase() + " ${it.dayOfMonth}" }
-      val lazyListState = rememberLazyListState()
-      val resource by viewModel.seasonalMedia.collectAsStateWithLifecycle()
-      var currentTime: LocalTime? = null
-      val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
       when(resource.status){
          Resource.Status.Success -> {
@@ -74,8 +98,24 @@ fun SeasonalScreen(
                edgePadding = 0.dp,
             ) { idx ->
                weekDays.getOrNull(idx)?.let { weekDays ->
+                  viewModel.selectWeekDay(weekDays.dayOfWeek)
                   chosenDate = weekDays
                }
+            }
+
+            Row(
+               verticalAlignment = Alignment.CenterVertically,
+               horizontalArrangement = Arrangement.End,
+               modifier = Modifier.fillMaxWidth()
+            ) {
+               Text(
+                  "Show only anime in your list"
+               )
+               Switch(
+                  checked = onlyInMyList,
+                  onCheckedChange = { viewModel.onCheckedChanged(it) },
+                  modifier = Modifier.scale(0.75F)
+               )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,18 +137,40 @@ fun SeasonalScreen(
                      else
                         (-it - 1)
                   },
-                  divisor = { _, render ->
-                     val media = render.media
-                     media.getDateTimeNextEp()?.let { releaseDate ->
+                  divisor = { idx, render ->
+                     Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(
+                           start = 4.dp,
+                           top = if(idx == 0) 0.dp else 4.dp,
+                           end = 4.dp,
+                           bottom = 4.dp
+                        )
+                     ) {
+                        val media = render.media
+                        val time = media.getDateTimeNextEp()!!.dateTime.time
+                        val color = cs.tertiary.copy(alpha = 0.5F)
 
-                        val date = releaseDate.dateTime.date
-                        val time = releaseDate.dateTime.time
-
-                        if (date == chosenDate && time != currentTime) {
-                           Text(
-                              text = time.toString()
-                           )
+                        if (time != currentTime) {
                            currentTime = time
+
+                           HorizontalDivider(
+                              modifier = Modifier.weight(0.2F).padding(end = 8.dp),
+                              thickness = 1.dp,
+                              color = color
+                           )
+                           Text(
+                              text = time.toString(),
+                              style = typo.titleLarge.copy(
+                                 fontWeight = FontWeight.Bold,
+                                 color = color
+                              )
+                           )
+                           HorizontalDivider(
+                              modifier = Modifier.weight(0.8F).padding(start = 8.dp),
+                              thickness = 1.dp,
+                              color = color
+                           )
                         }
                      }
                   }
@@ -116,12 +178,11 @@ fun SeasonalScreen(
 
                   val media = render.media
 
-                  media.getDateTimeNextEp()?.let { releaseDate ->
-                     if (releaseDate.dateTime.date == chosenDate)
-                        render.Compose {
-                           navigator.navigate("$DETAILS/${media.host}/${media.id}")
-                        }
-                  }
+                  if (media.getDateTimeNextEp()!!.dateTime.date == chosenDate)
+                     render.Compose {
+                        navigator.navigate("$DETAILS/${media.host}/${media.id}")
+                     }
+
                }
             }
 

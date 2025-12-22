@@ -27,16 +27,13 @@ fun Duration.toCurrentDateTime() = Instant
    .fromEpochMilliseconds(inWholeMilliseconds)
    .toLocalDateTime(TimeZone.currentSystemDefault())
 
-fun OffsetDateTime.getDateOfNext(dayOfWeek: DayOfWeek): OffsetDateTime? {
-   var dateDifference = (dayOfWeek.ordinal - this.dateTime.date.dayOfWeek.ordinal).mod(7)
+fun OffsetDateTime.getDateOfNext(dayOfWeek: DayOfWeek): LocalDate {
+   val dateDifference = (dayOfWeek.ordinal - this.dateTime.date.dayOfWeek.ordinal).mod(7)
    if (dateDifference == 0)
-      return this
-   dateDifference = (this.dateTime.date.dayOfWeek.ordinal + dateDifference) % 7
+      return this.dateTime.date
+
    val datePeriod = DatePeriod(days = dateDifference)
-   return OffsetDateTime.create(
-      LocalDateTime(dateTime.date.plus(datePeriod), dateTime.time),
-      TimeZone.currentSystemDefault()
-   )
+   return this.dateTime.date.plus(datePeriod)
 }
 
 fun <T> List<T>.shift(position: Int): List<T> {

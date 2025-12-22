@@ -109,6 +109,7 @@ fun MalAnime.mapToMalSeasonalListItem(): MalSeasonalListItem {
       mainPicture = mainPicture,
       startDate = startDateTime,
       endDate = endDateTime,
+      broadcast = broadcast,
       htmlNextEp = nextEp.number,
       htmlReleaseDate = nextEp.releaseDate,
       mean = mean,

@@ -131,34 +131,38 @@ open class HtmlScraper @Inject constructor(
       return malAnime
    }
 
-   suspend fun scrapeSeasonal(malSeasonalAnimes: Map<Int, Media>): Map<Int, NextEpisode>{
-      val html = networkManager.getHtml(seasonalUrl)
-      val articles = html.getElementsByTag("article")
-      val animeToTime = mutableMapOf<Int, NextEpisode>()
+   suspend fun scrapeSeasonal(media: Media): NextEpisode {
+      var result = NextEpisode()
+      try {
+         val html = networkManager.getHtml(seasonalUrl)
+         val articles = html.getElementsByTag("article")
 
-      articles.forEach { article ->
-         try {
+         articles.forEach { article ->
             val aMalTag = article.select("a.lc-anime-card--related-links--icon.mal").firstOrNull()
 
             val malIdAsString = aMalTag!!.attr("href").filter { it.isDigit() }
 
-            val malId = Integer.parseInt(malIdAsString)
-            malSeasonalAnimes[malId] ?: return@forEach
+            val malId = malIdAsString.toInt()
+            if (malId == media.id) {
 
-            val releaseDate =
-               article.getElementsByTag("time").attr("data-timestamp").toLong().seconds
+               val releaseDate = article
+                  .getElementsByTag("time")
+                  .attr("data-timestamp")
+                  .toLong().seconds
 
-            val spanTag = article.getElementsByTag("span").firstOrNull()
+               val spanTag = article.getElementsByTag("span").firstOrNull()
 
-            val episodeNumber = spanTag!!.text().filter { it.isDigit() }.toInt()
+               val episodeNumber = spanTag!!.text().filter { it.isDigit() }.toInt()
 
-            val offsetDateTime = OffsetDateTime.create(releaseDate, TimeZone.currentSystemDefault())
-            animeToTime[malId] = NextEpisode(episodeNumber, offsetDateTime)
-         } catch (e: Exception){
-            Log.e("$e", "${e.message}", e)
+               val offsetDateTime =
+                  OffsetDateTime.create(releaseDate, TimeZone.currentSystemDefault())
+               result = NextEpisode(episodeNumber, offsetDateTime)
+            }
          }
+      } catch (e: Exception) {
+         Log.e("$e", "${e.message}", e)
       }
-      return animeToTime
+      return result
    }
 
 
