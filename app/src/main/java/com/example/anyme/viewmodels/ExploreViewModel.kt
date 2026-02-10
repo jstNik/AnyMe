@@ -9,38 +9,60 @@ import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.data.repositories.SettingsRepository
 import com.example.anyme.data.visitors.converters.ConverterVisitor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
-import com.example.anyme.data.visitors.repositories.RepositoryVisitor
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import kotlin.collections.map
-import kotlin.to
 
 @HiltViewModel
-open class ExploreViewModel @Inject constructor(
+class ExploreViewModel @Inject constructor(
    private val settingsRepo: SettingsRepository,
    private val malRepository: MalRepository,
-   private val repositoryVisitor: RepositoryVisitor,
    private val converterVisitor: ConverterVisitor,
    private val renderVisitor: ListItemRenderVisitor
-//   private val malRepository: Repository
 ) : ViewModel() {
 
 
-   val rankingListFlow = MalRepository.MalRankingTypes.entries.map { type ->
-      type to malRepository.fetchRankingLists(type).map {
-         it.map { data ->
-            data.acceptConverter(converterVisitor) { mapper ->
-               mapper.mapDomainToRankingListItem().acceptRender(renderVisitor)
-            }
-         }
-      }.stateIn(
-         scope = viewModelScope,
-         started = SharingStarted.WhileSubscribed(5000L),
-         initialValue = PagingData.empty()
-      ).cachedIn(viewModelScope)
+   private val _searchQuery = MutableStateFlow("")
+
+   private val refreshingBehavior = RefreshingBehavior()
+   val isRefreshing get() = refreshingBehavior.isRefreshing
+
+   fun setSearchQuery(searchQuery: String){
+      _searchQuery.value = searchQuery
    }
+
+   @OptIn(ExperimentalCoroutinesApi::class)
+   val searchList = combine(
+      _searchQuery,
+      isRefreshing
+   ) { searchQuery, refreshing ->
+      searchQuery to refreshing
+   }.distinctUntilChanged().flatMapLatest { (searchQuery, _) ->
+      val result = malRepository.search(searchQuery)
+      refreshingBehavior.stop()
+      result
+   }.map { pagingData ->
+      pagingData.map { data ->
+         data.acceptConverter(converterVisitor) {
+            it.mapDomainToGridItem().acceptRender(renderVisitor)
+         }
+      }
+   }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.WhileSubscribed(5000L),
+      initialValue = PagingData.empty()
+   ).cachedIn(viewModelScope)
+
+   fun refresh(){
+      refreshingBehavior.refresh()
+   }
+
 
 }

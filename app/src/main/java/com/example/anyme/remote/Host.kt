@@ -3,11 +3,13 @@ package com.example.anyme.remote
 import androidx.core.net.toUri
 import com.example.anyme.BuildConfig
 import com.example.anyme.remote.api.MalApi
+import kotlinx.serialization.Serializable
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.CodeVerifierUtil
 import net.openid.appauth.ResponseTypeValues
 
+@Serializable
 enum class Host(val apiKey: String) {
    Mal(BuildConfig.MAL_API_KEY){
       override fun buildAuthorizationRequest(): AuthorizationRequest {

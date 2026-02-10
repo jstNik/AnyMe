@@ -22,6 +22,7 @@ import com.example.anyme.utils.time.Date
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
+import kotlinx.datetime.TimeZone
 
 fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
 
@@ -37,8 +38,8 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
          broadcast = OffsetWeekTime.create(
             broadcastDayOfTheWeek.uppercase(),
             broadcastStartTime
-         ),
-         createdAt = OffsetDateTime.parse(createdAt),
+         )?.toZone(TimeZone.currentSystemDefault()),
+         createdAt = OffsetDateTime.parse(createdAt)?.toZone(TimeZone.currentSystemDefault()),
          endDate = Date.parse(endDate),
          genres = gson.fromJson(genres, object : TypeToken<List<Genre>>() {}),
          id = id,
@@ -50,7 +51,7 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
             myListStatusNumEpisodesWatched,
             myListStatusScore,
             MyList.Status.getEnum(myListStatusStatus),
-            OffsetDateTime.parse(myListStatusUpdatedAt)
+            OffsetDateTime.parse(myListStatusUpdatedAt)?.toZone(TimeZone.currentSystemDefault())
          ),
          nsfw = nsfw,
          numEpisodes = numEpisodes,
@@ -81,11 +82,13 @@ fun MalAnimeDB.mapToMalAnimeDL(gson: Gson): MalAnime {
          studios = gson.fromJson(studios, object : TypeToken<List<Studio>>() {}),
          synopsis = synopsis,
          title = title,
-         updatedAt = OffsetDateTime.parse(updatedAt),
+         updatedAt = OffsetDateTime.parse(updatedAt)?.toZone(TimeZone.currentSystemDefault()),
          episodesType = gson.fromJson(
             episodesType,
             object : TypeToken<RangeMap<EpisodesType>>() {}),
-         nextEp = gson.fromJson(nextEp, NextEpisode::class.java),
+         nextEp = with(gson.fromJson(nextEp, NextEpisode::class.java)){
+            this.copy(releaseDate = releaseDate?.toZone(TimeZone.currentSystemDefault()))
+         },
          hasNotificationsOn = hasNotificationsOn,
          host = host,
          banner = banner

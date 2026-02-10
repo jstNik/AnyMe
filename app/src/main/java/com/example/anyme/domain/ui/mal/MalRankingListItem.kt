@@ -7,8 +7,10 @@ import com.example.anyme.data.visitors.renders.CallbacksBundle
 import com.example.anyme.data.visitors.renders.ListItemRenderAcceptor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.MainPicture
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
+import com.example.anyme.ui.renders.mal.MalRankingFrameRender
 
 @Immutable
 data class MalRankingListItem(
@@ -18,6 +20,7 @@ data class MalRankingListItem(
    val rank: Int = 0,
    val numListUsers: Int = 0,
    val mean: Double = 0.0,
+   val listStatus: MyList.Status = MyList.Status.Unknown,
    override val host: Host = Host.Unknown
 ) : MediaUi, ListItemRenderAcceptor {
 

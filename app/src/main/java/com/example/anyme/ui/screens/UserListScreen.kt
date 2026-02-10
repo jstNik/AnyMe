@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.anyme.domain.dl.mal.MyList
@@ -22,33 +25,33 @@ import com.example.anyme.ui.composables.AnimatedTabRow
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SearchBar
 import com.example.anyme.ui.composables.SwipeUpToRefresh
+import com.example.anyme.ui.navigation.Screen
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.ui.theme.cs
 import com.example.anyme.ui.theme.LocalNavHostController
 import com.example.anyme.ui.theme.Pages.Companion.DETAILS
+import com.example.anyme.viewmodels.RefreshingBehavior
 import com.example.anyme.viewmodels.UserListViewModel
 
 @Composable
 fun UserListScreen(
-   contentPadding: PaddingValues,
-   viewModel: UserListViewModel = hiltViewModel<UserListViewModel>()
+   viewModel: UserListViewModel = hiltViewModel<UserListViewModel>(),
+   onNavigation: (Screen) -> Unit
 ) {
 
-   val navigator = LocalNavHostController.current
    val list = viewModel.list.collectAsLazyPagingItems()
+   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+   val contentPadding = 8.dp
 
    if(list.loadState.refresh !is LoadState.Loading || list.itemCount > 0){
 
       Column(
          modifier = Modifier
             .fillMaxSize()
-            .padding(contentPadding)
       ) {
 
-         val contentPadding = 8.dp
-
          AnimatedTabRow(
-            tabLabels = MyList.Status.entries.map { it.toText() },
+            tabLabels = MyList.Status.entries.filter{ it != MyList.Status.Unknown }.map{ it.toText() },
             edgePadding = 0.dp,
             isScrollable = true
          ) {
@@ -68,8 +71,8 @@ fun UserListScreen(
 
          SwipeUpToRefresh(
             lazyColumnState,
-            isRefreshing = false,
-            onRefresh = { },
+            isRefreshing = isRefreshing == RefreshingBehavior.RefreshingStatus.Refreshing,
+            onRefresh = { viewModel.refresh() },
          ) { ->
 
             LazyColumnList(
@@ -89,8 +92,9 @@ fun UserListScreen(
             ) { idx, item ->
 
                item.Compose {
-                  navigator.navigate("$DETAILS/${item.media.host}/${item.media.id}")
-                  Log.d("OnClick", "${item.media.title} clicked")
+                  onNavigation(
+                     Screen.Details(item.media.id, item.media.host)
+                  )
                }
 
                if (idx != list.itemCount - 1)
@@ -108,8 +112,8 @@ fun UserListScreen(
 @Composable
 fun ComposeUserListActivityPreview() {
    AnyMeTheme {
-      UserListScreen(
-         PaddingValues()
-      )
+      UserListScreen {
+
+      }
    }
 }

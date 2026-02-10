@@ -16,17 +16,14 @@ import com.example.anyme.local.daos.MalDao
 import com.example.anyme.domain.remote.mal.Paging
 import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.MyList
-import com.example.anyme.domain.dl.mal.NextEpisode
 import com.example.anyme.domain.dl.mal.mapToMalAnimeDB
 import com.example.anyme.domain.local.mal.mapToMalAnimeDL
 import com.example.anyme.data.paging.ExploreListPagination
 import com.example.anyme.data.paging.SearchingListPagination
 import com.example.anyme.data.visitors.repositories.MalAnimeRepositoryAcceptor
 import com.example.anyme.domain.dl.TypeRanking
-import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.local.db.MalOrderOption
 import com.example.anyme.local.db.OrderDirection
-import com.example.anyme.utils.Resource.Status
 import com.example.anyme.utils.getSeason
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.toLocalDataTime
@@ -35,21 +32,25 @@ import com.example.type.MediaType
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class MalRepository @Inject constructor(
    private val malApi: MalApi,
@@ -86,96 +87,88 @@ class MalRepository @Inject constructor(
       }
    }
 
+   @OptIn(ExperimentalCoroutinesApi::class)
+   private fun apiRequestUserList() = flow {
+      var offset = 0
+      while (offset >= 0) {
+         val apiResponse = malApi.retrieveUserAnimeList(offset = offset)
+         offset = nextOffset(apiResponse.body()!!.paging)
+         emit(apiResponse.body()!!.data)
+      }
+   }.flowOn(dispatcher).flatMapMerge(concurrency = 5) {
+      it.asFlow()
+   }.map {
+      it.media
+   }.catch {
+
+   }
+
+   @OptIn(ExperimentalCoroutinesApi::class)
+   private fun scrape(flow: Flow<MalAnime>) = flow.flatMapMerge(5) { anime ->
+         channelFlow {
+            if(anime.myList.status == MyList.Status.Watching) {
+               launch(dispatcher) {
+                  runCatching {
+                     scraper.scrapeEpisodesType(anime)
+                  }.onSuccess {
+                     anime.episodesType = it
+                     send(anime)
+                  }
+               }
+            }
+            if (anime.status == MalAnime.AiringStatus.NotYetAired ||
+               anime.status == MalAnime.AiringStatus.CurrentlyAiring
+            ) {
+               launch(dispatcher) {
+                  runCatching {
+                     scraper.scrapeNextEpInfos(anime)
+                  }.onSuccess {
+                     anime.nextEp = it
+                     send(anime)
+                  }
+               }
+            }
+         }
+      }.flowOn(dispatcher)
+
 
    /**
     * Query the Api to retrieve the user anime list
     */
+   @OptIn(ExperimentalCoroutinesApi::class)
    override suspend fun downloadUserMediaList() {
       withContext(dispatcher) {
          try {
-            val dbMalAnimeList = mutableMapOf<Int, MalAnime>()
-            var offset = 0
-
-            do {
-
-               // Call api to retrieve the anime list and compare it wit what inside the database
-               val deferredApiResponse = async { malApi.retrieveUserAnimeList(offset = offset) }
-               val deferredDbMalAnimeList = async { malDao.fetchAnimeIds() }
-
-               // Check if the api response is successful
-               val apiResponse = deferredApiResponse.await()
-
-               offset = nextOffset(apiResponse.body()!!.paging)
-
-               // We got the 2 lists, now we have to update both list with the new data
-               val apiMalAnimeList = apiResponse.body()!!.`data`.associateBy { it.id }
-               dbMalAnimeList += deferredDbMalAnimeList.await().associate {
-                  it.id to it.mapToMalAnimeDL(gson)
-               }.toMutableMap()
-
-               apiMalAnimeList.forEach forEach@{ (id, data) ->
-                  val apiMalAnime = data.media
-                  val dbMalAnime = dbMalAnimeList[id]
-                  val mergedAnime = if (dbMalAnime == null) apiMalAnime
-                  else MalSourcesMerger.merge(apiMalAnime, dbMalAnime, MalApi.USER_LIST_FIELDS)
-
-                  val upsertJob = launch {
-                     if (dbMalAnime == null) {
-                        malDao.insert(apiMalAnime.mapToMalAnimeDB(gson))
-                     } else {
-                        // Preserve local data
-                        if (mergedAnime.myList != dbMalAnime.myList)
-                        // Remove from the lists all animes which appears in apiMalAnime,
-                        // left ones must be deleted from the database
-                           malDao.update(mergedAnime.copy().mapToMalAnimeDB(gson))
-                        dbMalAnimeList.remove(id, dbMalAnime)
-
-                     }
-                  }
-
-                  // If the anime is not in the watching list, skip
-                  if (mergedAnime.myList.status == MyList.Status.Watching) {
-                     launch {
-                        try {
-                           val result = scraper.scrapeEpisodesType(mergedAnime)
-                           upsertJob.join()
-                           malDao.update(result.copy().mapToMalAnimeDB(gson))
-                        } catch (e: Exception) {
-                           Log.e("$e", "${e.message}", e)
-                        }
-                     }
-                  }
-                  // If the anime is not airing, skip
-                  if (mergedAnime.status == MalAnime.AiringStatus.CurrentlyAiring ||
-                     mergedAnime.status == MalAnime.AiringStatus.NotYetAired
-                  ) {
-                     launch {
-                        try {
-                           val result = scraper.scrapeNextEpInfos(mergedAnime)
-                           upsertJob.join()
-                           malDao.update(result.copy().mapToMalAnimeDB(gson))
-                        } catch (e: Exception) {
-                           Log.e("$e", "${e.message}", e)
-                        }
-                     }
+            val mutex = Mutex()
+            val dbAnimeList = malDao.fetchAnimeIds().map { it.mapToMalAnimeDL(gson) }.toMutableList()
+            val upsertFlow = apiRequestUserList().map { apiAnime ->
+               mutex.withLock {
+                  val dbAnime = dbAnimeList.firstOrNull { apiAnime.id == it.id }
+                  if (dbAnime == null) {
+                     apiAnime
+                  } else {
+                     dbAnimeList.remove(dbAnime)
+                     MalSourcesMerger.merge(apiAnime, dbAnime, MalApi.USER_LIST_FIELDS)
                   }
                }
-               // Deleting animes from database which are not in the api anime list
-               val animeToDelete = dbMalAnimeList.values.map {
-                  dbMalAnimeList.remove(it.id)
-                  it.mapToMalAnimeDB(gson)
-               }
-               launch {
-                  malDao.delete(animeToDelete)
-               }
-            } while (offset >= 0)
+            }
 
+            malDao.upsert(upsertFlow.toList().map { it.mapToMalAnimeDB(gson) })
+            if(dbAnimeList.isNotEmpty()) {
+               malDao.delete(dbAnimeList.map { it.mapToMalAnimeDB(gson) })
+            }
+
+            scrape(upsertFlow).collect {
+               malDao.update(it.mapToMalAnimeDB(gson))
+            }
 
          } catch (ex: Exception) {
             Log.e(ex.toString(), ex.message ?: "")
          }
       }
    }
+
+
 
    @OptIn(ExperimentalPagingApi::class)
    override fun fetchMediaUserList(

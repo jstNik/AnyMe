@@ -3,20 +3,31 @@ package com.example.anyme.utils
 import android.os.Parcel
 import android.util.Log
 import com.example.anyme.domain.dl.mal.MalAnime
+import com.example.anyme.domain.dl.mal.MalAnime.EpisodesType
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.utils.time.Date
 import com.example.anyme.utils.time.Offset
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.OffsetWeekTime
+import com.google.gson.Gson
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.parcelize.Parceler
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.nullable
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.lang.reflect.Type
 import kotlin.time.ExperimentalTime
 
@@ -50,6 +61,32 @@ class OffsetDateTimeAdapter : JsonSerializer<OffsetDateTime?>, JsonDeserializer<
    ): OffsetDateTime? = json?.asString?.let { OffsetDateTime.parse(it.replace("–", "-")) }
 }
 
+class KOffsetDateTimeAdapter: KSerializer<OffsetDateTime?>{
+
+   override val descriptor: SerialDescriptor
+      get() = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING).nullable
+
+   @OptIn(ExperimentalSerializationApi::class)
+   override fun serialize(
+      encoder: Encoder,
+      value: OffsetDateTime?
+   ) {
+      value?.let {
+         return encoder.encodeString("${it.toZone(TimeZone.UTC)}")
+      }
+      encoder.encodeNull()
+   }
+
+   @OptIn(ExperimentalSerializationApi::class)
+   override fun deserialize(decoder: Decoder): OffsetDateTime? {
+      return if(decoder.decodeNotNullMark())
+         OffsetDateTime.parse(decoder.decodeString())
+      else
+         decoder.decodeNull()
+   }
+
+}
+
 class OffsetWeekTimeAdapter(
    private val timeZone: TimeZone
 ) : JsonDeserializer<OffsetWeekTime?> {
@@ -77,15 +114,46 @@ class OffsetWeekTimeAdapter(
    }
 }
 
-class EpisodesTypeAdapter: JsonSerializer<MalAnime.EpisodesType>, JsonDeserializer<MalAnime.EpisodesType>{
+class RangeMapEpisodesType: JsonSerializer<RangeMap<EpisodesType>>, JsonDeserializer<RangeMap<EpisodesType>>{
 
    override fun serialize(
-      src: MalAnime.EpisodesType?,
+      src: RangeMap<EpisodesType>,
+      typeOfSrc: Type,
+      context: JsonSerializationContext?
+   ): JsonElement {
+      val json = JsonObject()
+      src.forEach { (key, value) ->
+         json.addProperty("$key", "$value")
+      }
+      return json
+   }
+
+   override fun deserialize(
+      json: JsonElement,
+      typeOfT: Type,
+      context: JsonDeserializationContext
+   ): RangeMap<EpisodesType> {
+
+      val rangeMap = RangeMap<EpisodesType>()
+
+      json.asJsonObject.entrySet().forEach{ (k, v) ->
+         val (start, end) = k.split("..")
+         val type = EpisodesType.getEnum(v.asString)
+         rangeMap[start.toInt()..end.toInt()] = type
+      }
+      return rangeMap
+   }
+}
+
+class EpisodesTypeAdapter: JsonSerializer<EpisodesType>, JsonDeserializer<EpisodesType>{
+
+   override fun serialize(
+      src: EpisodesType?,
       typeOfSrc: Type?,
       context: JsonSerializationContext?
    ): JsonElement = JsonPrimitive(
       src?.toString() ?:
-      MalAnime.EpisodesType.Unknown.toString()
+      EpisodesType.Unknown.toString()
    )
 
 
@@ -93,8 +161,8 @@ class EpisodesTypeAdapter: JsonSerializer<MalAnime.EpisodesType>, JsonDeserializ
       json: JsonElement?,
       typeOfT: Type?,
       context: JsonDeserializationContext?
-   ): MalAnime.EpisodesType =
-      MalAnime.EpisodesType.getEnum(json?.asString ?: "")
+   ): EpisodesType =
+      EpisodesType.getEnum(json?.asString ?: "")
 }
 
 class AiringStatusAdapter: JsonSerializer<MalAnime.AiringStatus>, JsonDeserializer<MalAnime.AiringStatus>{

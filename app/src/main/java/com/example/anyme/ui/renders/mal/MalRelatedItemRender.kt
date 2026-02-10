@@ -20,7 +20,6 @@ import com.example.anyme.domain.dl.mal.mapToMalAnimeDetails
 import com.example.anyme.domain.ui.mal.MalAnimeDetails
 import com.example.anyme.ui.composables.GridEntry
 import com.example.anyme.ui.composables.getMediaPreview
-import com.example.anyme.ui.theme.Debug
 import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.ui.theme.AnyMeTheme
 class MalRelatedItemRender(
@@ -41,10 +40,8 @@ class MalRelatedItemRender(
 
          GridEntry(
             media = media,
-            width = 150.dp,
-            contentPadding = PaddingValues(8.dp),
-            belowImageContentHeight = belowImageContentHeight,
-            debug = Debug,
+            pictureWidth = 150.dp,
+            contentPadding = 8.dp,
             colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerHighest),
             onClick = onClick
          ) {

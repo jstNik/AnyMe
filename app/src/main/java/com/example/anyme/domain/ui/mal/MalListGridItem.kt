@@ -7,8 +7,10 @@ import com.example.anyme.data.visitors.renders.CallbacksBundle
 import com.example.anyme.data.visitors.renders.ListItemRenderAcceptor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.MainPicture
+import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
+import com.example.anyme.ui.renders.mal.MalAnimeSearchFrameRender
 
 @Immutable
 data class MalListGridItem(
@@ -16,7 +18,8 @@ data class MalListGridItem(
    override val title: String = "",
    override val mainPicture: MainPicture = MainPicture(),
    val mean: Double = 0.0,
-   override val host: Host = Host.Unknown
+   override val host: Host = Host.Mal,
+   val listStatus: MyList.Status = MyList.Status.Unknown
 ): MediaUi, ListItemRenderAcceptor {
 
    override fun <T> acceptConverter(

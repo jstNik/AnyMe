@@ -5,7 +5,9 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.anyme.domain.local.mal.MalAnimeDB
 import kotlinx.coroutines.flow.Flow
 
@@ -31,7 +33,12 @@ interface MalDao {
    @Update
    suspend fun update(anime: MalAnimeDB): Int
 
+   @Upsert
+   @Transaction
+   suspend fun upsert(animes: List<MalAnimeDB>): List<Long>
+
    @Delete
+   @Transaction
    suspend fun delete(anime: List<MalAnimeDB>): Int
 
    // FIXME Dummy query to build the app
@@ -49,7 +56,7 @@ interface MalDao {
       filter: String
    ): PagingSource<Int, MalAnimeDB>
 
-   @Query("SELECT * FROM MalAnimeDB ORDER BY id ASC")
+   @Query("SELECT * FROM MalAnimeDB")
    fun fetchAnimeIds(): List<MalAnimeDB>
 
    @Query("SELECT * FROM MalAnimeDB WHERE id = :animeId")

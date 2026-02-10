@@ -8,6 +8,8 @@ fun Data.mapToMalRankingListItem() =
       title = media.title,
       mainPicture = media.mainPicture,
       rank = ranking.rank,
+      mean = media.mean,
       numListUsers = media.numListUsers,
+      listStatus = media.myList.status,
       host = media.host
    )

@@ -7,12 +7,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Leaderboard
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.ui.graphics.Color
 
-const val Debug = false
+const val debug = false
 
 val cs @Composable get() = MaterialTheme.colorScheme
 val typo @Composable get() = MaterialTheme.typography
+val Color.Companion.Orange: Color
+   get() = Color(255, 165, 0)
+
 enum class Pages(
    val route: String,
    val label: String,
@@ -20,8 +25,8 @@ enum class Pages(
    val contentDescription: String?,
    ) {
    List("list", "List", Icons.AutoMirrored.Outlined.FormatListBulleted, "My list"),
-   Explore("explore", "Explore", Icons.Outlined.Explore, "Explore"),
-   Search("search", "Search", Icons.Outlined.Search, "Search"),
+   Explore("ranking", "Ranking", Icons.Outlined.Leaderboard, "Ranking"),
+   Search("explore", "Explore", Icons.Outlined.Explore, "Explore"),
    Calendar("calendar", "Calendar", Icons.Outlined.CalendarMonth, "Calendar");
    //   Profile("Profile", Icons.Outlined.Person, "Profile")
 

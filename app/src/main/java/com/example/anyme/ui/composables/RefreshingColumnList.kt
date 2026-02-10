@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,6 +38,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun <T: ScrollableState> SwipeUpToRefresh(
    scrollableState: T,
    isRefreshing: Boolean,
+   modifier: Modifier = Modifier,
+   contentAlignment: Alignment = Alignment.TopStart,
    onRefresh: () -> Unit = { },
    pullToRefreshState: PullToRefreshState = rememberPullToRefreshState(),
    enabled: Boolean = true,
@@ -47,7 +50,7 @@ fun <T: ScrollableState> SwipeUpToRefresh(
          modifier = Modifier.align(Alignment.TopCenter)
       )
    },
-   content: @Composable () -> Unit
+   content: @Composable ColumnScope.() -> Unit
 ){
 
    val isPullToRefreshedEnabled by remember {
@@ -58,14 +61,17 @@ fun <T: ScrollableState> SwipeUpToRefresh(
    }
 
    Box(
+      contentAlignment = contentAlignment,
       modifier = Modifier.pullToRefresh(
          isRefreshing = isRefreshing,
          state = pullToRefreshState,
          enabled = enabled && isPullToRefreshedEnabled,
          onRefresh = onRefresh
-      )
+      ).then(modifier)
    ){
-      content()
+      Column {
+         content()
+      }
       indicator()
    }
 }

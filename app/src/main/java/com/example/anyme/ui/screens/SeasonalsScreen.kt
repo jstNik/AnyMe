@@ -1,9 +1,7 @@
 package com.example.anyme.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,17 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
@@ -39,28 +29,25 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.anyme.ui.composables.AnimatedTabRow
 import com.example.anyme.ui.composables.LazyColumnList
 import com.example.anyme.ui.composables.SwipeUpToRefresh
-import com.example.anyme.ui.theme.LocalNavHostController
-import com.example.anyme.ui.theme.Pages.Companion.DETAILS
+import com.example.anyme.ui.navigation.Screen
 import com.example.anyme.ui.theme.cs
 import com.example.anyme.ui.theme.typo
 import com.example.anyme.utils.Resource
 import com.example.anyme.utils.shift
 import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
-import com.example.anyme.viewmodels.SeasonalViewModel
+import com.example.anyme.viewmodels.SeasonalsViewModel
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 
 
 @Composable
-fun SeasonalScreen(
-   contentPadding: PaddingValues,
-   viewModel: SeasonalViewModel = hiltViewModel<SeasonalViewModel>()
+fun SeasonalsScreen(
+   viewModel: SeasonalsViewModel = hiltViewModel<SeasonalsViewModel>(),
+   onNavigation: (Screen) -> Unit
 ) {
 
-   val navigator = LocalNavHostController.current
    val today by viewModel.today.collectAsStateWithLifecycle()
    val weekDays by remember {
       derivedStateOf {
@@ -84,7 +71,6 @@ fun SeasonalScreen(
       modifier = Modifier
          .fillMaxSize()
          .padding(horizontal = 8.dp)
-         .padding(contentPadding)
    ) {
 
       when(resource.status){
@@ -105,16 +91,15 @@ fun SeasonalScreen(
 
             Row(
                verticalAlignment = Alignment.CenterVertically,
-               horizontalArrangement = Arrangement.End,
+               horizontalArrangement = Arrangement.Start,
                modifier = Modifier.fillMaxWidth()
             ) {
+               Checkbox(
+                  checked = onlyInMyList,
+                  onCheckedChange = { viewModel.onCheckedChanged(it) }
+               )
                Text(
                   "Show only anime in your list"
-               )
-               Switch(
-                  checked = onlyInMyList,
-                  onCheckedChange = { viewModel.onCheckedChanged(it) },
-                  modifier = Modifier.scale(0.75F)
                )
             }
 
@@ -147,8 +132,8 @@ fun SeasonalScreen(
                            bottom = 4.dp
                         )
                      ) {
-                        val media = render.media
-                        val time = media.getDateTimeNextEp()!!.dateTime.time
+
+                        val time = render.offsetDateTime!!.dateTime.time
                         val color = cs.tertiary.copy(alpha = 0.5F)
 
                         if (time != currentTime) {
@@ -176,11 +161,11 @@ fun SeasonalScreen(
                   }
                ) { _, render ->
 
-                  val media = render.media
-
-                  if (media.getDateTimeNextEp()!!.dateTime.date == chosenDate)
+                  if (render.offsetDateTime!!.dateTime.date == chosenDate)
                      render.Compose {
-                        navigator.navigate("$DETAILS/${media.host}/${media.id}")
+                        onNavigation(
+                           Screen.Details(render.media.id, render.media.host)
+                        )
                      }
 
                }

@@ -6,42 +6,55 @@ import com.example.anyme.domain.dl.mal.MalAnime
 import com.example.anyme.domain.dl.mal.NextEpisode
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.RangeMap
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.datetime.TimeZone
-import org.jsoup.Jsoup
-import java.net.URL
+import org.jsoup.select.Selector
 import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
 open class HtmlScraper @Inject constructor(
-   private val networkManager: JsoupHtmlCacher
+   private val networkManager: JsoupHtmlCacher,
+   private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
    private val seasonalUrl = "https://www.livechart.me/schedule"
+   private val episodesTypeBaseUrl = "https://www.animefillerlist.com"
 
-   suspend fun scrapeEpisodesType(malAnime: MalAnime): MalAnime {
-      val url = """
-         https://www.google.com/search?q=
-         ${malAnime.alternativeTitles.en.ifBlank { malAnime.title }.replace("\"", "")}
-         &as_oq=&as_eq=&as_nlo=&as_nhi=&lr=&cr=&as_qdr=all&as_sitesearch=animefillerlist.com&as_occt=any&as_filetype=&tbs=
-      """.replace("\n", "").replace(" ", "")
+   @OptIn(ExperimentalCoroutinesApi::class)
+   suspend fun scrapeEpisodesType(malAnime: MalAnime): RangeMap<MalAnime.EpisodesType> {
 
-      val html = networkManager.getHtml(url)
+      val html = networkManager.getHtml("$episodesTypeBaseUrl/shows")
 
-      val episodesList = html.select("a").filter { element ->
-         element.attr("href").startsWith("https://www.animefillerlist.com") &&
-                 !element.attr("href").startsWith("https://translate.google.com")
-      }
+      val htmlToEpOffset = html.select("div.Group a[href]").filter { element ->
+         element.text().contains(malAnime.title) || element.text()
+            .contains(malAnime.alternativeTitles.en)
+      }.asFlow().flatMapMerge(concurrency = 5) { element ->
+         flow {
+            try {
+               val showPageRef = episodesTypeBaseUrl + element.attr("href")
+               val showPageHtml = networkManager.getHtml(showPageRef)
+               showPageHtml.select("tbody tr").firstOrNull { tr ->
+                  (tr.select("td.Date").first()?.text() ?: "") == "${malAnime.startDate}"
+               }?.select("td.Number")?.text()?.toIntOrNull()?.minus(1)?.let {
+                  emit(showPageHtml to it)
+               }
+            } catch (e: Selector.SelectorParseException) {
+               Log.e("$e", "${e.message}", e)
+            }
+         }.flowOn(dispatcher)
+      }.first()
 
-      val link = episodesList.first().attr("href")
-      val animeFillerListHtml = Jsoup.connect(link).timeout(10000).get()
-      val epOffset = animeFillerListHtml
-         .select("tbody tr")
-         .first { tr ->
-            (tr.select("td.Date").first()?.text() ?: "") == "${malAnime.startDate}"
-         }.select("td.Number")
-         .text()
-         .toInt() - 1
+
+      val animeFillerListHtml = htmlToEpOffset.first
+      val epOffset = htmlToEpOffset.second
 
       val mangaCanonList = animeFillerListHtml.select("div.manga_canon a").map {
          it to MalAnime.EpisodesType.MangaCanon
@@ -87,12 +100,11 @@ open class HtmlScraper @Inject constructor(
             episodesType[range] = it.second
          }
       }
-      malAnime.episodesType = episodesType
-      return malAnime
+      return episodesType
    }
 
 
-   suspend fun scrapeNextEpInfos(malAnime: MalAnime): MalAnime {
+   suspend fun scrapeNextEpInfos(malAnime: MalAnime): NextEpisode {
       var currentYear = Calendar.getInstance().get(Calendar.YEAR).toFloat()
       val currentSeason = when (Calendar.getInstance().get(Calendar.MONTH) / 3) {
          0 -> "winter"
@@ -127,8 +139,7 @@ open class HtmlScraper @Inject constructor(
          article.select(".release-schedule-info").text().filter { it.isDigit() }.toInt()
       val releaseDate = article.select("time").attr("data-timestamp").toLong().seconds
       val offsetDateTime = OffsetDateTime.create(releaseDate, TimeZone.currentSystemDefault())
-      malAnime.nextEp = NextEpisode(nextEp, offsetDateTime)
-      return malAnime
+      return NextEpisode(nextEp, offsetDateTime)
    }
 
    suspend fun scrapeSeasonal(media: Media): NextEpisode {

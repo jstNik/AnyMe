@@ -1,25 +1,22 @@
 package com.example.anyme.ui.renders.mal
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.anyme.domain.dl.Media
 import com.example.anyme.domain.dl.mal.mapToMalListGridItem
 import com.example.anyme.domain.ui.mal.MalListGridItem
 import com.example.anyme.ui.composables.GridEntry
+import com.example.anyme.ui.composables.GridItemOverImage
+import com.example.anyme.ui.composables.GridTitle
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.ui.theme.AnyMeTheme
@@ -34,41 +31,24 @@ class MalAnimeSearchFrameRender(
    ) {
       with(media) {
          GridEntry(
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainer),
+            contentPadding = 16.dp,
+            cornerSize = 32.dp,
             media = media,
-            contentPadding = PaddingValues(),
-            width = 130.dp,
-            belowImageContentHeight = 50.dp,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+            pictureWidth = 150.dp,
+            verticalArrangement = Arrangement.SpaceEvenly,
             onClick = onClick,
+            modifier = Modifier.fillMaxHeight(),
             overImageContent = {
-               Row(
-                  modifier = Modifier
-                     .padding(4.dp)
-                     .clip(RoundedCornerShape(8.dp))
-                     .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8F))
-                     .padding(4.dp)
-               ) {
-
-                  // TODO Image()
-
-                  Text(
-                     mean.toString()
-                  )
-               }
-            },
+               GridItemOverImage(
+                  mean = mean,
+                  listStatus = listStatus,
+                  parentCornerSize = it
+               )
+            }
          ) {
 
-            Spacer(modifier = Modifier.weight(0.5F))
-
-            Text(
-               title,
-               maxLines = 2,
-               overflow = TextOverflow.Ellipsis,
-               style = MaterialTheme.typography.bodyLarge,
-               textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.weight(0.5F))
+            GridTitle(title)
 
          }
       }

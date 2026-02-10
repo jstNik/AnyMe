@@ -1,46 +1,48 @@
 package com.example.anyme.ui.composables
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation3.runtime.NavKey
+import com.example.anyme.ui.navigation.Screen
 import com.example.anyme.ui.theme.AnyMeTheme
-import com.example.anyme.ui.theme.Pages
 
 @Composable
 fun NavBar(
-   selectedPage: String,
-   onClick: (String) -> Unit
+   selectedScreen: NavKey?,
+   onClick: (Screen.NavBar) -> Unit
 ) {
 
+   val screenList = listOf(
+      Screen.NavBar.UserList,
+      Screen.NavBar.Ranking,
+      Screen.NavBar.Explore,
+      Screen.NavBar.Calendar
+   )
+
    NavigationBar {
-      Pages.entries.forEachIndexed { idx, page ->
+      screenList.forEach { screen ->
 
          NavigationBarItem(
-            selected = selectedPage == page.route,
+            selected = selectedScreen == screen,
             onClick = {
-               onClick(page.route)
+               onClick(screen)
             },
             icon = {
                Icon(
-                  imageVector = page.icon,
-                  contentDescription = page.contentDescription
+                  imageVector = screen.icon,
+                  contentDescription = null
                )
             },
             label = {
+               // TODO style text
                Text(
-                  text = page.label,
-
+                  text = screen.label,
                )
             }
          )
@@ -54,7 +56,7 @@ fun NavBar(
 @Composable
 fun PreviewNavBar(){
    AnyMeTheme {
-      NavBar(Pages.List.route){
+      NavBar(Screen.NavBar.UserList){
 
       }
    }

@@ -10,13 +10,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.anyme.remote.Host
+import com.example.anyme.ui.navigation.Screen
 import com.example.anyme.utils.Resource
 import com.example.anyme.viewmodels.DetailsViewModel
 
 @Composable
 fun DetailsScreen(
-   contentPadding: PaddingValues,
-   viewModel: DetailsViewModel = hiltViewModel<DetailsViewModel>()
+   id: Int,
+   host: Host,
+   viewModel: DetailsViewModel = hiltViewModel<DetailsViewModel, DetailsViewModel.Factory>(
+      creationCallback = {
+         it.create(id, host)
+      }
+   ),
+   onNavigation: (Screen) -> Unit
 ){
 
    val resource by viewModel.mediaDetails.collectAsStateWithLifecycle()
@@ -26,10 +34,9 @@ fun DetailsScreen(
          Column(
             modifier = Modifier
                .fillMaxSize()
-               .padding(contentPadding)
          ) {
             val media = resource.data!!
-            media.Compose()
+            media.Compose(onNavigation)
          }
       }
       Resource.Status.Loading -> { Log.d("UI State", "Details Screen loading") }

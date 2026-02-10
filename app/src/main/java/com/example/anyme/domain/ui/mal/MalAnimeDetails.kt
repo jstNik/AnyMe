@@ -20,6 +20,7 @@ import com.example.anyme.domain.dl.mal.Statistics
 import com.example.anyme.domain.dl.mal.Studio
 import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
+import com.example.anyme.ui.renders.mal.MalRelatedItemRender
 import com.example.anyme.utils.time.Date
 import com.example.anyme.utils.time.OffsetWeekTime
 import kotlinx.parcelize.Parcelize

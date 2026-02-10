@@ -7,8 +7,10 @@ import com.example.anyme.domain.ui.mal.MalSeasonalListItem
 import com.example.anyme.domain.ui.mal.MalUserListItem
 import com.example.anyme.remote.Host
 import com.example.anyme.ui.renders.mal.MalRelatedItemRender
+import com.example.anyme.utils.RangeMap
 import com.example.anyme.utils.time.OffsetDateTime
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlin.time.ExperimentalTime
@@ -20,8 +22,8 @@ fun MalAnime.mapToMalAnimeDB(gson: Gson): MalAnimeDB = MalAnimeDB(
    averageEpisodeDuration = averageEpisodeDuration,
    background = background,
    broadcastDayOfTheWeek = "${broadcast?.weekDay ?: ""}",
-   broadcastStartTime = broadcast?.let{ "${it.time}${it.offset}" } ?: "",
-   createdAt = "${createdAt ?: ""}",
+   broadcastStartTime = broadcast?.toZone(TimeZone.UTC)?.let{ "${it.time}${it.offset}" } ?: "",
+   createdAt = "${createdAt?.toZone(TimeZone.UTC) ?: ""}",
    endDate = "${endDate ?: ""}",
    genres = gson.toJson(genres),
    id = id,
@@ -33,7 +35,7 @@ fun MalAnime.mapToMalAnimeDB(gson: Gson): MalAnimeDB = MalAnimeDB(
    myListStatusNumEpisodesWatched = myList.numEpisodesWatched,
    myListStatusScore = myList.score,
    myListStatusStatus = myList.status.toString(),
-   myListStatusUpdatedAt = "${myList.updatedAt ?: ""}",
+   myListStatusUpdatedAt = "${myList.updatedAt?.toZone(TimeZone.UTC) ?: ""}",
    nsfw = nsfw,
    numEpisodes = numEpisodes,
    numListUsers = numListUsers,
@@ -59,9 +61,9 @@ fun MalAnime.mapToMalAnimeDB(gson: Gson): MalAnimeDB = MalAnimeDB(
    studios = gson.toJson(studios),
    synopsis = synopsis,
    title = title,
-   updatedAt = "${updatedAt ?: ""}",
-   episodesType = gson.toJson(episodesType),
-   nextEp = gson.toJson(nextEp),
+   updatedAt = "${updatedAt?.toZone(TimeZone.UTC) ?: ""}",
+   episodesType = gson.toJson(episodesType, object: TypeToken<RangeMap<MalAnime.EpisodesType>>(){}.type),
+   nextEp = gson.toJson(nextEp.copy(releaseDate = nextEp.releaseDate?.toZone(TimeZone.UTC))),
    hasNotificationsOn = hasNotificationsOn,
    host = host,
    banner = banner
@@ -75,6 +77,7 @@ fun MalAnime.mapToMalAnimeListItem(): MalUserListItem =
       numEpisodes = numEpisodes,
       myListStatusNumEpisodesWatched = myList.numEpisodesWatched,
       myListStatus = myList.status,
+      myListIsRewatching = myList.isRewatching,
       status = status,
       episodesType = episodesType,
       nextEp = nextEp,
@@ -125,7 +128,8 @@ fun MalAnime.mapToMalListGridItem(): MalListGridItem = MalListGridItem(
    title = title,
    mainPicture = mainPicture,
    mean = mean,
-   host = host
+   host = host,
+   listStatus = myList.status
 )
 
 fun MalAnime.mapToMalAnimeDetails(): MalAnimeDetails = MalAnimeDetails(

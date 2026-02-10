@@ -15,19 +15,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-   @Inject
-   lateinit var malRepository: MalRepository
-
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
 
-      lifecycleScope.launch {
-         malRepository.downloadUserMediaList()
-      }
-
       enableEdgeToEdge()
       setContent {
-         AnyMeTheme(darkTheme = true) {
+         AnyMeTheme {
             AnyMeScaffold()
          }
       }

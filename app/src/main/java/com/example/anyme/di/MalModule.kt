@@ -38,9 +38,12 @@ import com.example.anyme.utils.MyListStatusAdapter
 import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.OffsetWeekTime
 import com.example.anyme.utils.OffsetWeekTimeAdapter
+import com.example.anyme.utils.RangeMap
+import com.example.anyme.utils.RangeMapEpisodesType
 import com.example.anyme.utils.time.Date
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -105,6 +108,7 @@ object MalModule {
       .registerTypeAdapter(MalAnime.AiringStatus::class.java, AiringStatusAdapter())
       .registerTypeAdapter(MalAnime.MediaType::class.java, MediaTypeAdapter())
       .registerTypeAdapter(MyList.Status::class.java, MyListStatusAdapter())
+      .registerTypeAdapter(object: TypeToken<RangeMap<MalAnime.EpisodesType>>(){}.type, RangeMapEpisodesType())
       .create()
 
 

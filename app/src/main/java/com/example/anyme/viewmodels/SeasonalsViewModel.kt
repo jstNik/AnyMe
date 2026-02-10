@@ -1,6 +1,5 @@
 package com.example.anyme.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.anyme.data.repositories.MalRepository
@@ -10,7 +9,9 @@ import com.example.anyme.data.visitors.converters.ConverterVisitor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.ui.mal.MalSeasonalListItem
+import com.example.anyme.ui.renders.MediaListItemRender
 import com.example.anyme.utils.Resource
+import com.example.anyme.utils.time.OffsetDateTime
 import com.example.anyme.utils.time.toLocalDataTime
 import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,11 +34,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.datetime.DayOfWeek
 import java.util.Calendar
 import javax.inject.Inject
+import kotlin.collections.sorted
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
-class SeasonalViewModel @Inject constructor(
+class SeasonalsViewModel @Inject constructor(
    private val settingsRepo: SettingsRepository,
    private val malRepository: MalRepository,
    private val converterVisitor: ConverterVisitor,
@@ -82,14 +84,12 @@ class SeasonalViewModel @Inject constructor(
       } else {
          _cache
       }.map {
-         val renders = it.filter { seasonal ->
-            val f1 = seasonal.getDateTimeNextEp()?.dateTime?.dayOfWeek == weekDay
+         val renders: List<MediaListItemRender.OffsetDateTimeComparable> = it.filter { seasonal ->
+            val f1 = seasonal.dateTimeNextEp?.dateTime?.dayOfWeek == weekDay
             if(onlyInMyList) f1 && seasonal.listStatus != MyList.Status.Unknown else f1
-         }.sortedBy { seasonal ->
-            seasonal.getDateTimeNextEp()
          }.map { seasonal ->
             seasonal.acceptRender(renderVisitor)
-         }
+         }.sorted()
          Resource.success(renders)
       }
    }.onStart {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Card
@@ -21,6 +22,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +49,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.example.anyme.R
 import com.example.anyme.ui.composables.BlurredGlideImage
 import com.example.anyme.ui.composables.getMediaPreview
-import com.example.anyme.ui.theme.Debug
+import com.example.anyme.ui.theme.debug
 import com.example.anyme.ui.theme.AnyMeTheme
 import com.example.anyme.ui.theme.TitleStyle
 
@@ -73,6 +80,19 @@ fun TitleCard(
    val layoutDirection = LocalLayoutDirection.current
    val startPad = contentPadding.calculateLeftPadding(layoutDirection)
    val endPad = contentPadding.calculateRightPadding(layoutDirection)
+   var isTitleOverflowing by remember{
+      mutableStateOf<Boolean?>(null)
+   }
+   var isAlternativeTitleOverflowing by remember{
+      mutableStateOf<Boolean?>(null)
+   }
+   val showAlternativeTitle by remember {
+      derivedStateOf {
+         (isTitleOverflowing == null || isTitleOverflowing == false)
+                 && (isAlternativeTitleOverflowing == null || isAlternativeTitleOverflowing == false)
+                 && alternativeTitle?.isNotEmpty() == true
+      }
+   }
 
    Box(modifier = Modifier.fillMaxWidth()) {
 
@@ -184,10 +204,12 @@ fun TitleCard(
          modifier = Modifier
             .graphicsLayer {
                translationY = yPictureOffset.toPx()
-            }.padding(
+            }
+            .padding(
                start = startPad,
                end = endPad
-            ).then(modifier)
+            )
+            .then(modifier)
       ) {
          if(!debug) {
             BlurredGlideImage(
@@ -218,28 +240,40 @@ fun TitleCard(
                .height(pictureHeight - yPictureOffset)
                .padding(contentPadding)
          ) {
-            Text(
-               title,
-               style = typo.headlineMedium.copy(
-                  lineHeight = (typo.headlineMedium.lineHeight.value / typo.headlineMedium.fontSize.value).em,
-                  fontWeight = FontWeight.Bold
-               ),
-               color = cs.primary,
-               maxLines = 2,
-               autoSize = titleTextAutoSize
-            )
-            alternativeTitle?.let {
-               if (it.isNotBlank())
+            key(showAlternativeTitle) {
+               Text(
+                  title,
+                  style = typo.headlineMedium.copy(
+                     lineHeight = (typo.headlineMedium.lineHeight.value / typo.headlineMedium.fontSize.value).em,
+                     fontWeight = FontWeight.Bold
+                  ),
+                  onTextLayout = {
+                     if (isTitleOverflowing == null)
+                        isTitleOverflowing = it.hasVisualOverflow
+                  },
+                  color = cs.primary,
+                  maxLines = 2,
+                  autoSize = titleTextAutoSize,
+                  modifier = Modifier.weight(0.75F)
+               )
+            }
+            if (showAlternativeTitle)
+               alternativeTitle?.let {
                   Text(
                      text = it,
                      color = cs.secondary,
+                     onTextLayout = { textLayout ->
+                        if(isAlternativeTitleOverflowing == null)
+                           isAlternativeTitleOverflowing = textLayout.hasVisualOverflow
+                     },
                      style = typo.titleLarge.copy(
                         lineHeight = (typo.titleLarge.lineHeight.value / typo.titleLarge.fontSize.value).em
                      ),
                      maxLines = 2,
-                     autoSize = alternativeTitleTextAutoSize
+                     autoSize = alternativeTitleTextAutoSize,
+                     modifier = Modifier.weight(0.25F)
                   )
-            }
+               }
          }
       }
 
@@ -263,7 +297,7 @@ fun PreviewTitleCard() {
          pictureHeight = 170.dp,
          yPictureOffset = 90.dp,
          backgroundPicture = "",
-         debug = Debug,
+         debug = debug,
          modifier = Modifier.padding(horizontal = 16.dp),
          alternativeTitle = media.alternativeTitles.en,
          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),

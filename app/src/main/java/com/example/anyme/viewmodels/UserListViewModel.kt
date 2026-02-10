@@ -10,14 +10,14 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.anyme.data.repositories.MalRepository
 import com.example.anyme.data.repositories.Repository
-import com.example.anyme.domain.dl.mal.MyList
-import com.example.anyme.domain.ui.Settings
 import com.example.anyme.data.repositories.SettingsRepository
 import com.example.anyme.data.visitors.converters.ConverterVisitor
 import com.example.anyme.data.visitors.renders.ListItemRenderVisitor
 import com.example.anyme.domain.dl.mal.MalAnime
+import com.example.anyme.domain.dl.mal.MyList
+import com.example.anyme.domain.ui.Settings
 import com.example.anyme.local.db.MalOrderOption
-import com.google.gson.Gson
+import com.example.anyme.viewmodels.RefreshingBehavior.RefreshingStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,8 +43,12 @@ class UserListViewModel @Inject constructor(
    private data class PagingParams(
       val myListStatus: MyList.Status,
       val orderOption: MalOrderOption,
-      val filter: String
+      val filter: String,
+      val isRefreshing: RefreshingStatus
    )
+
+   private val refreshingBehavior = RefreshingBehavior()
+   val isRefreshing get() = refreshingBehavior.isRefreshing
 
    private val _myListStatus = MutableStateFlow(MyList.Status.Watching)
    private val _orderOption = MutableStateFlow<MalOrderOption>(MalOrderOption.LastUpdatedAt.Asc)
@@ -64,10 +68,17 @@ class UserListViewModel @Inject constructor(
    val list = combine(
       _myListStatus,
       _orderOption,
-      _filter
-   ) { status, orderOption, filter ->
-      PagingParams(status, orderOption, filter)
+      _filter,
+      isRefreshing
+   ) { status, orderOption, filter, refreshing ->
+      PagingParams(status, orderOption, filter, refreshing)
    }.distinctUntilChanged().flatMapLatest { params ->
+      if(params.isRefreshing != RefreshingStatus.NotRefreshing) {
+         viewModelScope.launch {
+            malRepository.downloadUserMediaList()
+         }
+         refreshingBehavior.stop()
+      }
       malRepository.fetchMediaUserList(
          params.myListStatus,
          params.orderOption,
@@ -98,6 +109,10 @@ class UserListViewModel @Inject constructor(
       viewModelScope.launch {
          settingsRepo.changeSettings(settings)
       }
+   }
+
+   fun refresh(){
+      refreshingBehavior.refresh()
    }
 
 }

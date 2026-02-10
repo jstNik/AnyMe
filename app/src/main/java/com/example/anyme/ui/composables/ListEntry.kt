@@ -46,7 +46,7 @@ fun ListEntry(
    modifier: Modifier = Modifier,
    colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
    imageIdealRatio: Double = IMAGE_IDEAL_RATIO,
-   roundedCornerSize: Dp = 16.dp,
+   cornerSize: Dp = 16.dp,
    titleAutoSize: TextAutoSize? = null,
    titleStyle: TextStyle = LocalTextStyle.current,
    maxLines: Int = 2,
@@ -55,13 +55,10 @@ fun ListEntry(
    content: @Composable ColumnScope.() -> Unit
 ) {
 
-   val typo = MaterialTheme.typography
-   val cs = MaterialTheme.colorScheme
-
    Card(
       colors = colors,
       onClick = onClick,
-      shape = RoundedCornerShape(roundedCornerSize),
+      shape = RoundedCornerShape(cornerSize),
       modifier = Modifier
          .fillMaxWidth()
          .height(imageHeight)
@@ -79,7 +76,7 @@ fun ListEntry(
                .height(imageHeight)
                .clip(
                   RoundedCornerShape(
-                     roundedCornerSize, 0.dp, 0.dp, roundedCornerSize
+                     cornerSize, 0.dp, 0.dp, cornerSize
                   )
                )
          ) {

@@ -2,6 +2,7 @@ package com.example.anyme.domain.dl.mal
 
 import android.os.Parcelable
 import com.example.anyme.domain.dl.ListStatus
+import com.example.anyme.utils.KOffsetDateTimeAdapter
 import com.example.anyme.utils.time.OffsetDateTime
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
@@ -19,9 +20,12 @@ data class MyList(
    @SerializedName("status")
    var status: Status = Status.Unknown,
    @SerializedName("updated_at")
+   @Serializable(with = KOffsetDateTimeAdapter::class)
    var updatedAt: OffsetDateTime? = null,
    @SerializedName("start_date")
+   @Serializable(with = KOffsetDateTimeAdapter::class)
    var startDate: OffsetDateTime? = null,
+   @Serializable(with = KOffsetDateTimeAdapter::class)
    @SerializedName("finish_date")
    var finishDate: OffsetDateTime? = null,
    @SerializedName("priority")

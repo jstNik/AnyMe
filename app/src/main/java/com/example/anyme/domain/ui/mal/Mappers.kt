@@ -70,7 +70,8 @@ fun MalListGridItem.mapToMalAnime() =
       title = title,
       mainPicture = mainPicture,
       mean = mean,
-      host = host
+      host = host,
+      myList = MyList(status = listStatus)
    )
 
 fun MalRankingListItem.mapToMalAnime() =
@@ -80,6 +81,8 @@ fun MalRankingListItem.mapToMalAnime() =
          title = title,
          mainPicture = mainPicture,
          numListUsers = numListUsers,
+         myList = MyList(status = listStatus),
+         mean = mean,
          host = host
       ),
       ranking = Ranking(rank)
@@ -93,7 +96,12 @@ fun MalSeasonalListItem.mapToMalAnime() =
       startDate = startDate?.dateTime?.let { Date(it.year, it.month.number, it.dayOfMonth) },
       endDate = endDate?.dateTime?.let { Date(it.year, it.month.number, it.dayOfMonth) },
       nextEp = NextEpisode(htmlNextEp, htmlReleaseDate),
-      host = host
+      host = host,
+      broadcast = broadcast,
+      mean = mean,
+      synopsis = synopsis,
+      genres = genres,
+      myList = MyList(status = listStatus)
    )
 
 fun MalUserListItem.mapToMalAnime() =
@@ -102,7 +110,11 @@ fun MalUserListItem.mapToMalAnime() =
       title = title,
       mainPicture = mainPicture,
       numEpisodes = numEpisodes,
-      myList = MyList(numEpisodesWatched = myListStatusNumEpisodesWatched, status = myListStatus),
+      myList = MyList(
+         numEpisodesWatched = myListStatusNumEpisodesWatched,
+         status = myListStatus,
+         isRewatching = myListIsRewatching
+      ),
       status = status,
       episodesType = episodesType,
       nextEp = nextEp,

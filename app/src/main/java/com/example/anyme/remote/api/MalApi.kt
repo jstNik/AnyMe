@@ -96,7 +96,6 @@ interface MalApi {
          MalAnime::mainPicture.name to "main_picture",
          MalAnime::numListUsers.name to "num_list_users",
          MalAnime::numEpisodes.name to "num_episodes",
-         MalAnime::myList.name to "my_list_status",
          MalAnime::endDate.name to "end_date",
          MalAnime::startDate.name to "start_date",
          MalAnime::alternativeTitles.name to "alternative_titles",
@@ -106,7 +105,8 @@ interface MalApi {
          MalAnime::mediaType.name to "media_type",
          MalAnime::season.name to "start_season",
          MalAnime::averageEpisodeDuration.name to "average_episode_duration",
-         MalAnime::relatedAnime.name to "related_anime"
+         MalAnime::relatedAnime.name to "related_anime",
+         MalAnime::myList.name to "my_list_status{status,score,num_episodes_watched,is_rewatching,start_date,finish_date,priority,num_times_rewatched,rewatch_value,tags,comments,updated_at}"
       )
 
       fun getFieldName(parameterName: String) =
@@ -120,7 +120,8 @@ interface MalApi {
       val RANKING_LIST_FIELDS = BASIC_FIELDS + setOf(
          MalAnime::popularity,
          MalAnime::numListUsers,
-         MalAnime::mean
+         MalAnime::mean,
+         MalAnime::myList
       )
       val SEARCH_FIELDS = BASIC_FIELDS + RANKING_LIST_FIELDS + setOf(
          MalAnime::myList

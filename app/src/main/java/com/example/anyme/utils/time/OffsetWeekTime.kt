@@ -1,5 +1,6 @@
 package com.example.anyme.utils.time
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
@@ -22,6 +23,7 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
+@SuppressLint("ParcelCreator")
 @Serializable
 class OffsetWeekTime private constructor(
    val weekDay: DayOfWeek,

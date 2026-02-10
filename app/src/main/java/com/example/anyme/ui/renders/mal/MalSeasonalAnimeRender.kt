@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.anyme.domain.dl.Media
+import com.example.anyme.domain.dl.mal.Genre
 import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.mapToMalSeasonalListItem
 import com.example.anyme.domain.ui.mal.MalSeasonalListItem
+import com.example.anyme.ui.composables.GridItemOverImage
 import com.example.anyme.ui.composables.ListEntry
 import com.example.anyme.ui.composables.getMediaPreview
 import com.example.anyme.ui.renders.MediaListItemRender
@@ -48,12 +50,26 @@ import com.example.anyme.ui.theme.demographics
 import com.example.anyme.ui.theme.realGenres
 import com.example.anyme.ui.theme.stepBased
 import com.example.anyme.ui.theme.themes
+import com.example.anyme.utils.time.OffsetDateTime
+import com.example.anyme.utils.time.OffsetWeekTime
 import kotlin.math.abs
 import kotlin.math.min
 
 class MalSeasonalAnimeRender(
    override val media: MalSeasonalListItem = MalSeasonalListItem()
-): MediaListItemRender {
+): MediaListItemRender.OffsetDateTimeComparable {
+
+   override val offsetDateTime: OffsetDateTime?
+      get() = media.dateTimeNextEp
+
+   override fun compareTo(other: MediaListItemRender.OffsetDateTimeComparable): Int {
+      val left = media.dateTimeNextEp
+      val right = other.offsetDateTime
+      if(left == null && right == null) return 0
+      if(left == null) return -1
+      if(right == null) return 1
+      return left.compareTo(right)
+   }
 
    @Composable
    override fun Compose(
@@ -74,30 +90,34 @@ class MalSeasonalAnimeRender(
          }
          val genresToDisplay by remember {
             derivedStateOf {
-               if(genres.size < 4) return@derivedStateOf genres
+               if(genres.size < 4) return@derivedStateOf genres.toList()
 
                val list = genres.toMutableList()
+               val selectedGenres = emptyList<Genre>().toMutableList()
 
-               var gen = list.firstOrNull { it.id in realGenres }
-               if(gen == null)
-                  gen = list.firstOrNull { it.id in themes }
-               if(gen == null)
-                  gen = list.firstOrNull { it.id in demographics }
-               gen?.let{ list.remove(gen) }
+               while(selectedGenres.size != min(3, genres.size)) {
+                  var gen = list.firstOrNull { it.id in realGenres }
+                  if (gen == null)
+                     gen = list.firstOrNull { it.id in themes }
+                  if (gen == null)
+                     gen = list.firstOrNull { it.id in demographics }
+                  gen?.let { list.remove(gen) }
 
-               var dem = list.firstOrNull { it.id in demographics }
-               if(dem == null)
-                  dem = list.firstOrNull { it.id in themes }
-               if(dem == null)
-                  dem = list.firstOrNull { it.id in realGenres }
-               dem?.let{ list.remove(dem) }
+                  var dem = list.firstOrNull { it.id in demographics }
+                  if (dem == null)
+                     dem = list.firstOrNull { it.id in themes }
+                  if (dem == null)
+                     dem = list.firstOrNull { it.id in realGenres }
+                  dem?.let { list.remove(dem) }
 
-               var theme = list.firstOrNull { it.id in themes }
-               if(theme == null)
-                  theme = list.firstOrNull { it.id in realGenres }
-               if(theme == null)
-                  theme = list.firstOrNull { it.id in demographics }
-               listOfNotNull(gen, dem, theme)
+                  var theme = list.firstOrNull { it.id in themes }
+                  if (theme == null)
+                     theme = list.firstOrNull { it.id in realGenres }
+                  if (theme == null)
+                     theme = list.firstOrNull { it.id in demographics }
+                  selectedGenres += listOfNotNull(gen, dem, theme)
+               }
+               selectedGenres.toList()
             }
          }
 
@@ -110,41 +130,11 @@ class MalSeasonalAnimeRender(
             titleAutoSize = typo.titleMedium.fontSize.stepBased(0.8),
             titleStyle = typo.titleMedium.copy(color = cs.primary),
             overImageContent = {
-               Box(modifier = Modifier.fillMaxSize()) {
-                  Row(
-                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(cs.surfaceContainerHighest.copy(alpha = 0.8F))
-                        .padding(4.dp)
-                  ) {
-                     Text(
-                        text = "%.02f".format(mean),
-                        style = typo.bodyMedium.copy(
-                           color = cs.primary,
-                           fontWeight = FontWeight.SemiBold
-                        )
-                     )
-                  }
-
-                  if(listStatus != MyList.Status.Unknown)
-                     Row(
-                        modifier = Modifier
-                           .align(Alignment.BottomEnd)
-                           .padding(4.dp)
-                           .clip(RoundedCornerShape(8.dp))
-                           .background(cs.surfaceContainerHighest.copy(alpha = 0.8F))
-                           .padding(4.dp)
-                     ) {
-                        Icon(
-                           Icons.AutoMirrored.Filled.PlaylistAddCheck,
-                           null,
-                           tint = cs.primary
-                        )
-                     }
-
-               }
+               GridItemOverImage(
+                  mean = mean,
+                  listStatus = listStatus,
+                  parentCornerSize = 8.dp
+               )
             }
          ) {
 
@@ -154,10 +144,10 @@ class MalSeasonalAnimeRender(
                   genresToDisplay.forEachIndexed { idx, genre ->
                      Text(
                         text = genre.name,
-                        style = typo.bodySmall.copy(color = cs.tertiary),
+                        style = typo.bodySmall.copy(color = cs.tertiaryFixedDim),
                         modifier = Modifier
                            .clip(RoundedCornerShape(percent = 100))
-                           .background(cs.onTertiary)
+                           .background(cs.onTertiaryFixedVariant)
                            .padding(vertical = 4.dp, horizontal = 8.dp)
                      )
                      if (idx != genresToDisplay.size - 1)

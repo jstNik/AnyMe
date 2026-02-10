@@ -1,6 +1,8 @@
 package com.example.anyme.data.repositories
 
 import androidx.paging.PagingData
+import com.example.anyme.data.repositories.MalRepository.MalRankingTypes
+import com.example.anyme.data.visitors.repositories.MalAnimeRepositoryAcceptor
 import com.example.anyme.data.visitors.repositories.RepositoryAcceptor
 import com.example.anyme.domain.dl.ListStatus
 import com.example.anyme.domain.dl.Media

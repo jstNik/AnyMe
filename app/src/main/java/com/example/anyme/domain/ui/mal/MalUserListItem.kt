@@ -12,6 +12,7 @@ import com.example.anyme.domain.dl.mal.MyList
 import com.example.anyme.domain.dl.mal.NextEpisode
 import com.example.anyme.domain.ui.MediaUi
 import com.example.anyme.remote.Host
+import com.example.anyme.ui.renders.mal.MalUserListAnimeRender
 import com.example.anyme.utils.RangeMap
 
 @Immutable
@@ -22,6 +23,7 @@ data class MalUserListItem(
    val numEpisodes: Int = 0,
    val myListStatusNumEpisodesWatched: Int = 0,
    val myListStatus: MyList.Status = MyList.Status.Unknown,
+   val myListIsRewatching: Boolean = false,
    val status: MalAnime.AiringStatus = MalAnime.AiringStatus.Unknown,
    val episodesType: RangeMap<MalAnime.EpisodesType> = RangeMap(),
    val nextEp: NextEpisode = NextEpisode(),

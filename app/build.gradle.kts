@@ -9,6 +9,7 @@ plugins {
    alias(libs.plugins.dagger.hilt)
    alias(libs.plugins.apollo.graphql)
    id("kotlin-parcelize")
+   alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -89,7 +90,8 @@ dependencies {
    implementation(libs.androidx.hilt.navigation.compose)
    implementation(libs.androidx.datastore.preferences)
    implementation(libs.androidx.foundation)
-   implementation(libs.androidx.navigation.compose)
+   implementation(libs.androidx.navigation3.runtime)
+   implementation(libs.androidx.navigation3.ui)
    testImplementation(libs.junit)
    androidTestImplementation(libs.androidx.junit)
    androidTestImplementation(libs.androidx.espresso.core)
@@ -151,5 +153,16 @@ dependencies {
 
    // Kotlin Reflections
    implementation(libs.kotlin.reflect)
+
+   // Navigation 3
+   implementation(libs.androidx.navigation3.ui)
+   implementation(libs.androidx.navigation3.runtime)
+   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+   implementation(libs.androidx.compose.adaptive.navigation3)
+   implementation(libs.androidx.compose.material3.windowsizeclass)
+
+   // Kotlinx Serialization
+   implementation(libs.kotlinx.serialization.core)
+   implementation(libs.kotlinx.serialization.json)
 
 }
